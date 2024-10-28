@@ -13,7 +13,7 @@ typealias TripForm = List
 typealias TripGroupBox = GroupBox
 #else
 typealias CustomerForm = Form
-typealias TripGroupBox = Group
+typealias CustomerGroupBox = Group
 #endif
 
 extension Color {
@@ -43,12 +43,3 @@ struct LayoutConstants {
     static let sheetIdealHeight = 500.0
 }
 
-extension Binding where Value == String? {
-    func onNone(_ fallback: String) -> Binding<String> {
-        return Binding<String>(get: {
-            return self.wrappedValue ?? fallback
-        }) { value in
-            self.wrappedValue = value
-        }
-    }
-}

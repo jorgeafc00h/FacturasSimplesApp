@@ -44,7 +44,7 @@ struct AddCustomerView: View {
     var body: some View {
         CustomerForm {
             Section(header: Text("Cliente")) {
-                TripGroupBox {
+                CustomerGroupBox {
                     TextField("Nombre", text: $firstName)
                     TextField("Apellido", text: $lastName)
                     
@@ -55,7 +55,7 @@ struct AddCustomerView: View {
             }
             
             Section(header: Text("Direccion")) {
-                TripGroupBox {
+                CustomerGroupBox {
                     TextField("Departamento", text: $departammento)
                     TextField("Municipio", text: $municipio)
                     TextField("Direccion",text: $address)
@@ -63,7 +63,7 @@ struct AddCustomerView: View {
             }
             
             Section(header: Text("Information del Negocio")) {
-                TripGroupBox {
+                CustomerGroupBox {
                     TextField("Empresa", text: $company)
                 }
             }
