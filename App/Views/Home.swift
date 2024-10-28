@@ -9,9 +9,11 @@ import SwiftUI
 
 struct Home: View {
     @State var selectedTab:Int = 2
+    @State var isAuthenticated: Bool = true
     
     var body: some View {
-         
+        
+        if(isAuthenticated){
             TabView(selection: $selectedTab){
                 ProfileView()
                     .navigationBarHidden(true).navigationBarBackButtonHidden(true)
@@ -37,9 +39,13 @@ struct Home: View {
                     }.tag(3)
                 
             }.accentColor(.darkCyan)
-         
-    }
+        }
+        else{
+            LoginView(isAuthenticated: $isAuthenticated)
+        }
         
+    }
+    
     
     init(){
         UITabBar.appearance().barTintColor = UIColor(Color("TabBar-Color"))
@@ -48,7 +54,7 @@ struct Home: View {
     }
 }
 
- 
+
 struct HomeView_Previews: PreviewProvider {
     static var previews: some View {
         Home()

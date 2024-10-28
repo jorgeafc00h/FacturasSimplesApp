@@ -11,13 +11,7 @@ import SwiftData
 struct CustomerDetailView: View {
      
     var customer : Customer
-    
-//    @Binding var customer: Customer
-//    
-//    init(customer: Binding<Customer>) {
-//      _customer = customer
-//    }
-     
+
     
     var body: some View {
         List {
@@ -66,7 +60,7 @@ struct CustomerDetailView: View {
         
     }
 }
-//#Preview(traits: .sampleCustomers) {
-//    @Previewable @Query var customers: [Customer]
-//    CustomerDetailView(customer: customers.first!)
-//}
+#Preview(traits: .sampleCustomers) {
+    @Previewable @Query var customers: [Customer]
+    CustomerDetailView(customer: customers.first!)
+}

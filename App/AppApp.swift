@@ -14,7 +14,7 @@ struct AppApp: App {
     
     var body: some Scene {
         WindowGroup {
-            MainContainerView()
+            Home()
         }
         .modelContainer(modelContainer)
     }

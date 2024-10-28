@@ -42,3 +42,13 @@ struct LayoutConstants {
     static let sheetIdealWidth = 400.0
     static let sheetIdealHeight = 500.0
 }
+
+extension Binding where Value == String? {
+    func onNone(_ fallback: String) -> Binding<String> {
+        return Binding<String>(get: {
+            return self.wrappedValue ?? fallback
+        }) { value in
+            self.wrappedValue = value
+        }
+    }
+}
