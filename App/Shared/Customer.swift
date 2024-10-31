@@ -30,8 +30,8 @@ import SwiftData
     var documentType: String?
     var codActividad: String?
     var descActividad: String?
-    var departamentoCode: String?
-    var municipioCode: String?
+    var departamentoCode: String = ""
+    var municipioCode: String = ""
     var departammento: String
     var municipio: String
     //var color: Color

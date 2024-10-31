@@ -6,10 +6,12 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct Home: View {
     @State var selectedTab:Int = 2
     @State var isAuthenticated: Bool = true
+    
     
     var body: some View {
         
@@ -39,6 +41,7 @@ struct Home: View {
                     }.tag(3)
                 
             }.accentColor(.darkCyan)
+                
         }
         else{
             LoginView(isAuthenticated: $isAuthenticated)
@@ -50,6 +53,7 @@ struct Home: View {
     init(){
         UITabBar.appearance().barTintColor = UIColor(Color("TabBar-Color"))
         UITabBar.appearance().isTranslucent = true
+        
         
     }
 }

@@ -91,11 +91,7 @@ struct CustomersListView: View {
 extension CustomersListView {
     private func deleteCustomers(at offsets: IndexSet) {
         withAnimation {
-            do {
-                try offsets.map { customers[$0] }.forEach(deleteCustomer)
-            } catch let error {
-                print("Failed to delete customers: \(error)")
-            }
+            offsets.map { customers[$0] }.forEach(deleteCustomer)
         }
     }
     

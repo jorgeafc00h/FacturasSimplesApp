@@ -67,36 +67,7 @@ struct AddCustomerView: View {
                     TextField("Empresa", text: $company)
                 }
             }
-            
-//            Section(header: Text("Trip Dates")) {
-//                TripGroupBox {
-//                    HStack {
-//                        VStack(alignment: .leading) {
-//                            Text("Start Date:")
-//                                .font(.caption)
-//                                .foregroundStyle(.secondary)
-//                            
-//                            DatePicker(selection: $startDate, in: dateRange,
-//                                       displayedComponents: .date) {
-//                                Label("Start Date", systemImage: "calendar")
-//                            }
-//                            .labelsHidden()
-//                        }
-//                        Spacer()
-//                        VStack(alignment: .trailing) {
-//                            Text("End Date:")
-//                                .font(.caption)
-//                                .foregroundStyle(.secondary)
-//                            
-//                            DatePicker(selection: $endDate, in: dateRange,
-//                                       displayedComponents: .date) {
-//                                Label("End Date", systemImage: "calendar")
-//                            }
-//                            .labelsHidden()
-//                        }
-//                    }
-//                }
-//            }
+             
         }
         .frame(idealWidth: LayoutConstants.sheetIdealWidth,
                idealHeight: LayoutConstants.sheetIdealHeight)

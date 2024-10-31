@@ -15,6 +15,7 @@ struct CustomersView: View {
     @State private var customersCount = 0
     @State private var unreadCustomersIdentifiers: [PersistentIdentifier] = []
     
+    
     var body: some View {
         NavigationSplitView {
             CustomersListView(selection:$selection,

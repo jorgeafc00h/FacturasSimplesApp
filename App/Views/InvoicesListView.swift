@@ -83,11 +83,8 @@ struct InvoicesListView: View {
 extension InvoicesListView {
     private func deleteInvoices(at offsets: IndexSet) {
         withAnimation {
-            do {
-                try offsets.map { invoices[$0] }.forEach(deleteInvoice)
-            } catch let error {
-                print("Failed to delete INVOICES: \(error)")
-            }
+            offsets.map { invoices[$0] }.forEach(deleteInvoice)
+            
         }
     }
     
