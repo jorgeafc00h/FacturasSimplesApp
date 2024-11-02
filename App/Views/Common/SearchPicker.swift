@@ -1,39 +1,71 @@
- 
+
 
 import SwiftUI
+import SwiftData
 
 struct SearchPicker :View {
     @Environment(\.dismiss) private var dismiss
-    @Binding var  options : [CatalogOption]
     
-    @Binding var selection : CatalogOption?
+    var catalogId: String
+     
     
-    @State var keywords : String = ""
-    var title: String = ""
+    @Query(filter: #Predicate<CatalogOption> { $0.catalog.id == ""})
+    private var options : [CatalogOption]
     
+    @Binding var selection : String?
     
-    init(selection:Binding<CatalogOption?>, options: Binding< [CatalogOption]>,
-         title:String){
+    @Binding var selectedDescription : String?
+    
+    @Binding var showSearch: Bool
+    
+    var title: String
+    
+    @State private var searchText: String = ""
+    
+    var filteredOptions: [CatalogOption] {
+        if searchText.isEmpty {
+           options
+        } else {
+            options.filter { $0.details.localizedStandardContains(searchText) }
+        }
+    }
+    init(catalogId: String ,
+         selection : Binding<String?>,
+         selectedDescription: Binding<String?>,
+         showSearch: Binding<Bool>,
+         title: String){
+        
+        self.catalogId = catalogId
         _selection = selection
-        _options = options
+        _showSearch = showSearch
         self.title = title
+        _selectedDescription = selectedDescription
+        _options = Query(filter: #Predicate<CatalogOption>{$0.catalog.id == catalogId})
     }
     
     var body: some View {
-        VStack{
-            SearchBar()
-            List(selection: $selection){
-                ForEach(options){option in
-                    Text(option.details)
+        NavigationView {
+            List{
+                ForEach(filteredOptions){ option in
+                    SearchPickerItem(option: option)
+                        .onTapGesture {
+                            withAnimation {
+                                showSearch = false
+                                selection = option.code
+                                selectedDescription = option.details
+                                searchText = ""
+                                
+                            }
+                        }
                 }
             }
-            .searchable(text: $keywords, placement: .sidebar)
             
+            .listStyle(.plain)
+            .searchable(text: $searchText, prompt: "Buscar")
+            .frame(idealWidth: LayoutConstants.sheetIdealWidth,
+                   idealHeight: LayoutConstants.sheetIdealHeight)
             .navigationTitle(title)
-            .navigationBarTitleDisplayMode(.inline)
-            .onChange(of: selection) {
-                dismiss()
-            }
+            .navigationBarTitleDisplayMode(.automatic)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancelar") {
@@ -42,6 +74,34 @@ struct SearchPicker :View {
                 }
                 
             }.accentColor(.darkCyan)
+        }.navigationViewStyle(StackNavigationViewStyle())
+    }
+}
+
+struct SearchPickerItem: View {
+    
+    @State var option: CatalogOption
+    
+    var body: some View {
+        HStack {
+            Circle()
+                .fill(.blue)
+                .frame(width: 8, height: 8)
+            
+            Text(option.details)
+                .font(.subheadline)
+                .fontWeight(.semibold)
+                .foregroundColor(.secondary)
+            
         }
+        
+    }
+}
+
+#Preview(traits: .sampleOptions) {
+    @Previewable @Query var samples: [CatalogOption]
+    
+    List {
+        SearchPickerItem(option: samples.first!)
     }
 }

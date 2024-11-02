@@ -36,7 +36,8 @@ import SwiftData
     var municipio: String
     //var color: Color
     
-     
+    var nrc: String?
+    var hasInvoiceSettings: Bool = false
     
     init(firstName: String,lastName: String, nationalId: String,
          email: String,
@@ -73,11 +74,21 @@ extension Customer {
         (firstName.isEmpty ? "" : firstName .first?.uppercased() ?? "") +
         (lastName.isEmpty ? "" : lastName.first?.uppercased() ?? "")
     }
-//    static var preview: Customer {
-//        Customer(firstName: "John",lastName: "Doe", nationalId: "037216721",email: "john@cool.com")
-//    }
+
     
-   
+    func initCustomerInvoiceSettings(){
+        descActividad = "Seleccione Actividad Economica"
+        codActividad = ""
+        
+    }
+    func deactivateCustomerInvoiceSettings(){
+        descActividad = nil
+        codActividad = nil
+        nit = nil
+        nrc = nil
+        
+        
+    }
     
     static var previewCustomers: [Customer] {
         [

@@ -6,7 +6,7 @@ A SwiftUI view that adds a new trip.
 */
 
 import SwiftUI
-import WidgetKit
+import SwiftData
 
 struct AddCustomerView: View {
     @Environment(\.modelContext) private var modelContext
@@ -34,13 +34,14 @@ struct AddCustomerView: View {
     @State private var municipioCode: String = ""
     @State private var departammento: String = ""
     @State private var municipio: String = ""
-//    var dateRange: ClosedRange<Date> {
-//        let start = Date.now
-//        let components = DateComponents(calendar: calendar, timeZone: timeZone, year: 1)
-//        let end = calendar.date(byAdding: components, to: start)!
-//        return start ... end
-//    }
-//    
+    
+    @Query(filter: #Predicate<CatalogOption> { $0.catalog.id == "CAT-012"})
+    private var departamentos : [CatalogOption]
+    
+    @Query(filter: #Predicate<CatalogOption> { $0.catalog.id == "CAT-013"})
+    private var municipios : [CatalogOption]
+    
+
     var body: some View {
         CustomerForm {
             Section(header: Text("Cliente")) {
@@ -54,13 +55,11 @@ struct AddCustomerView: View {
                 }
             }
             
-            Section(header: Text("Direccion")) {
-                CustomerGroupBox {
-                    TextField("Departamento", text: $departammento)
-                    TextField("Municipio", text: $municipio)
-                    TextField("Direccion",text: $address)
-                }
-            }
+            AddressSection(departamentos: departamentos,
+                           municipios: municipios,
+                           departamentoCode: $departamentoCode,
+                           municipioCode: $municipioCode,
+                           address: $address)
             
             Section(header: Text("Information del Negocio")) {
                 CustomerGroupBox {
@@ -92,24 +91,67 @@ struct AddCustomerView: View {
 
     private func addCustomer() {
         withAnimation {
-            //let newTrip = Trip(name: name, destination: destination, startDate: startDate, endDate:
-            //modelContext.insert(newTrip)
+            
+            let dp = departamentos.first(where: { $0.code == departamentoCode})!.details
+            let mp = municipios.first(where: { $0.code == municipioCode && $0.departamento == departamentoCode})!.details
+            
             
             let newCustomer = Customer( firstName: firstName,
                                        lastName: lastName,
                                        nationalId: nationalId,
                                        email: email,
                                        phone: phone,
-                                       departammento: departammento,
-                                       municipio: municipio,
+                                       departammento: dp,
+                                       municipio: mp,
                                        address: address,
                                        company: company
                                       )
+          
+            newCustomer.departamentoCode  = departamentoCode
+            newCustomer.municipioCode = municipioCode
+            
+            
             modelContext.insert(newCustomer)
             try? modelContext.save()
         }
     }
 }
+
+private struct AddressSection: View {
+    
+   
+    @State  var departamentos :[CatalogOption]
+    @State  var municipios: [CatalogOption]
+    @Binding var departamentoCode: String
+    @Binding var municipioCode: String
+    @Binding var address : String
+
+    var body: some View {
+        Section(header: Text("Direccion")) {
+            CustomerGroupBox {
+                Picker("Departamento",selection: $departamentoCode){
+                    ForEach(departamentos,id:\.self){
+                       dep in
+                        Text(dep.details).tag(dep.code)
+                    }
+                }.pickerStyle(.menu)
+                if( !departamentoCode.isEmpty){
+                    Picker("Municipio",selection:$municipioCode){
+                        
+                        ForEach(municipios.filter{$0.departamento == departamentoCode},id:\.self){
+                            munic in
+                            Text(munic.details).tag(munic.code)
+                        }
+                    }.pickerStyle(.menu)
+                }
+                TextField("Direccion" , text: $address)
+            }
+            
+        }
+    }
+}
+
+
 
 #Preview(traits: .sampleCustomers) {
     AddCustomerView()

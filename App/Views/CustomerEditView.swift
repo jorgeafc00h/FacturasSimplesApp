@@ -22,8 +22,12 @@ struct CustomerEditView: View {
     
     @Query(filter: #Predicate<CatalogOption> { $0.catalog.id == "CAT-013"})
     private var municipios : [CatalogOption]
-     
+
+    
     @State private var displayPickerSheet: Bool = false
+    @State private var nrc : String = ""
+    @State private var nit: String = ""
+    
     
     var body: some View {
         CustomerForm {
@@ -45,8 +49,21 @@ struct CustomerEditView: View {
                            municipio: $municipio)
             
             Section(header: Text("Information del Negocio")) {
+            
+                     
                 CustomerGroupBox {
-                    TextField("Empresa" , text: $customer.company)
+                    Toggle("Configuracoin de Facturacion", isOn: $customer.hasInvoiceSettings)
+                         
+                    if customer.hasInvoiceSettings {
+                        TextField("Empresa" , text: $customer.company)
+                        TextField("NIT" , text:  $nit )
+                            .onChange(of: nit){customer.nit = nit}
+                        TextField("NRC", text: $nrc)
+                            .onChange(of: nrc){ customer.nrc = nrc}
+                        Button(customer.descActividad ?? "Actividad Economica"){
+                            displayPickerSheet.toggle()
+                        }
+                    }
                 }
             }
         }
@@ -58,35 +75,48 @@ struct CustomerEditView: View {
         .navigationTitle("Editar Cliente" )
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button("Guardar") {
+                Button("Guardar", systemImage: "checkmark") {
                     //SaveUpdate()
                     dismiss()
-                }
+                }.buttonStyle(BorderlessButtonStyle())
             }
         }.accentColor(.darkCyan)
+        .sheet(isPresented: $displayPickerSheet){
+            SearchPicker(catalogId: "CAT-019",
+                         selection: $customer.codActividad,
+                         selectedDescription: $customer.descActividad,
+                         showSearch: $displayPickerSheet,
+                         title:"Actividad Economica")
+        }
+        .accentColor(.darkCyan)
         
     
     }
-    
-  
-    
+        
     private func SaveUpdate() {
          withAnimation {
+             
+             if customer.hasInvoiceSettings ||
+                    !nrc.isEmpty || !nit.isEmpty{
+                 customer.nrc = nrc
+                 customer.nit = nit
+             }
              
              if modelContext.hasChanges {
                 try! modelContext.save()
              }
          }
     }
-    
-    private func RefreshDropwDowns(){
-        
-    }
-    
+     
     private func InitCollections(){
         departamento = customer.departamentoCode
         municipio = customer.municipioCode
+        nrc = customer.nrc ?? ""
+        nit = customer.nit ?? ""
     }
+    
+
+    
 }
 
 private struct AddressSection: View {
@@ -110,7 +140,7 @@ private struct AddressSection: View {
                     customer.departamentoCode = departamento
                      
                     customer.departammento = departamentos.first(where: {$0.code == departamento})!.details
-                }
+                }.pickerStyle(.navigationLink)
                 
                 if( !departamento.isEmpty){
                     Picker("Municipio",selection:$municipio){
@@ -128,6 +158,7 @@ private struct AddressSection: View {
                             municipios.first(where: {$0.departamento == departamento &&  $0.code == municipio})!.details
                         }
                     }
+                    .pickerStyle(.navigationLink)
                 }
                 TextField("Direccion" , text: $customer.address)
             }
@@ -140,5 +171,6 @@ private struct AddressSection: View {
 
 #Preview(traits: .sampleCustomers) {
     @Previewable @Query var custs:[Customer]
+    @Previewable @Query var options :[CatalogOption]
     CustomerEditView(customer: custs.first!)
 }

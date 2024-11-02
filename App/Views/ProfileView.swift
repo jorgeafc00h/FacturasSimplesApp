@@ -21,7 +21,7 @@ struct ProfileView: View {
             
             Color("Marine").ignoresSafeArea().navigationBarHidden(true)
                 .navigationBarBackButtonHidden(true)
-            
+//            
             VStack{
                 
                 VStack{

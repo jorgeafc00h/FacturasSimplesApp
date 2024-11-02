@@ -38,3 +38,23 @@ class CatalogOption : Identifiable{
         self.catalog = catalog
     }
 }
+
+
+
+extension CatalogOption {
+   
+    
+    static var previewCatalogOptions: [CatalogOption] {
+        [
+            CatalogOption(code: "02",
+                          description:"Servicio de beneficiado de plantas textiles (incluye el beneficiado cuando este es realizado en la misma explotación agropecuaria)",
+                          departamento: "",
+                          catalog: Catalog(id:"CAT-013",name:"",options:[])),
+            CatalogOption(code: "01",
+                          description:"Actividades para mejorar la reproducción, el crecimiento y el rendimiento de los animales y sus productos",
+                          departamento: "",
+                          catalog: Catalog(id:"CAT-012",name:"",options:[]))
+            
+        ]
+    }
+}

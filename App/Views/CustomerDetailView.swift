@@ -9,9 +9,9 @@ import SwiftUI
 import SwiftData
 
 struct CustomerDetailView: View {
-     
+    
     var customer : Customer
-
+    
     @State var imagenPerfil:UIImage = UIImage(named: "perfilEjemplo")!
     var body: some View {
         VStack{
@@ -23,22 +23,29 @@ struct CustomerDetailView: View {
             
         }.background(.clear)//.padding(EdgeInsets(top: 0, leading: , bottom: 32, trailing: 0))
         List {
-            
             CustomerViewForiOS()
-            
         }
         .navigationTitle(Text("Cliente"))
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                NavigationLink {
+                    CustomerEditView(customer: customer)
+                } label: {
+                    Image(systemName: "pencil.line")
+                }
+            }
+        }
     }
-   
+    
     
     @ViewBuilder
     private func CustomerViewForiOS() -> some View {
-       
+        
         VStack(alignment: .leading) {
             Text(customer.fullName)
                 .font(.title)
                 .bold()
-           
+            
             HStack {
                 Text("Telefono")
                 Spacer()
@@ -59,7 +66,11 @@ struct CustomerDetailView: View {
         NavigationLink {
             CustomerEditView(customer: customer)
         } label: {
-            Text("Actualizar datos")
+            HStack{
+                
+                Image(systemName: "pencil.line")
+                Text("Actualizar datos")
+            }.foregroundColor(.darkCyan)
         }
         
         Section {
@@ -70,9 +81,42 @@ struct CustomerDetailView: View {
                 Text(customer.municipio)
                 Text(customer.address)
             }
-             
+            
         } header: {
             Text("Direccion")
+        }
+        
+        Section {
+            VStack(alignment: .leading) {
+                Text(customer.company)
+                    .font(.title)
+                    .bold()
+                HStack {
+                    Text("NIT")
+                    Spacer()
+                    Text(customer.nit ?? "")
+                }
+                HStack {
+                    Text("NRC")
+                    Spacer()
+                    Text(customer.nrc ?? "")
+                }
+                Text("Actividad Economica")
+                VStack {
+                     
+                    Text(customer.descActividad ?? "N/A")
+                        .font(.subheadline)
+                        .bold()
+                }.padding()
+                HStack {
+                    Text("Cod Actividad").font(.caption)
+                    Spacer()
+                    Text(customer.codActividad ?? "N/A").font(.caption)
+                }.padding()
+            }
+            
+        } header: {
+            Text("Informacion de Negocio")
         }
         
         

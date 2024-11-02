@@ -27,7 +27,10 @@ struct CustomersListView: View {
         _customersCount = customersCount
         _unreadCustomersIdentifiers = unreadCustomersIdentifiers
         let predicate = #Predicate<Customer> {
-            searchText.isEmpty ? true : $0.firstName.contains(searchText) || $0.lastName.contains(searchText) || $0.email.contains(searchText)
+            searchText.isEmpty ? true :
+            $0.firstName.contains(searchText) ||
+            $0.lastName.contains(searchText) ||
+            $0.email.contains(searchText)
         }
         _customers = Query(filter: predicate, sort: \Customer.firstName)
     }
@@ -53,7 +56,6 @@ struct CustomersListView: View {
             }
             .presentationDetents([.medium, .large])
         }
-        //.sheet(item: $customerToEdit){ cust in CustomerEditView(customer: cust) }
         .toolbar{
             ToolbarItem(placement: .topBarLeading) {
                 EditButton()
@@ -78,7 +80,6 @@ struct CustomersListView: View {
             }
         }
         .navigationTitle("Clientes")
-       
         .onChange(of: customers) {
             customersCount = customers.count
         }
