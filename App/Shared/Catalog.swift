@@ -53,7 +53,40 @@ extension CatalogOption {
             CatalogOption(code: "01",
                           description:"Actividades para mejorar la reproducción, el crecimiento y el rendimiento de los animales y sus productos",
                           departamento: "",
-                          catalog: Catalog(id:"CAT-012",name:"",options:[]))
+                          catalog: Catalog(id:"CAT-012",name:"",options:[])),
+            
+            
+            CatalogOption(code:"45209",
+                          description: "Reparaciones de vehículos n.c.p.",
+                          departamento:"" ,
+                          catalog: Catalog(id:"CAT-019",name:"Código de Actividad Económica Valores",options:[])),
+            
+            CatalogOption(code:"310149",
+                          description: "Actividades para mejorar la reproducción, el crecimiento y el rendimiento de los animales y sus productos",
+                          departamento:"" ,
+                          catalog: Catalog(id:"CAT-019",name:"Código de Actividad Económica Valores",options:[])),
+            
+            CatalogOption(code:"01",
+                          description: "Ahuachapán",
+                          departamento:"" ,
+                          catalog: Catalog(id:"CAT-012",name: "Departamento",options:[])),
+            CatalogOption(code:"02",
+                          description: "Santa Ana",
+                          departamento:"" ,
+                          catalog: Catalog(id:"CAT-012",name: "Departamento",options:[])),
+            
+            CatalogOption(code:"01",
+                          description: "AHUACHAPÁN",
+                          departamento:"01" ,
+                          catalog: Catalog(id:"CAT-013",name: "Municipio",options:[])),
+            CatalogOption(code:"01",
+                          description: "APANECA",
+                          departamento:"01" ,
+                          catalog: Catalog(id:"CAT-013",name: "Municipio",options:[])),
+            CatalogOption(code:"01",
+                          description: "ATIQUIZAYA",
+                          departamento:"01" ,
+                          catalog: Catalog(id:"CAT-013",name: "Municipio",options:[])),
             
         ]
     }

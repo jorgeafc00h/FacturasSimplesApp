@@ -39,6 +39,9 @@ import SwiftData
     var nrc: String?
     var hasInvoiceSettings: Bool = false
     
+    @Relationship(deleteRule: .deny,inverse: \Invoice.customer)
+    var invoices: [Invoice] = []
+    
     init(firstName: String,lastName: String, nationalId: String,
          email: String,
          phone: String,

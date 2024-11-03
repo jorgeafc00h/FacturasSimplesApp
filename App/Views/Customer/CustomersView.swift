@@ -38,6 +38,6 @@ struct CustomersView: View {
 
 
 
-#Preview (traits: .sampleCustomers) {
+#Preview (traits:   .sampleCustomers) {
     CustomersView()
 }
