@@ -23,7 +23,6 @@ import SwiftData
     var zipcode: Int?
     var phone: String
     
-    @Attribute(.unique)
     var nationalId: String
     var contributorId: String?
     var nit: String? 

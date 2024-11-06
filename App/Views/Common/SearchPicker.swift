@@ -40,7 +40,15 @@ struct SearchPicker :View {
         _showSearch = showSearch
         self.title = title
         _selectedDescription = selectedDescription
-        _options = Query(filter: #Predicate<CatalogOption>{$0.catalog.id == catalogId})
+        
+        let predicate = #Predicate<CatalogOption> {
+            searchText.isEmpty ?
+            $0.catalog.id == catalogId :
+            $0.catalog.id == catalogId &&
+            $0.details.localizedStandardContains(searchText)
+            
+        }
+        _options = Query(filter: predicate, sort: \CatalogOption.details)
     }
     
     var body: some View {
@@ -61,7 +69,7 @@ struct SearchPicker :View {
             }
             
             .listStyle(.plain)
-            .searchable(text: $searchText, prompt: "Buscar")
+           
             .frame(idealWidth: LayoutConstants.sheetIdealWidth,
                    idealHeight: LayoutConstants.sheetIdealHeight)
             .navigationTitle(title)
@@ -74,11 +82,12 @@ struct SearchPicker :View {
                 }
                 
             }.accentColor(.darkCyan)
-        }.navigationViewStyle(StackNavigationViewStyle())
+        }
+        .searchable(text: $searchText, prompt: "Buscar")
     }
 }
 
-struct SearchPickerItem: View {
+private struct SearchPickerItem: View {
     
     @State var option: CatalogOption
     

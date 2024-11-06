@@ -31,13 +31,13 @@ struct Home: View {
                 InvoicesView()
                     .tabItem {
                         Image(systemName: "list.bullet.rectangle.portrait")
-                        Text("Inicio")
+                        Text("Fascturas")
                     }.tag(2)
-                Text("Favoritos")
+                ProductsView()
                 // .font(.system(size: 30, weight: .bold, design: .rounded))
                     .tabItem {
-                        Image(systemName: "heart")
-                        Text("Inicio")
+                        Image(systemName: "list.bullet.rectangle.fill")
+                        Text("Productos")
                     }.tag(3)
                 
             }.accentColor(.darkCyan)
