@@ -22,7 +22,7 @@ import SwiftData
     var invoiceNumber: String
     var date: Date
     
-    var customerId: Int
+    //var customerId: Int
     
     var status: InvoiceStatus
     var customer: Customer
@@ -57,7 +57,7 @@ import SwiftData
     
     
     init(invoiceNumber: String,
-         date: Date, customerId: Int,
+         date: Date,
          status: InvoiceStatus, customer: Customer,
          invoiceType: InvoiceType = .Factura,
          generationCode: String = "",
@@ -66,7 +66,7 @@ import SwiftData
         
         self.invoiceNumber = invoiceNumber
         self.date = date
-        self.customerId = customerId
+        //self.customerId = customerId
         
         self.status = status
         self.customer = customer
@@ -137,6 +137,11 @@ enum InvoiceType:Int, Codable {
             }
         }
         
+        var canCratenewInvoice: Bool {
+            
+            return items.count > 0 && status == .Nueva && !invoiceNumber.isEmpty
+        }
+        
         static var previewInvoices: [Invoice] {
             let customer = Customer( firstName: "Joe",lastName: "Cool", nationalId: "037216721",email:"joe@cool.com",phone: "12345678")
             let product1 = Product(productName: "Product 1", unitPrice: 10.0)
@@ -144,14 +149,12 @@ enum InvoiceType:Int, Codable {
             
             let invoice1 = Invoice(invoiceNumber: "INV-001",
                                    date: Date(),
-                                   customerId: 1,
                                    status: .Nueva,
                                    customer: customer,
                                    invoiceType: .Factura)
             
             let invoice2 = Invoice(invoiceNumber: "INV-002",
-                                   date: Date(),
-                                   customerId: 1,
+                                   date: Date(), 
                                    status: .Completada,
                                    customer: customer,
                                    invoiceType: .CCF)

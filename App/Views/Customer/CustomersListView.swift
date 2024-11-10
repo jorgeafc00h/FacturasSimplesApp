@@ -12,20 +12,15 @@ struct CustomersListView: View {
     
     @Query(sort: \Customer.firstName)
     var customers: [Customer]
-    
-    @State var isShowingItemsSheet: Bool = false
-    
+      
     @Binding var selection: Customer?
-    @Binding var customersCount: Int
-    @Binding var unreadCustomersIdentifiers: [PersistentIdentifier]
     
-    init(selection: Binding<Customer?>, customersCount: Binding<Int>,
-         unreadCustomersIdentifiers: Binding<[PersistentIdentifier]>,
+    @State  var viewModel: CustomersListViewModel
+    
+    init(selection: Binding<Customer?>,
          searchText: String) {
         
         _selection = selection
-        _customersCount = customersCount
-        _unreadCustomersIdentifiers = unreadCustomersIdentifiers
         let predicate = #Predicate<Customer> {
             searchText.isEmpty ? true :
             $0.firstName.contains(searchText) ||
@@ -33,12 +28,15 @@ struct CustomersListView: View {
             $0.email.contains(searchText)
         }
         _customers = Query(filter: predicate, sort: \Customer.firstName)
+        
+        viewModel = CustomersListViewModel()
+        
     }
     
     var body: some View {
         List(selection: $selection) {
             ForEach(customers) { customer in
-                CustomersListItem(customer: customer, isUnread: unreadCustomersIdentifiers.contains(customer.persistentModelID))
+                CustomersListItem(customer: customer, isUnread: true)
                     .swipeActions(edge: .trailing) {
                         Button(role: .destructive) {
                             deleteCustomer(customer)
@@ -50,7 +48,7 @@ struct CustomersListView: View {
             }
             .onDelete(perform: deleteCustomers(at:))
         }
-        .sheet(isPresented: $isShowingItemsSheet) {
+        .sheet(isPresented: $viewModel.isShowingItemsSheet) {
             NavigationStack {
                 AddCustomerView()
             }
@@ -59,11 +57,11 @@ struct CustomersListView: View {
         .toolbar{
             ToolbarItem(placement: .topBarLeading) {
                 EditButton()
-                    .disabled(customersCount == 0)
+                    .disabled(viewModel.isDisabledEdit)
             }
             ToolbarItemGroup(placement: .topBarTrailing) {
                 Spacer()
-                Button("Agregar Cliente",systemImage: "plus"){isShowingItemsSheet=true}
+                Button("Agregar Cliente",systemImage: "plus"){ viewModel.isShowingItemsSheet=true}
                     .buttonStyle(BorderlessButtonStyle())
             }
         }
@@ -74,35 +72,19 @@ struct CustomersListView: View {
                 }description: {
                     Text("Los nuevos clientes aparecerán aquí.")
                 }actions: {
-                    Button("Agregar Cliente"){isShowingItemsSheet=true}
+                    Button("Agregar Cliente"){ viewModel.isShowingItemsSheet=true}
                 }
                 .offset(y: -60)
             }
         }
         .navigationTitle("Clientes")
         .onChange(of: customers) {
-            customersCount = customers.count
+            viewModel.customersCount = customers.count
         }
         .onAppear {
-            customersCount = customers.count
+            viewModel.customersCount = customers.count
         }
     }
 }
 
-extension CustomersListView {
-    private func deleteCustomers(at offsets: IndexSet) {
-        withAnimation {
-            offsets.map { customers[$0] }.forEach(deleteCustomer)
-        }
-    }
-    
-    private func deleteCustomer(_ cust: Customer) {
-        /**
-         Unselect the item before deleting it.
-         */
-        if cust.persistentModelID == selection?.persistentModelID {
-            selection = nil
-        }
-        modelContext.delete(cust)
-    }
-}
+ 

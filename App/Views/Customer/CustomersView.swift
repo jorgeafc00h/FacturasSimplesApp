@@ -9,19 +9,12 @@ import SwiftUI
 import SwiftData
 
 struct CustomersView: View {
-    @Environment(\.scenePhase) private var scenePhase
     @State  var selection: Customer?
-    @State private var searchText: String = ""
-    @State private var customersCount = 0
-    @State private var unreadCustomersIdentifiers: [PersistentIdentifier] = []
-    
+    @State var searchText: String = ""
     
     var body: some View {
         NavigationSplitView {
-            CustomersListView(selection:$selection,
-                              customersCount: $customersCount,
-                              unreadCustomersIdentifiers: $unreadCustomersIdentifiers,
-                              searchText: searchText)
+            CustomersListView(selection:$selection,searchText: searchText)
         }
         detail: {
             if let cust = selection {
@@ -31,7 +24,6 @@ struct CustomersView: View {
             }
         }
         .searchable(text: $searchText, placement: .sidebar)
-         
         
    }
 }

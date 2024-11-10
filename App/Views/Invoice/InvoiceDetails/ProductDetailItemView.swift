@@ -12,36 +12,48 @@ struct ProductDetailItemView: View {
     
     var detail: InvoiceDetail
     
+    
     var body: some View {
         HStack {
-            Circle()
-                .fill(.darkCyan)
-                .frame(width: 10, height: 10)
-                .padding(.trailing,7)
             
             VStack(alignment: .leading) {
                 
                 HStack{
                     Text(detail.product.productName)
-                        .font(.headline)
                     Spacer()
                     Text(detail.productTotal.formatted(.currency(code: "USD")))
-                }
-//                Text(detail.quantity)
-//                    .font(.subheadline)
+                        .contentTransition(.numericText(value: Double(23456789)))
+                        
+                    
+                }.font(.headline)
                 
-                if case let (id?, p?) = (detail.quantity, detail.product.unitPrice) {
-                     
-                    HStack {
-                        Text( "cantidad: \(id)")
-                        Image(systemName: "arrow.right")
-                        Spacer()
-                        Text("Precio Unitario: \(p.formatted(.currency(code: "USD")))")
-                    }
-                    .font(.caption)
-                }
+                
+                HStack {
+                    Button("", systemImage: "minus.circle"){
+                        withAnimation{
+                            detail.quantity -= 1
+                        }
+                    }.padding(.horizontal,0)
+                    Text("Cantidad:\(detail.quantity)")
+                        .contentTransition(.numericText(value: Double(  detail.quantity)))
+                        .padding(.horizontal,0)
+                        .font(.footnote)
+                    Button("", systemImage: "plus.circle"){
+                        withAnimation{
+                            detail.quantity += 1
+                        }
+                        
+                    }.padding(.leading,13)
+                    Spacer()
+                    Text("P/U: \(detail.product.unitPrice.formatted(.currency(code: "USD")))")
+                        .font(.footnote)
+                    
+                }.padding(.top,5)
             }
+            
         }
+        .listRowBackground(Color.clear)
+        .buttonStyle(BorderlessButtonStyle())
     }
 }
 
