@@ -10,19 +10,16 @@ struct InvoicesListView: View {
     @State var isShowingItemsSheet: Bool = false
     
     @Binding var selection: Invoice?
-    @Binding var invoicesCount: Int
-    @Binding var unreadInvoicesIdentifiers: [PersistentIdentifier]
+    @State var invoicesCount: Int = 0
     
     @State private var selectedCustomer: Customer?
     @State private var isVisibleCustomerPicker : Bool = true
     
-    init(selection: Binding<Invoice?>, invoicesCount: Binding<Int>,
-         unreadInvoicesIdentifiers: Binding<[PersistentIdentifier]>,
+    init(selection: Binding<Invoice?>,
          searchText: String) {
         
         _selection = selection
-        _invoicesCount = invoicesCount
-        _unreadInvoicesIdentifiers = unreadInvoicesIdentifiers
+         
         let predicate = #Predicate<Invoice> {
             searchText.isEmpty ? true : $0.invoiceNumber.contains(searchText)
         }
