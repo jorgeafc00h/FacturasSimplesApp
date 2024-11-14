@@ -12,40 +12,16 @@ struct ProductPicker: View {
     @Binding var details: [InvoiceDetail]
     
     @State private var isShowingAddNewProduct: Bool = false
-     
-    init(details: Binding<[InvoiceDetail]>) {
-        _details = details
-    }
     
-    var body: some View {
-        NavigationView {
-            
-            if isShowingAddNewProduct{
-                NewProductFormView(details:$details)
-            }
-            else {
-                ProductFromCatalogPicker(details:$details,isShowingAddNewProduct: $isShowingAddNewProduct)
-            }
-            
-        }.presentationDetents([.medium, .large])
-    }
-    
-    
-}
-private struct ProductFromCatalogPicker: View {
     @Environment(\.dismiss) private var dismiss
-     
+    
     @State private var selection: Product?
-    @Binding private var isShowingAddNewProduct: Bool
-   
+    
     @State private var searchText: String = ""
     @Environment(\.modelContext) var modelContext
     
     @Query(sort: \Product.productName)
     var products: [Product] = []
-     
-    @Binding var details: [InvoiceDetail]
-     
     
     var filteredProducts: [Product] {
         if searchText.isEmpty {
@@ -57,12 +33,8 @@ private struct ProductFromCatalogPicker: View {
         }
     }
     
-    
-    init(details: Binding<[InvoiceDetail]>, isShowingAddNewProduct: Binding<Bool>){
-        
+    init(details: Binding<[InvoiceDetail]>) {
         _details = details
-        _isShowingAddNewProduct = isShowingAddNewProduct
-        
         let predicate = #Predicate<Product> {
             searchText.isEmpty ? true : $0.productName.contains(searchText)
         }
@@ -70,6 +42,20 @@ private struct ProductFromCatalogPicker: View {
     }
     
     var body: some View {
+        NavigationView {
+            
+            if isShowingAddNewProduct{
+                NewProductFormView(details:$details)
+            }
+            else {
+                ProductFromCatalogPicker
+            }
+            
+        }.presentationDetents([.medium, .large])
+    }
+    
+    private var ProductFromCatalogPicker: some View {
+        
         withAnimation {
             List {
                 ForEach(filteredProducts) { product in
@@ -104,6 +90,9 @@ private struct ProductFromCatalogPicker: View {
                 }
             }.accentColor(.darkCyan)
         }
+        
+        
+        
     }
     
     private func AddSelectedProduct(){
@@ -115,8 +104,9 @@ private struct ProductFromCatalogPicker: View {
             dismiss()
         }
     }
+    
+    
 }
-
 
 private struct NewProductFormView: View {
     
@@ -187,29 +177,29 @@ private struct NewProductFormView: View {
         }
     }
 }
- 
+
 
 private struct ProductPickerItem: View {
-
+    
     @State var product: Product
-
+    
     var body: some View {
         HStack {
             Circle()
                 .fill(.darkCyan)
                 .frame(width: 7, height: 7)
-
+            
             Text(product.productName)
             Spacer()
             Text("$\(product.unitPrice)")
         }
-
+        
     }
 }
 
 #Preview(traits: .sampleProducts) {
     @Previewable @Query var products: [Product]
-
+    
     List {
         ProductPickerItem(product: products.first!)
     }

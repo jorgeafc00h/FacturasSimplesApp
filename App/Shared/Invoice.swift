@@ -82,6 +82,20 @@ enum InvoiceStatus:Int, Codable {
     case Sincronizando
     case Completada
     case Cancelada
+    
+    func stringValue() -> String {
+        switch(self) {
+        case .Nueva:
+          return "Nueva"
+        case .Cancelada:
+          return "Cancelada"
+        case .Completada:
+            return "Completada"
+        case .Sincronizando:
+            return "Sincronizando"
+        }
+        
+      }
 }
 
 

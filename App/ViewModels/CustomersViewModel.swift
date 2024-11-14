@@ -117,3 +117,57 @@ extension AddCustomerView{
     }
     
 }
+
+
+extension CustomerEditView {
+    
+    @Observable
+    class CustomerEditViewModel{
+        var nrc : String = ""
+        var departamento : String = ""
+        var municipio : String = ""
+        var nit: String = ""
+        
+        var displayPickerSheet: Bool = false
+    
+    }
+    
+    func SaveUpdate() {
+        withAnimation {
+            
+            if customer.hasInvoiceSettings ||
+                !viewModel.nrc.isEmpty || !viewModel.nit.isEmpty{
+                customer.nrc = viewModel.nrc
+                customer.nit = viewModel.nit
+            }
+            
+            if modelContext.hasChanges {
+                try! modelContext.save()
+            }
+        }
+    }
+    
+    func InitCollections(){
+        viewModel.departamento = customer.departamentoCode
+        viewModel.municipio = customer.municipioCode
+        viewModel.nrc = customer.nrc ?? ""
+        viewModel.nit = customer.nit ?? ""
+    }
+    
+    func onDepartamentoChange(){
+        print("departamento: \(viewModel.departamento)")
+        customer.departamentoCode = viewModel.departamento
+        
+        customer.departammento = departamentos.first(where: {$0.code == viewModel.departamento})!.details
+    }
+    
+    
+    func onMunicipioChange(){
+        print("municipio code : \(viewModel.municipio)")
+        if(!viewModel.municipio.isEmpty){
+            customer.municipioCode = viewModel.municipio
+            customer.municipio =
+            municipios.first(where: {$0.departamento == viewModel.departamento &&  $0.code == viewModel.municipio})!.details
+        }
+    }
+}

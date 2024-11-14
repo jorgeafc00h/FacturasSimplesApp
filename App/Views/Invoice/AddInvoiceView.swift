@@ -9,57 +9,45 @@ import SwiftUI
 import SwiftData
 
 struct AddInvoiceView: View {
-    @Environment(\.modelContext) private var modelContext
+    @Environment(\.modelContext)  var modelContext
     @Environment(\.calendar) private var calendar
     @Environment(\.dismiss) private var dismiss
     @Environment(\.timeZone) private var timeZone
     
-    @State private var customer: Customer?
-    @State private var displayPickerSheet: Bool = false
-    @State private var invoiceNumber : String = ""
-    @State private var date: Date = Date()
-    @State private var invoiceType : InvoiceType = .Factura
     
-    @State private var displayProductPickerSheet: Bool = false
-    @State private var details:[InvoiceDetail] = []
     
-    @State private var testL: String = ""
+    @State var viewModel = AddInvoiceViewModel()
     
     var body: some View {
         
-        NavigationStack {
-            
-            VStack{
-                
-                Form{
-                    CustomerSection(customer: $customer, displayPickerSheet: $displayPickerSheet)
-                    
-                    InvoiceDataSection(invoiceNumber: $invoiceNumber,
-                                       date: $date,
-                                       invoiceType: $invoiceType)
+        NavigationStack { 
+            Form{
+                CustomerSection
+                InvoiceDataSection
+                ProductDetailsSection
+                Section {
+                    Button(action: addInvoice, label: {
+                        HStack {
+                            Image(systemName: "checkmark.circle")
+                            Text("Crear Factura")
+                        }
+                    })
+                    .disabled(viewModel.disableAddInvoice)
+                    .frame(maxWidth: .infinity)
+                    .foregroundColor(.white)
+                    .padding()
+                    .background(.darkCyan)
+                    .cornerRadius(10)
                 }
-                Button{
-                    displayProductPickerSheet.toggle()
-                }label: {
-                    HStack{
-                        Image(systemName: "plus")
-                        Text("Agregar Producto")
-                    }.font(.subheadline)
-                }.foregroundColor(.darkCyan)
-                
-                ProductDetailsSection(details: $details)
-                
-                
-                
             }
             .frame(idealWidth: LayoutConstants.sheetIdealWidth,
                    idealHeight: LayoutConstants.sheetIdealHeight)
             .navigationTitle("Nueva Factura")
-            .sheet(isPresented: $displayPickerSheet){
-                CustomerPicker(selection: $customer)
+            .sheet(isPresented: $viewModel.displayPickerSheet){
+                ProductPicker(details:$viewModel.details)
             }
-            .sheet(isPresented: $displayProductPickerSheet){
-                ProductPicker(details: $details)
+            .sheet(isPresented: $viewModel.displayProductPickerSheet){
+                ProductPicker(details: $viewModel.details)
             }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -73,39 +61,22 @@ struct AddInvoiceView: View {
                         //WidgetCenter.shared.reloadTimelines(ofKind: "TripsWidget")
                         dismiss()
                     }
-                    .disabled(invoiceNumber.isEmpty || customer == nil || details.isEmpty)
+                    .disabled(viewModel.disableAddInvoice)
                 }
             }.accentColor(.darkCyan)
         }
         //.presentationDetents([.medium, .large])
     }
     
-    private func addInvoice()
-    {
-        let invoice = Invoice(invoiceNumber: invoiceNumber,
-                              date:date, 
-                              status: .Nueva,
-                              customer: customer!,
-                              invoiceType: invoiceType)
-        invoice.items = details
-        
-        modelContext.insert(invoice)
-    }
-}
-
-private struct CustomerSection :View {
     
-    @Binding var customer: Customer?
-    @Binding var displayPickerSheet: Bool
     
-    var body: some View {
+    private var CustomerSection: some View {
         Section {
-            
             Group{
                 Button{
-                    displayPickerSheet.toggle()
+                    viewModel.displayPickerSheet.toggle()
                 }label: {
-                    if customer == nil {
+                    if viewModel.customer == nil {
                         HStack{
                             Image(systemName: "magnifyingglass")
                             Text("Buscar Cliente")
@@ -113,9 +84,9 @@ private struct CustomerSection :View {
                     }
                     else {
                         HStack{
-                            Text(customer!.fullName)
+                            Text(viewModel.customer!.fullName)
                             Spacer()
-                            Text(customer!.nationalId)
+                            Text(viewModel.customer!.nationalId)
                         }
                     }
                 }
@@ -123,97 +94,59 @@ private struct CustomerSection :View {
             
             
         }
+        
     }
-}
-
-private struct InvoiceDataSection: View{
     
-    @Binding var invoiceNumber: String
-    @Binding var date: Date
-    @Binding var invoiceType: InvoiceType
-    
-    @State var invoiceTypes :[InvoiceType] = [.Factura,.CCF]
-    
-    var body : some View{
+    private var InvoiceDataSection : some View{
         Section {
             Group {
-                TextField("Numero de Factura",text: $invoiceNumber)
+                TextField("Numero de Factura",text: $viewModel.invoiceNumber)
                 HStack{
                     Text("Fecha:")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     Spacer()
-                    DatePicker(selection: $date) {
-                        Label("End Date", systemImage: "calendar")
-                    }
-                    .labelsHidden()
+                    DatePicker("Fecha", selection: $viewModel.date, displayedComponents: .date)
+                        .labelsHidden()
+                    
                 }
+               
                 HStack{
                     Text("Tipo Documento:")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     Spacer()
-                    Picker(" ", selection: $invoiceType) {
-                        ForEach(invoiceTypes, id: \.self) { invoiceType in
+                    Picker(" ", selection: $viewModel.invoiceType) {
+                        ForEach(viewModel.invoiceTypes, id: \.self) { invoiceType in
                             
                             Text(invoiceType.stringValue()).tag(invoiceType)
                         }
-                    }
+                    }.pickerStyle(.segmented)
                 }
                 
             }
             
         }
     }
+    
+    
+    private var ProductDetailsSection: some View {
+        Section(header: Text("Productos")) {
+            ForEach($viewModel.details) { $item in
+                ProductDetailEditView(item: $item)
+            }
+            .onDelete(perform: deleteProduct)
+            
+            Button("Agregar Producto") {
+                viewModel.displayProductPickerSheet.toggle()
+            }
+            .foregroundColor(.darkCyan)
+        }
+        
+    }
 }
 
-private struct ProductDetailsSection : View {
-    
-    @Binding var details: [InvoiceDetail]
-    
-     
-    
-    var body: some View {
-        VStack{
-            List {
-                ForEach(details,id: \.self){ detail in
-                    
-                    ProductDetailItemView(detail: detail)
-                    
-                        .swipeActions(edge: .trailing) {
-                            Button(role: .destructive) {
-                                deleteDetail(detail: detail)
-                                //WidgetCenter.shared.reloadTimelines(ofKind: "CustomersWidget")
-                            } label: {
-                                Label("Eliminar", systemImage: "trash")
-                            }
-                        }
-                }
-            }
-            .edgesIgnoringSafeArea(.bottom)
-            .overlay {
-                if details.isEmpty {
-                    ContentUnavailableView {
-                        Label("productos", systemImage: "list.clipboard.fill").foregroundColor(.blueGray)
-                    }description: {
-                        Text("...")
-                    }
-                    .offset(y: -60)
-                }
-            }
-            
-            
-            
-        }
-    }
-    func deleteDetail(detail:InvoiceDetail){
-        withAnimation{
-            let index = details.firstIndex(of: detail)
-            
-            details.remove(at: index!)
-        }
-    }
-}
+
 
 
 #Preview(traits: .sampleCustomers) {

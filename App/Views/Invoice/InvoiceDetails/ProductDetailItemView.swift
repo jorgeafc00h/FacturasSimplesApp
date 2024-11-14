@@ -22,41 +22,59 @@ struct ProductDetailItemView: View {
                     Text(detail.product.productName)
                     Spacer()
                     Text(detail.productTotal.formatted(.currency(code: "USD")))
-                        .contentTransition(.numericText(value: Double(23456789)))
-                        
+                        .contentTransition(.numericText(value: Double( 233  )))
                     
                 }.font(.headline)
-                
-                
-                HStack {
-                    Button("", systemImage: "minus.circle"){
-                        withAnimation{
-                            detail.quantity -= 1
-                        }
-                    }.padding(.horizontal,0)
-                    Text("Cantidad:\(detail.quantity)")
-                        .contentTransition(.numericText(value: Double(  detail.quantity)))
-                        .padding(.horizontal,0)
-                        .font(.footnote)
-                    Button("", systemImage: "plus.circle"){
-                        withAnimation{
-                            detail.quantity += 1
-                        }
-                        
-                    }.padding(.leading,13)
-                    Spacer()
-                    Text("P/U: \(detail.product.unitPrice.formatted(.currency(code: "USD")))")
-                        .font(.footnote)
+                HStack{
                     
-                }.padding(.top,5)
+                }
+            HStack{
+                Text(detail.productTotal.formatted(.currency(code: "USD")))
+                    .contentTransition(.numericText(value: Double( 0.00  )))
+                    .font(.footnote)
+                Spacer()
+                Text("\(detail.quantity)")
+                    .contentTransition(.numericText(value: Double(detail.quantity)))
+                    .padding()
+                    .font(.footnote)
+            }
             }
             
         }
-        .listRowBackground(Color.clear)
+        //.listRowBackground(Color.clear)
         .buttonStyle(BorderlessButtonStyle())
     }
 }
 
+
+struct ProductDetailEditView: View {
+    
+    @Binding var item: InvoiceDetail
+    
+    var body: some View {
+        VStack{
+            HStack {
+                Text(item.product.productName)
+                Spacer()
+                Stepper("", value: $item.quantity, in: 1...100)
+            }
+            HStack{
+                Text(item.productTotal.formatted(.currency(code: "USD")))
+                    .contentTransition(.numericText(countsDown: true))
+                    .animation(.spring(response: 0.3, dampingFraction: 0.8), value: item.productTotal)
+                    .padding()
+                    .font(.footnote)
+                Spacer()
+                Text("x :\(item.quantity)")
+                    .contentTransition(.numericText(countsDown: true))
+                    .animation(.spring(response: 0.3, dampingFraction: 0.8), value: item.quantity)
+                    .padding()
+                    .padding()
+                    .font(.footnote)
+            }
+        }
+    }
+}
 
 #Preview(traits: .sampleInvoices) {
     @Previewable @Query var invs: [Invoice]
@@ -64,3 +82,5 @@ struct ProductDetailItemView: View {
         ProductDetailItemView(detail: invs.first!.items.first!)
     }
 }
+ 
+
