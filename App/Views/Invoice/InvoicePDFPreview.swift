@@ -11,11 +11,11 @@ struct InvoicePDFPreview: View {
                 .navigationTitle("Vista Previa PDF")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button("Cerrar") {
-                            dismiss()
-                        }
-                    }
+//                    ToolbarItem(placement: .topBarLeading) {
+//                        Button("Cerrar") {
+//                            dismiss()
+//                        }
+//                    }
                     ToolbarItem(placement: .topBarTrailing) {
                         ShareLink(item: pdfData, preview: SharePreview("Factura.pdf")) {
                             Image(systemName: "square.and.arrow.up")

@@ -18,7 +18,7 @@ struct CustomerDetailView: View {
             
             Image(uiImage: imagenPerfil ).resizable().aspectRatio(contentMode: .fill)
                 .frame(width: 76, height: 76)
-                .clipShape(Circle())
+                .clipShape(Circle()) 
             
             
         }.background(.clear)//.padding(EdgeInsets(top: 0, leading: , bottom: 32, trailing: 0))
@@ -32,6 +32,7 @@ struct CustomerDetailView: View {
                     CustomerEditView(customer: customer)
                 } label: {
                     Image(systemName: "pencil.line")
+                        .symbolEffect(.bounce, options: .nonRepeating)
                 }
             }
         }
@@ -67,8 +68,9 @@ struct CustomerDetailView: View {
             CustomerEditView(customer: customer)
         } label: {
             HStack{
-                
                 Image(systemName: "pencil.line")
+                    .foregroundColor(.darkBlue)
+                    .symbolEffect(.breathe, options: .nonRepeating)
                 Text("Actualizar datos")
             }.foregroundColor(.darkCyan)
         }

@@ -1,0 +1,8 @@
+extension InvoiceDetailView {
+    
+     
+    func SyncInvoice(){
+        
+    }
+}
+

@@ -44,7 +44,7 @@ struct AddInvoiceView: View {
                    idealHeight: LayoutConstants.sheetIdealHeight)
             .navigationTitle("Nueva Factura")
             .sheet(isPresented: $viewModel.displayPickerSheet){
-                ProductPicker(details:$viewModel.details)
+                CustomerPicker(selection:$viewModel.customer)
             }
             .sheet(isPresented: $viewModel.displayProductPickerSheet){
                 ProductPicker(details: $viewModel.details)

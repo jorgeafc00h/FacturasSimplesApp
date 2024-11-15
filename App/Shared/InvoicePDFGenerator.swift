@@ -36,11 +36,17 @@ class InvoicePDFGenerator {
             ]
             let subtitleAttributes = [NSAttributedString.Key.font: subtitleFont]
             let regularAttributes = [NSAttributedString.Key.font: regularFont]
-            let smallAttributes = [NSAttributedString.Key.font: smallFont]
+            _ = [NSAttributedString.Key.font: smallFont]
             
             // Header section
             "DOCUMENTO TRIBUTARIO ELECTRÓNICO".draw(at: CGPoint(x: 30, y: 30), withAttributes: titleAttributes)
-            "Factura #: \(invoice.invoiceNumber)".draw(at: CGPoint(x: 30, y: 50), withAttributes: subtitleAttributes)
+            
+            // Add invoice number and date
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateStyle = .medium
+            let formattedDate = dateFormatter.string(from: invoice.date)
+            "Factura #: \(invoice.invoiceNumber)        - Fecha: \(formattedDate)".draw(at: CGPoint(x: 30, y: 50), withAttributes: subtitleAttributes)
+             
             
             // Logo placeholder
             let logoRect = CGRect(x: pageWidth - 150, y: 30, width: 100, height: 60)
@@ -65,7 +71,7 @@ class InvoicePDFGenerator {
             
             // Seller information (left column)
             let sellerInfo = """
-            DATOS DEL EMISOR
+            EMISOR
             
             Nombre o razón social: Empresa S.A.
             NIT: 12345-6
@@ -74,18 +80,19 @@ class InvoicePDFGenerator {
             Número de teléfono: +503 2222-2222
             Correo electrónico: empresa@email.com
             Nombre Comercial: Empresa
+            Tipo Establecimiento: Agencia/Sucursal
             """
             sellerInfo.draw(at: CGPoint(x: 30, y: 160), withAttributes: regularAttributes)
             
             // Customer information (right column)
             let customerInfo = """
-            DATOS DEL CLIENTE
+            CLIENTE
             
-            Nombre o razón social: \(invoice.customer.fullName)
+            Nombre o razón social: \(invoice.customer.company)
             DUI: \(invoice.customer.nationalId)
             Correo electrónico: \(invoice.customer.email)
             Nombre Comercial: \(invoice.customer.fullName)
-            Dirección: \(invoice.customer.address ?? "")
+            Dirección: \(invoice.customer.address)
             """
             customerInfo.draw(at: CGPoint(x: pageWidth/2 + 30, y: 160), withAttributes: regularAttributes)
             
