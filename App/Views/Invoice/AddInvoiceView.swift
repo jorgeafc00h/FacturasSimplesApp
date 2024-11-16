@@ -136,13 +136,41 @@ struct AddInvoiceView: View {
                 ProductDetailEditView(item: $item)
             }
             .onDelete(perform: deleteProduct)
-            
-            Button("Agregar Producto") {
-                viewModel.displayProductPickerSheet.toggle()
+            if viewModel.showAddProductSection {
+                addProductSection
             }
+            HStack{
+                Button(action: SearchProduct,label: {
+                    Label("Buscar Producto", systemImage: "magnifyingglass")
+                })
+                Spacer()
+                Button(action: ShowAddProductSection,label: {
+                    viewModel.showAddProductSection ?
+                    Image(systemName: "xmark.circle.fill")
+                        .contentTransition(.symbolEffect(.replace)):
+                    Image(systemName: "plus")
+                        .contentTransition(.symbolEffect(.replace))
+                })
+            }
+            .buttonStyle(BorderlessButtonStyle())
             .foregroundColor(.darkCyan)
         }
         
+    }
+    private var addProductSection : some View{
+        VStack{
+            TextField("Producto", text: $viewModel.productName)
+            
+            HStack{
+                TextField("Precio Unitario", value: $viewModel.unitPrice, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
+                Spacer()
+                Button(action: AddNewProduct,label: {
+                    Image(systemName: "checkmark.circle.fill")
+                        .contentTransition(.symbolEffect(.replace))
+                       
+                }).disabled(viewModel.canSaveNewProduct)
+            }.padding(.vertical, 10)
+        }.buttonStyle(BorderlessButtonStyle())
     }
 }
 

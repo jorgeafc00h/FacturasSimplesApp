@@ -8,7 +8,7 @@ struct InvoiceEditView: View {
     
     let accentColor = Color(.darkCyan)// Color(red: 0.5, green: 0.0, blue: 0.1) // Wine red
     
-    @State private var viewModel = InvoiceEditViewModel()
+    @State var viewModel = InvoiceEditViewModel()
     
     var body: some View {
         NavigationStack {
@@ -16,7 +16,7 @@ struct InvoiceEditView: View {
                 customerSection
                 invoiceDetailsSection
                 productsSection
-                
+               
                 Section {
                     Button(action: saveInvoice, label: {
                         HStack {
@@ -47,7 +47,7 @@ struct InvoiceEditView: View {
                 Text(invoice.customer.fullName)
                 Spacer()
                 
-                .foregroundColor(accentColor)
+                    .foregroundColor(accentColor)
             }
         }
         
@@ -55,7 +55,7 @@ struct InvoiceEditView: View {
     
     private var invoiceDetailsSection: some View {
         
-         
+        
         
         Section(header: Text("Factura")) {
             TextField("Numero Factura", text: $invoice.invoiceNumber)
@@ -72,23 +72,55 @@ struct InvoiceEditView: View {
                     Text(invoiceType.stringValue()).tag(invoiceType)
                 }
             }.pickerStyle(.segmented)
-
+            
         }
     }
     
     private var productsSection: some View {
+        
         Section(header: Text("Productos")) {
             ForEach($invoice.items) { $item in
                 ProductDetailEditView(item: $item)
             }
             .onDelete(perform: deleteProduct)
-            
-            Button("Agregar Producto") {
-                viewModel.showingProductPicker = true
+            if viewModel.showAddProductSection {
+                addProductSection
             }
+            HStack{
+                Button(action: SearchProduct,label: {
+                    Label("Buscar Producto", systemImage: "magnifyingglass")
+                })
+                Spacer()
+                Button(action: ShowAddProductSection,label: {
+                    viewModel.showAddProductSection ?
+                    Image(systemName: "xmark.circle.fill")
+                        .contentTransition(.symbolEffect(.replace)):
+                    Image(systemName: "plus")
+                        .contentTransition(.symbolEffect(.replace))
+                })
+            }
+            .buttonStyle(BorderlessButtonStyle())
             .foregroundColor(accentColor)
+            
         }
-
+        
+        
+    }
+    
+    private var addProductSection : some View{
+        VStack{
+            TextField("Producto", text: $viewModel.productName)
+            
+            HStack{
+                TextField("Precio Unitario", value: $viewModel.unitPrice, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
+                Spacer()
+                Button(action: AddNewProduct,label: {
+                    Image(systemName: "checkmark.circle.fill")
+                        .contentTransition(.symbolEffect(.replace))
+                   	
+                }).disabled(viewModel.canSaveNewProduct)
+            }.padding(.vertical, 10)
+        }.buttonStyle(BorderlessButtonStyle())
     }
     
     private func deleteProduct(at offsets: IndexSet) {
@@ -99,7 +131,7 @@ struct InvoiceEditView: View {
         do {
             try modelContext.save()
             dismiss()
-             
+            
         } catch {
             print("Error saving invoice: \(error)")
         }
@@ -117,4 +149,4 @@ struct InvoiceEditView: View {
     } catch {
         return Text("Failed to create preview: \(error.localizedDescription)")
     }
-} 
+}

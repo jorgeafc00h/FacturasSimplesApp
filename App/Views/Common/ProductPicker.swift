@@ -108,7 +108,7 @@ struct ProductPicker: View {
     
 }
 
-private struct NewProductFormView: View {
+ struct NewProductFormView: View {
     
     @State private var productName: String = ""
     @State private var unitPrice: Decimal = 0.0

@@ -189,6 +189,7 @@ struct InvoiceDetailView: View {
         Section(header: Text("Productos")) {
             ForEach($invoice.items){ $detail in
                 ProductDetailItemView(detail: detail)
+                  
             }
         }
     }

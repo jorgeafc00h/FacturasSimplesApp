@@ -38,6 +38,7 @@ extension AddInvoiceView {
         var customer: Customer?
         var displayPickerSheet: Bool = false
         var displayProductPickerSheet: Bool = false
+        var showAddProductSection = false
         var invoiceNumber : String = ""
         var date: Date = Date()
         var invoiceType : InvoiceType = .Factura
@@ -47,13 +48,16 @@ extension AddInvoiceView {
         var invoiceTypes :[InvoiceType] = [.Factura,.CCF]
         var invoiceStatuses :[InvoiceStatus] = [.Nueva,.Completada,.Cancelada]
         
-       
+        var productName :String = ""
+        var unitPrice :Decimal = 0.0
        
         var disableAddInvoice : Bool {
             return invoiceNumber.isEmpty || details.isEmpty || customer == nil
         }
         
-        
+        var canSaveNewProduct: Bool {
+            return productName.isEmpty && unitPrice.isZero
+        }
        
     }
     
@@ -78,7 +82,29 @@ extension AddInvoiceView {
         }
     }
     func deleteProduct(at offsets: IndexSet) {
-        viewModel.details.remove(atOffsets: offsets)
+        withAnimation{
+            viewModel.details.remove(atOffsets: offsets)
+        }
+    }
+    func SearchProduct(){
+        withAnimation(.bouncy(duration: 4)) {
+            viewModel.displayProductPickerSheet=true;
+        }
+    }
+    func ShowAddProductSection(){
+        withAnimation(.easeInOut(duration: 4)) {
+            viewModel.showAddProductSection.toggle()
+        }
+    }
+    func AddNewProduct(){
+        withAnimation(.easeInOut(duration: 4)) {
+            let product = Product(productName: viewModel.productName, unitPrice: viewModel.unitPrice)
+            viewModel.productName="";
+            viewModel.unitPrice=0.0;
+            let detail = InvoiceDetail(quantity: 1, product: product)
+            viewModel.details.append(detail)
+            viewModel.showAddProductSection.toggle()
+        }
     }
 }
 
@@ -88,10 +114,12 @@ extension InvoiceEditView {
     class InvoiceEditViewModel{
         
         var showingProductPicker = false
+        var showAddProductSection = false
         var invoiceTypes :[InvoiceType] = [.Factura,.CCF]
         var invoiceStatuses :[InvoiceStatus] = [.Nueva,.Completada,.Cancelada]
         
-        
+        var productName :String = ""
+        var unitPrice :Decimal = 0.0
         // 1. Formatter for our value to show as currency
          var currencyFormater: NumberFormatter = {
              var formatter = NumberFormatter()
@@ -102,6 +130,29 @@ extension InvoiceEditView {
              return formatter
          }()
         
+        var canSaveNewProduct: Bool {
+            return productName.isEmpty && unitPrice.isZero
+        }
+    }
+    
+    func SearchProduct(){
+        withAnimation(.easeInOut(duration: 4)) {
+            viewModel.showingProductPicker=true;
+        }
+    }
+    func ShowAddProductSection(){
+        withAnimation(.easeInOut(duration: 4)) {
+            viewModel.showAddProductSection.toggle()
+        }
+    }
+    
+    func AddNewProduct(){
+        let product = Product(productName: viewModel.productName, unitPrice: viewModel.unitPrice)
+        viewModel.productName="";
+        viewModel.unitPrice=0.0;
+        let detail = InvoiceDetail(quantity: 1, product: product)
+        invoice.items.append(detail)
+        viewModel.showAddProductSection.toggle()
     }
 }
 
