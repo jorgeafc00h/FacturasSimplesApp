@@ -16,7 +16,7 @@ struct InvoiceListItem: View {
             VStack{
                 
                 HStack{
-                    Text("#:  \(invoice.invoiceNumber)")
+                    Text("#  \(invoice.invoiceNumber)")
                         .font(.headline)
                     Spacer()
                     Text(invoice.date, style: .date)
@@ -38,7 +38,7 @@ struct InvoiceListItem: View {
                             Text(invoice.customer.fullName)
                                 .font(.headline)
                             Spacer()
-                            Text("$: \(invoice.totalAmount)")
+                            Text("$\(invoice.totalAmount)")
                         }.padding(.top,10)
                         Text("\(invoice.invoiceType)")
                             .font(.caption)

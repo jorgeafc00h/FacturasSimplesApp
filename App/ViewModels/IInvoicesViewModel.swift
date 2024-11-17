@@ -154,6 +154,19 @@ extension InvoiceEditView {
         invoice.items.append(detail)
         viewModel.showAddProductSection.toggle()
     }
+    
+    func saveInvoice() {
+        do {
+            try modelContext.save()
+            dismiss()
+            
+        } catch {
+            print("Error saving invoice: \(error)")
+        }
+    }
+    func deleteProduct(at offsets: IndexSet) {
+        invoice.items.remove(atOffsets: offsets)
+    }
 }
 
 

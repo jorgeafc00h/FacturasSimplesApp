@@ -3,7 +3,7 @@ import SwiftData
 
 struct InvoiceEditView: View {
     @Bindable var invoice: Invoice
-    @Environment(\.modelContext) private var modelContext
+    @Environment(\.modelContext)  var modelContext
     @Environment(\.dismiss)  var dismiss
     
     let accentColor = Color(.darkCyan)// Color(red: 0.5, green: 0.0, blue: 0.1) // Wine red
@@ -16,7 +16,7 @@ struct InvoiceEditView: View {
                 customerSection
                 invoiceDetailsSection
                 productsSection
-               
+                invoiceTotalSeaction
                 Section {
                     Button(action: saveInvoice, label: {
                         HStack {
@@ -127,19 +127,17 @@ struct InvoiceEditView: View {
         }.buttonStyle(BorderlessButtonStyle())
     }
     
-    private func deleteProduct(at offsets: IndexSet) {
-        invoice.items.remove(atOffsets: offsets)
+   private var invoiceTotalSeaction : some View{
+       VStack{
+           HStack{
+               Text("Sub Total:")
+               Spacer()
+               Text(invoice.subTotal.formatted(.currency(code: "USD")))
+           }
+       }
     }
     
-    private func saveInvoice() {
-        do {
-            try modelContext.save()
-            dismiss()
-            
-        } catch {
-            print("Error saving invoice: \(error)")
-        }
-    }
+    
 }
 
 // Preview
