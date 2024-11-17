@@ -31,7 +31,6 @@ struct InvoiceDetailView: View {
                     showingPDFPreview = true
                 } label: {
                     Image(systemName: "printer.filled.and.paper.inverse")
-                        .foregroundColor(.darkBlue)
                         .symbolEffect(.breathe, options: .nonRepeating)
                 }
                 
@@ -107,7 +106,6 @@ struct InvoiceDetailView: View {
         } label: {
             HStack{
                 Image(systemName: "pencil.line")
-                    .foregroundColor(.darkBlue)
                     .symbolEffect(.breathe, options: .nonRepeating)
                 Text("Editar factura")
             }.foregroundColor(.darkCyan)
@@ -119,7 +117,6 @@ struct InvoiceDetailView: View {
         } label: {
             HStack{
                 Image(systemName: "printer.filled.and.paper.inverse")
-                    .foregroundColor(.darkBlue)
                     .symbolEffect(.breathe, options: .nonRepeating)
                 Text("PDF")
             }.foregroundColor(.darkCyan)

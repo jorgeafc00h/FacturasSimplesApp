@@ -10,7 +10,7 @@ import SwiftData
 
 struct Home: View {
     @State var selectedTab:Int = 2
-    @State var isAuthenticated: Bool = true
+    @State var isAuthenticated: Bool = false
     
     
     var body: some View {

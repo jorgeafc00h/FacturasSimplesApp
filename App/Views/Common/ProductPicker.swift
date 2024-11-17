@@ -96,12 +96,12 @@ struct ProductPicker: View {
     }
     
     private func AddSelectedProduct(){
-        
-        if let selectedProduct = selection{
-            let detail = InvoiceDetail(quantity: 1, product: selectedProduct)
-            
-            details.append(detail)
-            dismiss()
+        withAnimation{
+            if let selectedProduct = selection{
+                let detail = InvoiceDetail(quantity: 1, product: selectedProduct)
+                details.append(detail)
+                dismiss()
+            }
         }
     }
     

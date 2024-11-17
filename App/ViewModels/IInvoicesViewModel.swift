@@ -136,12 +136,12 @@ extension InvoiceEditView {
     }
     
     func SearchProduct(){
-        withAnimation(.easeInOut(duration: 4)) {
+        withAnimation(.easeInOut(duration: 2.5)) {
             viewModel.showingProductPicker=true;
         }
     }
     func ShowAddProductSection(){
-        withAnimation(.easeInOut(duration: 4)) {
+        withAnimation(.easeInOut(duration:2.5)) {
             viewModel.showAddProductSection.toggle()
         }
     }

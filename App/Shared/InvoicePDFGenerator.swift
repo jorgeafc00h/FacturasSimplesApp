@@ -98,7 +98,7 @@ class InvoicePDFGenerator {
             
             // Products table header
             let tableY: CGFloat = 320
-            let colWidths: [CGFloat] = [80, 250, 100, 100]
+            let _: [CGFloat] = [80, 250, 100, 100]
             let colX: [CGFloat] = [30, 110, 360, 460]
             
             // Draw table header background

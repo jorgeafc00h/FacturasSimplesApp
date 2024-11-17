@@ -141,15 +141,19 @@ struct AddInvoiceView: View {
             }
             HStack{
                 Button(action: SearchProduct,label: {
-                    Label("Buscar Producto", systemImage: "magnifyingglass")
+                    withAnimation(.linear){
+                        Label( viewModel.showAddProductSection ? "": "Buscar Producto", systemImage: "magnifyingglass")
+                    }
                 })
                 Spacer()
                 Button(action: ShowAddProductSection,label: {
                     viewModel.showAddProductSection ?
                     Image(systemName: "xmark.circle.fill")
-                        .contentTransition(.symbolEffect(.replace)):
+                        .contentTransition(.symbolEffect(.replace))
+                        .foregroundColor(.red):
                     Image(systemName: "plus")
                         .contentTransition(.symbolEffect(.replace))
+                        .foregroundColor(.darkCyan)
                 })
             }
             .buttonStyle(BorderlessButtonStyle())

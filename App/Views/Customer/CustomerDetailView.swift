@@ -69,7 +69,6 @@ struct CustomerDetailView: View {
         } label: {
             HStack{
                 Image(systemName: "pencil.line")
-                    .foregroundColor(.darkBlue)
                     .symbolEffect(.breathe, options: .nonRepeating)
                 Text("Actualizar datos")
             }.foregroundColor(.darkCyan)

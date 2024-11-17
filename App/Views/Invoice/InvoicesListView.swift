@@ -4,7 +4,7 @@ import SwiftData
 struct InvoicesListView: View {
     @Environment(\.modelContext) private var modelContext
     
-    @Query(sort: \Invoice.date, order: .forward)
+    @Query(sort: \Invoice.date, order: .reverse)
     var invoices: [Invoice]
     
     @State var isShowingItemsSheet: Bool = false
