@@ -134,6 +134,16 @@ struct InvoiceEditView: View {
                Spacer()
                Text(invoice.subTotal.formatted(.currency(code: "USD")))
            }
+           HStack{
+               Text("IVA:")
+               Spacer()
+               Text(invoice.tax.formatted(.currency(code: "USD")))
+           }
+           HStack{
+               Text("Total:")
+               Spacer()
+               Text(invoice.totalAmount.formatted(.currency(code: "USD")))
+           }
        }
     }
     

@@ -87,17 +87,17 @@ extension AddInvoiceView {
         }
     }
     func SearchProduct(){
-        withAnimation(.bouncy(duration: 4)) {
+        withAnimation(.bouncy(duration: 2.3)) {
             viewModel.displayProductPickerSheet=true;
         }
     }
     func ShowAddProductSection(){
-        withAnimation(.easeInOut(duration: 4)) {
+        withAnimation(.easeInOut(duration: 2.34)) {
             viewModel.showAddProductSection.toggle()
         }
     }
     func AddNewProduct(){
-        withAnimation(.easeInOut(duration: 4)) {
+        withAnimation(.easeInOut(duration: 2.34)) {
             let product = Product(productName: viewModel.productName, unitPrice: viewModel.unitPrice)
             viewModel.productName="";
             viewModel.unitPrice=0.0;

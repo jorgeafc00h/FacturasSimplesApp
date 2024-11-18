@@ -55,6 +55,28 @@ import SwiftData
         return items.count
     }
     
+    var totalOperations : Decimal{
+        return 0
+    }
+    
+    var nonTaxableDiscounts :Decimal{
+        return 0
+    }
+    
+    var exemptDiscounts : Decimal{
+        return 0
+    }
+    
+    var taxableDiscounts : Decimal {
+        return 0
+    }
+    
+    var vatWithheld: Decimal {
+        return 0
+    }
+    var incomeWithheld : Decimal{
+        return 0
+    }
     
     init(invoiceNumber: String,
          date: Date,

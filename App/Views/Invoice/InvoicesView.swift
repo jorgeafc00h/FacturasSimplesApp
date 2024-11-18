@@ -16,9 +16,7 @@ struct InvoicesView: View {
     
     @Query(filter: #Predicate<Catalog> { $0.id == "CAT-012"}, sort: \Catalog.id)
     var catalog: [Catalog]
-    var syncService = CatalogServiceClient()
-    
-    
+    var syncService = CatalogServiceClient() 
    
     var body: some View {
         

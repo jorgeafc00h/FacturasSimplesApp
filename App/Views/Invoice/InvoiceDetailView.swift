@@ -11,8 +11,9 @@ import SwiftData
 struct InvoiceDetailView: View {
     
     @Bindable var invoice: Invoice
-    @State private var showingPDFPreview = false
     @State private var pdfData: Data?
+    @State private var showShareSheet = false
+    @State private var pdfURL: URL?
     
     var body: some View {
         NavigationStack{
@@ -21,25 +22,30 @@ struct InvoiceDetailView: View {
                 productsSection
                 ButtonActions
             }
-        
+            
         }
         .navigationTitle(Text("Factura"))
         .toolbar {
             ToolbarItemGroup(placement: .automatic) {
-                Button {
-                    pdfData = InvoicePDFGenerator.generatePDF(from: invoice)
-                    showingPDFPreview = true
+                NavigationLink {
+                    if let pdfData = pdfData {
+                        InvoicePDFPreview(pdfData: pdfData,invoice: invoice)
+                    }
                 } label: {
-                    Image(systemName: "printer.filled.and.paper.inverse")
-                        .symbolEffect(.breathe, options: .nonRepeating)
+                    HStack{
+                        Image(systemName: "printer.filled.and.paper.inverse")
+                            .symbolEffect(.breathe, options: .nonRepeating)
+                        
+                    }.foregroundColor(.darkCyan)
                 }
                 
-                if let pdfData = pdfData {
-                    ShareLink(item: pdfData, preview: SharePreview("\(invoice.invoiceNumber).pdf")) {
-                        Image(systemName: "square.and.arrow.up")
-                    }
+                Button {
+                    showShareSheet = true
+                } label: {
+                    Image(systemName: "square.and.arrow.up")
                 }
-            
+                
+                
                 NavigationLink {
                     InvoiceEditView(invoice: invoice)
                 } label: {
@@ -49,20 +55,24 @@ struct InvoiceDetailView: View {
         }
         .onAppear(){
             pdfData = InvoicePDFGenerator.generatePDF(from: invoice)
+            
         }
-        .sheet(isPresented: $showingPDFPreview) {
+        .sheet(isPresented: $showShareSheet) {
             if let pdfData = pdfData {
-                InvoicePDFPreview(pdfData: pdfData)
+                SharePDFSheet(
+                    activityItems: [pdfData],
+                    invoice: invoice
+                )
             }
         }
     }
     
     private var ButtonActions : some View {
         Section {
-           
+            
             Button(action: SyncInvoice, label: {
                 HStack {
-                    Image(systemName: "checkmark.seal.text.page.fill") 
+                    Image(systemName: "checkmark.seal.text.page.fill")
                         .symbolEffect(.pulse, options: .repeat(.continuous))
                     Text("Completar y Sincronizar")
                 }
@@ -112,7 +122,7 @@ struct InvoiceDetailView: View {
         }
         NavigationLink {
             if let pdfData = pdfData {
-                InvoicePDFPreview(pdfData: pdfData)
+                InvoicePDFPreview(pdfData: pdfData,invoice: invoice)
             }
         } label: {
             HStack{
@@ -186,7 +196,7 @@ struct InvoiceDetailView: View {
         Section(header: Text("Productos")) {
             ForEach($invoice.items){ $detail in
                 ProductDetailItemView(detail: detail)
-                  
+                
             }
         }
     }

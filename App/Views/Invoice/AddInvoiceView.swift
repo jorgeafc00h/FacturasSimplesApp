@@ -140,11 +140,11 @@ struct AddInvoiceView: View {
                 addProductSection
             }
             HStack{
-                Button(action: SearchProduct,label: {
-                    withAnimation(.linear){
-                        Label( viewModel.showAddProductSection ? "": "Buscar Producto", systemImage: "magnifyingglass")
-                    }
-                })
+                if !viewModel.showAddProductSection {
+                    Button(action: SearchProduct,label: {
+                        Label("Buscar Producto", systemImage: "magnifyingglass")
+                    })
+                }
                 Spacer()
                 Button(action: ShowAddProductSection,label: {
                     viewModel.showAddProductSection ?
