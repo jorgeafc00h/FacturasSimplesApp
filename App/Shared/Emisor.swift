@@ -13,8 +13,8 @@ class Emisor{
     var nit: String
     var nrc: String
     var nombre: String
-    var codActividad: String
-    var descActividad: String
+    var codActividad: String?
+    var descActividad: String?
     var nombreComercial: String
     var tipoEstablecimiento: String
     
@@ -29,13 +29,19 @@ class Emisor{
     var departamento: String
     var municipio: String
     var complemento: String
-     
+    
+    
+    var actividadEconomicaLabel :String {
+        descActividad == nil || descActividad!.isEmpty ?
+        "Seleccione una actividad económica" :
+        descActividad!
+    }
     
     init(
         id: Int = 0,
         nit: String = "",
         nrc: String = "",
-        nombre: String = "",
+        nombre: String = "", 
         codActividad: String = "",
         descActividad: String = "",
         nombreComercial: String = "",

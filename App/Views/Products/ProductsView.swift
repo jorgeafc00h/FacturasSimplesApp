@@ -6,10 +6,24 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct ProductsView: View {
+    @State private var selection: Product?
+    @State private var searchText: String = ""
+    
+    @Environment(\.modelContext) var modelContext
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        NavigationSplitView {
+            ProductsListView(selection: $selection,
+                           searchText: searchText)
+        } detail: {
+            if let product = selection {
+                ProductDetailView(product: product)
+            }
+        }
+        .searchable(text: $searchText, placement: .sidebar)
     }
 }
 

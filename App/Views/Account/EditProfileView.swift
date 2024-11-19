@@ -14,17 +14,9 @@ struct EditProfileView: View {
     
     var body: some View {
         ZStack {
-            
             Color("Marine").ignoresSafeArea()
-            
             ScrollView{
-                    
-               
-                
                     VStack(alignment: .center){
-                       
-                        
-                        
                         
                         Button(action: {isCameraActive = true}, label: {
                             ZStack{
@@ -48,14 +40,14 @@ struct EditProfileView: View {
 
                     }.padding(.bottom,18)
                     
-                  ModuloEditar()
+                  EditUserCredentials()
             }
         }
     }
 }
 
 
-struct ModuloEditar:View {
+private struct EditUserCredentials:View {
     
     @State var correo:String = ""
     @State var contraseña:String = ""

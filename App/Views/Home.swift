@@ -31,7 +31,7 @@ struct Home: View {
                 InvoicesView()
                     .tabItem {
                         Image(systemName: "list.bullet.rectangle.portrait")
-                        Text("Fascturas")
+                        Text("Facturas")
                     }.tag(2)
                 ProductsView()
                 // .font(.system(size: 30, weight: .bold, design: .rounded))

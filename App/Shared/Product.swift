@@ -18,10 +18,13 @@ import SwiftData
     var productName:String
     var unitPrice:Decimal
     
-    init(productName:String,unitPrice:Decimal)
+    var productDescription: String?
+    
+    init(productName:String,unitPrice:Decimal, productDescription:String = "")
     {
-        self.productName=productName
-        self.unitPrice=unitPrice
+        self.productName = productName
+        self.unitPrice = unitPrice
+        self.productDescription = ""
     }
 }
 

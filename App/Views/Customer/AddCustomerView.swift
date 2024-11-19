@@ -46,7 +46,7 @@ struct AddCustomerView: View {
             Section(header: Text("Information del Negocio")) {
                 CustomerGroupBox {
                     
-                    Toggle("Configuracoin de Facturacion", isOn: $viewModel.hasInvoiceSettings)
+                    Toggle("Configuracion de Facturacion", isOn: $viewModel.hasInvoiceSettings)
                     
                     if viewModel.hasInvoiceSettings {
                         
