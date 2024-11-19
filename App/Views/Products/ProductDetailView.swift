@@ -3,34 +3,49 @@ import SwiftData
 
 struct ProductDetailView: View {
     @Bindable var product: Product
-    @Environment(\.modelContext) private var modelContext
-    
+    @Environment(\.modelContext)  var modelContext
+    @Environment(\.dismiss) private var dismiss
     var body: some View {
-        Form {
-            Section("Producto") {
-                TextField("Nombre", text: $product.productName)
-//                TextField("Descripcion", text: $product.productDescription!, axis: .vertical)
-//                    .lineLimit(3...6)
-//                
-                HStack {
-                    Text("Precio")
-                    Spacer()
-                    TextField("Precio", value: $product.unitPrice, format: .currency(code: "USD"))
-                        .multilineTextAlignment(.trailing)
-                        .keyboardType(.decimalPad)
+        NavigationStack{
+            List{
+                VStack(alignment: .leading) {
+                    Text("Descripcion")
+                        .font(.headline)
+                    Text(product.productDescription)
+                        .font(.subheadline)
+                    
+                    HStack {
+                        Text("Precio")
+                        Spacer()
+                        Text(product.unitPrice.formatted(.currency(code: "USD")))
+                            .font(.footnote)
+                    }
+                    
+                    NavigationLink {
+                        EditProductView(product: product)
+                    } label: {
+                        HStack{
+                            Image(systemName: "pencil.line")
+                                .symbolEffect(.breathe, options: .nonRepeating)
+                            Text("Editar Producto")
+                        }.foregroundColor(.darkCyan)
+                    }
+                }
+                
+                Section {
+                    Button("Eliminar Producto", role: .destructive) {
+                        deleteProduct()
+                        dismiss()
+                        
+                    }.disabled(product.invoiceDetails.count > 0)
                 }
             }
-            
-            Section {
-                Button("Eliminar Producto", role: .destructive) {
-                    deleteProduct()
-                }
-            }
+            .navigationTitle(product.productName.isEmpty ? "Nuevo Producto" : product.productName)
         }
-        .navigationTitle(product.productName.isEmpty ? "Nuevo Producto" : product.productName)
     }
     
-    private func deleteProduct() {
-        modelContext.delete(product)
-    }
 } 
+#Preview(traits: .sampleProducts) {
+    @Previewable @Query var products: [Product]
+    ProductDetailView(product: products.first!)
+}

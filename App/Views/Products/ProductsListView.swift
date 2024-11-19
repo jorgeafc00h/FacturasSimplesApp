@@ -2,31 +2,38 @@ import SwiftUI
 import SwiftData
 
 struct ProductsListView: View {
-    @Binding var selection: Product?
-    var searchText: String
-    
     @Environment(\.modelContext) var modelContext
     
-    @Query private var products: [Product]
+    @Binding var selection: Product?
+    
+    @Query(sort: \Product.productName)
+    var products: [Product]
+    
+    @State var viewModel = ProductListViewModel()
     
     init(selection: Binding<Product?>, searchText: String) {
         _selection = selection
-        self.searchText = searchText
-        
-        let predicate = #Predicate<Product> { product in
-            if searchText.isEmpty {
-                return true
-            } else {
-                return product.productName.localizedStandardContains(searchText)
-            }
+         
+        let predicate = #Predicate<Product> {
+            searchText.isEmpty ? true :
+            $0.productName.localizedStandardContains(searchText)
         }
         
         _products = Query(filter: predicate, sort: \Product.productName)
     }
     
     var body: some View {
-        List(products, selection: $selection) { product in
-            ProductListItemView(product: product)
+        List(selection: $selection) {
+            ForEach(products){ product in
+                ProductListItemView(product: product)
+                    .swipeActions(edge: .trailing) {
+                        Button(role: .destructive) {
+                            deleteProduct(product)
+                        }label:{
+                            Label("Eliminar", systemImage: "trash")
+                        }.disabled(isDisabledDeleteProduct(product))
+                    }
+            }
         }
         .navigationTitle("Productos")
         .overlay{
@@ -34,27 +41,41 @@ struct ProductsListView: View {
                 ContentUnavailableView {
                     Label("Productos", systemImage: "list.bullet.rectangle.portrait")
                 }description: {
-                    Text("Los Productos pueden ser vinculados a una o muchas facturas.")
+                    Text("Los Productos pueden ser vinculados a una o varias facturas.")
                 }actions: {
-                    Button(action: createNewProduct) {
-                        Label("Crear Producto", systemImage: "plus")
-                    }
+                    Button("Agregar Producto",systemImage: "plus"){ viewModel.isShowingAddProductSheet=true}
+                        .buttonStyle(BorderlessButtonStyle())
                 }
                 .offset(y: -60)
             }
         }
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button(action: createNewProduct) {
-                    Label("Crear Producto", systemImage: "plus")
-                }
+        .sheet(isPresented: $viewModel.isShowingAddProductSheet) {
+            NavigationStack {
+                AddProductView(productName: $viewModel.productName,
+                               productDescription: $viewModel.productDescription,
+                               unitPrice: $viewModel.unitPrice,
+                               addProduct: addProduct)
             }
+            .presentationDetents([.medium, .large])
+        }
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                EditButton()
+                    .disabled(viewModel.productCount==0)
+            }
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                Spacer()
+                Button("Agregar Producto",systemImage: "plus"){ viewModel.isShowingAddProductSheet=true}
+                    .buttonStyle(BorderlessButtonStyle())
+            }
+        }
+        .onChange(of: products) {
+            viewModel.productCount = products.count
+        }
+        .onAppear {
+            viewModel.productCount = products.count
         }
     }
     
-    private func createNewProduct() {
-        let newProduct = Product(productName: "", unitPrice: 0,productDescription: "")
-        modelContext.insert(newProduct)
-        selection = newProduct
-    }
-} 
+    
+}

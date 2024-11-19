@@ -9,24 +9,28 @@ import SwiftUI
 import SwiftData
 
 struct ProductsView: View {
-    @State private var selection: Product?
-    @State private var searchText: String = ""
-    
-    @Environment(\.modelContext) var modelContext
+    @State var selection: Product?
+    @State var searchText: String = ""
     
     var body: some View {
         NavigationSplitView {
             ProductsListView(selection: $selection,
                            searchText: searchText)
         } detail: {
-            if let product = selection {
-                ProductDetailView(product: product)
+            if let pr = selection {
+                ProductDetailView(product: pr)
+            } else {
+                ContentUnavailableView {
+                    Label("No Product Selected", systemImage: "box.fill")
+                } description: {
+                    Text("Select a product from the list to view its details")
+                }
             }
         }
         .searchable(text: $searchText, placement: .sidebar)
     }
 }
 
-#Preview {
+#Preview (traits: .sampleProducts) {
     ProductsView()
 }

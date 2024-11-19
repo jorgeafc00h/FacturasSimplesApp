@@ -53,8 +53,6 @@ struct Home: View {
     init(){
         UITabBar.appearance().barTintColor = UIColor(Color("TabBar-Color"))
         UITabBar.appearance().isTranslucent = true
-        
-        
     }
 }
 

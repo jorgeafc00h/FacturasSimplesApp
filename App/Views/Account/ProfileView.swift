@@ -35,7 +35,7 @@ struct ProfileView: View {
             } .onAppear{loadUserProfileImage()}
         }
         detail:{
-            
+            EmisorEditView()
         }
     }
     

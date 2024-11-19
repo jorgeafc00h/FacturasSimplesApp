@@ -18,7 +18,12 @@ import SwiftData
     var productName:String
     var unitPrice:Decimal
     
-    var productDescription: String?
+    var productDescription: String
+    
+    @Relationship(deleteRule: .deny, inverse: \ InvoiceDetail.product)
+    var invoiceDetails : [InvoiceDetail] = []
+    
+  
     
     init(productName:String,unitPrice:Decimal, productDescription:String = "")
     {

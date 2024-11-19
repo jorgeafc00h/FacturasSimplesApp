@@ -11,9 +11,7 @@ struct InvoicesListView: View {
     
     @Binding var selection: Invoice?
     @State var invoicesCount: Int = 0
-    
-    @State private var selectedCustomer: Customer?
-    @State private var isVisibleCustomerPicker : Bool = true
+     
     
     init(selection: Binding<Invoice?>,
          searchText: String) {
@@ -88,17 +86,7 @@ private struct EmptyInvoicesOverlay : View {
         .offset(y: -60)
     }
 }
-
-private struct NewInvoiceToolbarLink : View {
-    var body: some View {
-        NavigationLink(destination: AddInvoiceView()) {
-            Button("Nueva Factura",systemImage: "plus"){
-                print("New invoice")
-            }.buttonStyle(BorderlessButtonStyle())
-        }
-    }
-}
-
+ 
 
 extension InvoicesListView {
     private func deleteInvoices(at offsets: IndexSet) {
