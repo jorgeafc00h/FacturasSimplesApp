@@ -21,9 +21,9 @@ struct ProductsView: View {
                 ProductDetailView(product: pr)
             } else {
                 ContentUnavailableView {
-                    Label("No Product Selected", systemImage: "box.fill")
+                    Label("No hay producto Seleccionado", systemImage: "list.bullet.rectangle.fill")
                 } description: {
-                    Text("Select a product from the list to view its details")
+                    Text("Seleccione un producto para ver los detalles")
                 }
             }
         }

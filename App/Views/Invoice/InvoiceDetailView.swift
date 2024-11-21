@@ -108,7 +108,19 @@ struct InvoiceDetailView: View {
                 Spacer()
                 Text(invoice.customer.email)
             }
-            
+            HStack {
+                Text("Estado")
+                Spacer()
+                Circle()
+                    .fill(invoice.statusColor)
+                    .frame(width: 8, height: 8)
+                Text("\(invoice.status)")
+                    .font(.subheadline)
+                    .foregroundColor(invoice.statusColor)
+                    .padding(7)
+                    .background(invoice.statusColor.opacity(0.09))
+                    .cornerRadius(8)
+            }
         }
         
         NavigationLink {
@@ -119,7 +131,8 @@ struct InvoiceDetailView: View {
                     .symbolEffect(.breathe, options: .nonRepeating)
                 Text("Editar factura")
             }.foregroundColor(.darkCyan)
-        }
+        }.disabled(invoice.status == .Completada)
+        
         NavigationLink {
             if let pdfData = pdfData {
                 InvoicePDFPreview(pdfData: pdfData,invoice: invoice)

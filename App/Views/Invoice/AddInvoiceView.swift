@@ -11,7 +11,7 @@ import SwiftData
 struct AddInvoiceView: View {
     @Environment(\.modelContext)  var modelContext
     @Environment(\.calendar) private var calendar
-    @Environment(\.dismiss) private var dismiss
+    @Environment(\.dismiss)  var dismiss
     @Environment(\.timeZone) private var timeZone
     
     
@@ -56,15 +56,12 @@ struct AddInvoiceView: View {
                     }
                 }
                 ToolbarItem(placement: .primaryAction) {
-                    Button("Guardar") {
-                        addInvoice()
-                        //WidgetCenter.shared.reloadTimelines(ofKind: "TripsWidget")
-                        dismiss()
-                    }
+                    Button("Guardar",action: addInvoice)
                     .disabled(viewModel.disableAddInvoice)
                 }
             }.accentColor(.darkCyan)
         }
+        .onAppear(perform: getNextInoviceNumber)
         //.presentationDetents([.medium, .large])
     }
     
@@ -101,6 +98,7 @@ struct AddInvoiceView: View {
         Section {
             Group {
                 TextField("Numero de Factura",text: $viewModel.invoiceNumber)
+                    .disabled(true)
                 HStack{
                     Text("Fecha:")
                         .font(.caption)
@@ -172,7 +170,7 @@ struct AddInvoiceView: View {
                     Image(systemName: "checkmark.circle.fill")
                         .contentTransition(.symbolEffect(.replace))
                        
-                }).disabled(viewModel.canSaveNewProduct)
+                }).disabled(viewModel.isDisabledAddProduct)
             }.padding(.vertical, 10)
         }.buttonStyle(BorderlessButtonStyle())
     }

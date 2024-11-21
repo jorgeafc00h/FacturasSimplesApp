@@ -20,7 +20,7 @@ import SwiftData
     
     var productDescription: String
     
-    @Relationship(deleteRule: .deny, inverse: \ InvoiceDetail.product)
+    @Relationship(deleteRule: .cascade, inverse: \ InvoiceDetail.product)
     var invoiceDetails : [InvoiceDetail] = []
     
   

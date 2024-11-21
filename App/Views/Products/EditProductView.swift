@@ -9,7 +9,7 @@ struct EditProductView: View {
     
     @State var product: Product
     @Environment(\.modelContext) var modelContext
-     
+
     var body: some View {
         Form {
             Section("Producto") {
@@ -30,11 +30,7 @@ struct EditProductView: View {
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("Cancelar") {
-                    
-                    if modelContext.hasChanges {
-                        modelContext.rollback()
-                    }
-                    
+                   
                     dismiss()
                 }
             }

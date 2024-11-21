@@ -16,7 +16,9 @@ struct InvoicesView: View {
     
     @Query(filter: #Predicate<Catalog> { $0.id == "CAT-012"}, sort: \Catalog.id)
     var catalog: [Catalog]
-    var syncService = CatalogServiceClient() 
+    var syncService = CatalogServiceClient()
+    
+    @State var viewModel = InvoicesViewModel()
    
     var body: some View {
         
@@ -27,6 +29,30 @@ struct InvoicesView: View {
         detail:{
             if let inv = selection {
                 InvoiceDetailView(invoice: inv)
+            }
+            else{
+                //list.bullet.rectangle.portrait
+                ContentUnavailableView {
+                    Label("Seleccione una factura", systemImage: "list.bullet.rectangle.fill")
+                } description: {
+                    Text("si no tiene facturas puede comenzar creando un nuevo cliente y una nueva factura")
+                }
+                actions: {
+                    Button("Crear Factura", systemImage: "plus"){
+                        viewModel.showAddInvoiceSheet = true
+                    }
+                    Button("Crear Cliente", systemImage: "plus"){
+                        viewModel.showAddCustomerSheet = true
+                    }
+                }
+                .sheet(isPresented: $viewModel.showAddInvoiceSheet) {
+                    AddInvoiceView()
+                }
+                .sheet(isPresented: $viewModel.showAddCustomerSheet) {
+                    NavigationStack{
+                        AddCustomerView()
+                    }
+                }
             }
         }
         .searchable(text: $searchText, placement: .sidebar)

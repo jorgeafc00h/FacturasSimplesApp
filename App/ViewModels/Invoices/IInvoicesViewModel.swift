@@ -6,9 +6,8 @@ extension InvoicesView{
     
     @Observable
     class InvoicesViewModel{
-        
-         
-        
+        var showAddInvoiceSheet: Bool = false
+        var showAddCustomerSheet: Bool = false
         
     }
     
@@ -55,7 +54,7 @@ extension AddInvoiceView {
             return invoiceNumber.isEmpty || details.isEmpty || customer == nil
         }
         
-        var canSaveNewProduct: Bool {
+        var isDisabledAddProduct: Bool {
             return productName.isEmpty && unitPrice.isZero
         }
        
@@ -72,6 +71,7 @@ extension AddInvoiceView {
             invoice.items = viewModel.details
             
             modelContext.insert(invoice)
+            dismiss()
         }
     }
     func deleteDetail(detail:InvoiceDetail){
@@ -106,6 +106,24 @@ extension AddInvoiceView {
             viewModel.showAddProductSection.toggle()
         }
     }
+    func getNextInoviceNumber(){
+        let descriptor = FetchDescriptor<Invoice>(
+            sortBy: [SortDescriptor(\.date, order: .reverse)]
+        )
+        
+        if let latestInvoice = try? modelContext.fetch(descriptor).first {
+            if let currentNumber = Int(latestInvoice.invoiceNumber) {
+                viewModel.invoiceNumber = String(format: "%04d", currentNumber + 1)
+            } else {
+                viewModel.invoiceNumber = "00001"
+            }
+        } else {
+            viewModel.invoiceNumber = "00001"
+        }
+        
+        
+    }
+    
 }
 
 extension InvoiceEditView {

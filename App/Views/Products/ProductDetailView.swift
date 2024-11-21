@@ -5,6 +5,9 @@ struct ProductDetailView: View {
     @Bindable var product: Product
     @Environment(\.modelContext)  var modelContext
     @Environment(\.dismiss) private var dismiss
+    
+    @State var viewModel = ProductDetailViewModel()
+     
     var body: some View {
         NavigationStack{
             List{
@@ -37,14 +40,22 @@ struct ProductDetailView: View {
                         deleteProduct()
                         dismiss()
                         
-                    }.disabled(product.invoiceDetails.count > 0)
+                    }.disabled(viewModel.isDisbledDeleteProduct)
+                }
+                Section{
+                    if viewModel.usageCount > 0 {
+                        
+                        Label("este producto se esta usando en \(viewModel.usageCount) facturas", systemImage: "exclamationmark.triangle.fill")
+                    }
                 }
             }
             .navigationTitle(product.productName.isEmpty ? "Nuevo Producto" : product.productName)
-        }
+        }.onAppear(perform: refreshProductUsage)
+        
     }
     
-} 
+    
+}
 #Preview(traits: .sampleProducts) {
     @Previewable @Query var products: [Product]
     ProductDetailView(product: products.first!)

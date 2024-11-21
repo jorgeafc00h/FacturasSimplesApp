@@ -81,7 +81,7 @@ private struct EmptyInvoicesOverlay : View {
         }description: {
             Text("Las Nuevas Facturas apareceran aquí.")
         }actions: {
-            Button("Crear Factura"){isShowingItemsSheet=true}
+            Button("Crear Factura", systemImage: "plus"){isShowingItemsSheet=true}
         }
         .offset(y: -60)
     }
