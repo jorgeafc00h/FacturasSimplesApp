@@ -7,6 +7,7 @@ struct ProductDetailView: View {
     @Environment(\.dismiss) private var dismiss
     
     @State var viewModel = ProductDetailViewModel()
+    @State private var showingDeleteConfirmation = false
      
     var body: some View {
         NavigationStack{
@@ -37,10 +38,19 @@ struct ProductDetailView: View {
                 
                 Section {
                     Button("Eliminar Producto", role: .destructive) {
-                        deleteProduct()
-                        dismiss()
-                        
+                        showingDeleteConfirmation = true
                     }.disabled(viewModel.isDisbledDeleteProduct)
+                    .confirmationDialog(
+                        "¿Está seguro que desea eliminar este producto?",
+                        isPresented: $showingDeleteConfirmation,
+                        titleVisibility: .visible
+                    ) {
+                        Button("Eliminar", role: .destructive) {
+                            deleteProduct()
+                            dismiss()
+                        }
+                        Button("Cancelar", role: .cancel) {}
+                    }
                 }
                 Section{
                     if viewModel.usageCount > 0 {

@@ -11,11 +11,13 @@ import SwiftData
 struct ProductsView: View {
     @State var selection: Product?
     @State var searchText: String = ""
+    @State var searchScope: ProductSearchScope = .Editable
     
     var body: some View {
         NavigationSplitView {
             ProductsListView(selection: $selection,
-                           searchText: searchText)
+                             searchText: searchText,
+                             scope: searchScope)
         } detail: {
             if let pr = selection {
                 ProductDetailView(product: pr)
@@ -28,6 +30,10 @@ struct ProductsView: View {
             }
         }
         .searchable(text: $searchText, placement: .sidebar)
+        .searchScopes($searchScope){
+            Text("Editable").tag(ProductSearchScope.Editable)
+            Text("No Editable").tag(ProductSearchScope.NonEditable)
+        }
     }
 }
 

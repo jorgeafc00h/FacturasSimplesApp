@@ -33,7 +33,13 @@ import SwiftData
     }
 }
 
-
+enum ProductSearchScope: String, Codable, CaseIterable, Identifiable, Hashable {
+     
+    
+    case Editable
+    case NonEditable
+    var id: String { rawValue }
+}
 
 extension Product {
     

@@ -32,8 +32,11 @@ struct AddCustomerView: View {
                     TextField("Apellido", text: $viewModel.lastName)
                    
                     TextField("DUI", text: $viewModel.nationalId)
+                        .keyboardType(.numberPad)
                     TextField("Telefono", text: $viewModel.phone)
+                        .keyboardType(.phonePad)
                     TextField("Email", text: $viewModel.email)
+                        .keyboardType(.emailAddress)
                 }
             }
             
@@ -52,7 +55,9 @@ struct AddCustomerView: View {
                         
                         TextField("Empresa" , text: $viewModel.company)
                         TextField("NIT" , text:  $viewModel.nit )
+                            .keyboardType(.numberPad)
                         TextField("NRC", text: $viewModel.nrc)
+                            .keyboardType(.numberPad)
                         
                         Button(viewModel.ActividadLabel){
                             viewModel.displayPickerSheet.toggle()

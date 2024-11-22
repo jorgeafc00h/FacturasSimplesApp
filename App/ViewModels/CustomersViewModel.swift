@@ -11,33 +11,65 @@ extension CustomersListView {
        
         var isShowingItemsSheet: Bool = false
         
+        var showDeleteCustomerConfirmation: Bool = false
+        
+        var offsets: IndexSet = []
+        
         //var selection: Customer?
         var customersCount: Int = 0
+        
+        var toDeleteCustomer: Customer?
+        
+        var showAlert: Bool = false
+        var alertTitle: String = ""
+        var alertMessage: String = ""
         
         var isDisabledEdit:Bool {
             customersCount == 0
         }
         
+        func ConfirmDelete(at offsets: IndexSet){
+            self.offsets = offsets
+            showDeleteCustomerConfirmation = true
+        }
+        func showConfirmDelete(customer:Customer){
+            toDeleteCustomer = customer
+           showDeleteCustomerConfirmation = true
+        }
          
         
     }
     
-    /// extensions methdos
+    
     
     func deleteCustomers(at offsets: IndexSet) {
-        withAnimation {
             offsets.map { customers[$0] }.forEach(deleteCustomer)
-        }
+        
     }
     
     func deleteCustomer(_ cust: Customer) {
+        
+        let id = cust.persistentModelID
+        
+        let descriptor = FetchDescriptor<Invoice>(predicate: #Predicate { $0.customer.persistentModelID ==  id })
+        
+        let count = (try? modelContext.fetchCount(descriptor)) ?? 0
+        
+        if count > 0 {
+            viewModel.alertTitle = "Error"
+            viewModel.alertMessage = "No se puede eliminar un cliente con _\(count) facturas asociadas"
+            viewModel.showAlert = true
+            return
+        }
         /**
          Unselect the item before deleting it.
          */
-        if cust.persistentModelID == selection?.persistentModelID {
-            selection = nil
+        withAnimation{
+            if cust.persistentModelID == selection?.persistentModelID {
+                selection = nil
+            }
+            modelContext.delete(cust)
         }
-        modelContext.delete(cust)
     }
 }
 
@@ -86,8 +118,10 @@ extension AddCustomerView{
     func addCustomer() {
         withAnimation {
             
-            let dp = departamentos.first(where: { $0.code == viewModel.departamentoCode})!.details
-            let mp = municipios.first(where: { $0.code == viewModel.municipioCode && $0.departamento == viewModel.departamentoCode})!.details
+            let dp = departamentos.first(where: { $0.code == viewModel.departamentoCode})?.details ?? ""
+            
+            
+            let mp = municipios.first(where: { $0.code == viewModel.municipioCode && $0.departamento == viewModel.departamentoCode})?.details ?? ""
             
             
             let newCustomer = Customer( firstName: viewModel.firstName,

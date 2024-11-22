@@ -8,7 +8,7 @@ import SwiftUI
 import SwiftData
 
 struct CustomersListView: View {
-    @Environment(\.modelContext)  var modelContext
+    @Environment(\.modelContext)  var modelContext 
     
     @Query(sort: \Customer.firstName)
     var customers: [Customer]
@@ -37,17 +37,25 @@ struct CustomersListView: View {
         List(selection: $selection) {
             ForEach(customers) { customer in
                 CustomersListItem(customer: customer, isUnread: true)
-                    .swipeActions(edge: .trailing) {
-                        Button(role: .destructive) {
-                            deleteCustomer(customer)
-                            //WidgetCenter.shared.reloadTimelines(ofKind: "CustomersWidget")
-                        } label: {
-                            Label("Eliminar", systemImage: "trash")
+                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        Button("Eliminar", role: .destructive) {
+                            viewModel.toDeleteCustomer=customer
+                            viewModel.showDeleteCustomerConfirmation=true
                         }
+                        .disabled(viewModel.isDisabledEdit)
                     }
-            }
-            .onDelete(perform: deleteCustomers(at:))
+            }.onDelete(perform: viewModel.ConfirmDelete(at:))
         }
+        .confirmationDialog(
+            "¿Está seguro que desea eliminar este Cliente?",
+            isPresented: $viewModel.showDeleteCustomerConfirmation,
+            titleVisibility: .visible
+        ){
+            ConfirmDeleteButton
+        }
+        .alert(isPresented: $viewModel.showAlert) {
+            Alert(title: Text(viewModel.alertTitle), message: Text(viewModel.alertMessage), dismissButton: .default(Text("Ok!")))
+                }
         .sheet(isPresented: $viewModel.isShowingItemsSheet) {
             NavigationStack {
                 AddCustomerView()
@@ -66,6 +74,43 @@ struct CustomersListView: View {
             }
         }
         .overlay {
+            OverlaySection
+        }
+        .navigationTitle("Clientes")
+        .onChange(of: customers) {
+            viewModel.customersCount = customers.count
+        }
+        .onAppear {
+            viewModel.customersCount = customers.count
+        }
+    }
+    
+    private var DeleteButton: some View {
+        Button("Eliminar", role: .destructive) {
+            viewModel.showDeleteCustomerConfirmation=true
+        }
+        .disabled(viewModel.isDisabledEdit)
+    }
+    
+     
+    private var ConfirmDeleteButton: some View {
+       
+        VStack{
+            Button("Eliminar", role: .destructive) {
+                if let cust = viewModel.toDeleteCustomer {
+                    deleteCustomer(cust)
+                }
+            }
+            Button("Cancelar", role: .cancel) {
+                viewModel.offsets.removeAll()
+                 
+            }
+        }
+    }
+    
+     
+    private var OverlaySection: some View {
+        VStack{
             if customers.isEmpty {
                 ContentUnavailableView {
                     Label("Clientes", systemImage: "person.circle")
@@ -77,14 +122,9 @@ struct CustomersListView: View {
                 .offset(y: -60)
             }
         }
-        .navigationTitle("Clientes")
-        .onChange(of: customers) {
-            viewModel.customersCount = customers.count
-        }
-        .onAppear {
-            viewModel.customersCount = customers.count
-        }
     }
+    
+     
 }
 
  

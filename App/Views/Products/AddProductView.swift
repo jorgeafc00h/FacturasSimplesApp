@@ -4,32 +4,27 @@ import SwiftData
 
 struct AddProductView: View {
     
-     
+    
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) var modelContext 
     
-    @Binding var productName: String
-    @Binding var productDescription: String
-    @Binding var unitPrice: Decimal
-    
-    var addProduct: () -> Void
+    @State var viewModel = AddProductViewModel()
     
     var body: some View {
         Form {
             Section("Producto") {
-                TextField("Nombre", text: $productName)
-                TextField("Descripcion", text: $productDescription, axis: .vertical)
+                TextField("Nombre", text: $viewModel.productName)
+                TextField("Descripcion", text: $viewModel.productDescription, axis: .vertical)
                     .lineLimit(3...6)
                 
                 HStack {
                     Text("Precio")
                     Spacer()
-                    TextField("Precio", value: $unitPrice, format: .currency(code: "USD"))
+                    TextField("Precio", value: $viewModel.unitPrice, format: .currency(code: "USD"))
                         .multilineTextAlignment(.trailing)
                         .keyboardType(.decimalPad)
                 }
-            }
-            
-        }
+            }         }
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("Cancelar") {
@@ -41,11 +36,11 @@ struct AddProductView: View {
                     addProduct()
                     dismiss()
                 }
-                .disabled(productName.isEmpty || productDescription.isEmpty || unitPrice.isZero)
+                .disabled(viewModel.isSaveDisabled)
             }
         }.accentColor(.darkCyan)
-        .navigationTitle(productName.isEmpty ? "Nuevo Producto" : productName)
+            .navigationTitle(viewModel.navigationTitle)
         
     }
 }
- 
+

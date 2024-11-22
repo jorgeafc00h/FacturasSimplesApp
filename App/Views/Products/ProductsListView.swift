@@ -11,13 +11,23 @@ struct ProductsListView: View {
     
     @State var viewModel = ProductListViewModel()
     
-    init(selection: Binding<Product?>, searchText: String) {
+    init(selection: Binding<Product?>, searchText: String, scope: ProductSearchScope) {
         _selection = selection
          
         let predicate = #Predicate<Product> {
             searchText.isEmpty ? true :
             $0.productName.localizedStandardContains(searchText)
         }
+//        
+//        let predicate = #Predicate<Product> {
+//            searchText.isEmpty ? true :
+//             
+//            scope == .Editable ?
+//            $0.productName.localizedStandardContains(searchText) && $0.invoiceDetails.count == 0:
+//            $0.productName.localizedStandardContains(searchText) && $0.invoiceDetails.count > 0
+//                
+//            
+//        }
         
         _products = Query(filter: predicate, sort: \Product.productName)
     }
@@ -51,10 +61,7 @@ struct ProductsListView: View {
         }
         .sheet(isPresented: $viewModel.isShowingAddProductSheet) {
             NavigationStack {
-                AddProductView(productName: $viewModel.productName,
-                               productDescription: $viewModel.productDescription,
-                               unitPrice: $viewModel.unitPrice,
-                               addProduct: addProduct)
+                AddProductView()
             }
             .presentationDetents([.medium, .large])
         }

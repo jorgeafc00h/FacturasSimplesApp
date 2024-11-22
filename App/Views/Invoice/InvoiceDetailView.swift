@@ -11,9 +11,11 @@ import SwiftData
 struct InvoiceDetailView: View {
     
     @Bindable var invoice: Invoice
-    @State private var pdfData: Data?
-    @State private var showShareSheet = false
-    @State private var pdfURL: URL?
+//    @State private var pdfData: Data?
+//    @State private var showShareSheet = false
+//    @State private var pdfURL: URL?
+    
+    @State var viewModel = InvoiceDetailViewModel()
     
     var body: some View {
         NavigationStack{
@@ -28,7 +30,7 @@ struct InvoiceDetailView: View {
         .toolbar {
             ToolbarItemGroup(placement: .automatic) {
                 NavigationLink {
-                    if let pdfData = pdfData {
+                    if let pdfData = viewModel.pdfData {
                         InvoicePDFPreview(pdfData: pdfData,invoice: invoice)
                     }
                 } label: {
@@ -40,7 +42,7 @@ struct InvoiceDetailView: View {
                 }
                 
                 Button {
-                    showShareSheet = true
+                    viewModel.showShareSheet = true
                 } label: {
                     Image(systemName: "square.and.arrow.up")
                 }
@@ -54,11 +56,11 @@ struct InvoiceDetailView: View {
             }
         }
         .onAppear(){
-            pdfData = InvoicePDFGenerator.generatePDF(from: invoice)
+            viewModel.pdfData = InvoicePDFGenerator.generatePDF(from: invoice)
             
         }
-        .sheet(isPresented: $showShareSheet) {
-            if let pdfData = pdfData {
+        .sheet(isPresented: $viewModel.showShareSheet) {
+            if let pdfData = viewModel.pdfData {
                 SharePDFSheet(
                     activityItems: [pdfData],
                     invoice: invoice
@@ -70,13 +72,26 @@ struct InvoiceDetailView: View {
     private var ButtonActions : some View {
         Section {
             
-            Button(action: SyncInvoice, label: {
-                HStack {
-                    Image(systemName: "checkmark.seal.text.page.fill")
-                        .symbolEffect(.pulse, options: .repeat(.continuous))
-                    Text("Completar y Sincronizar")
-                }
+            Button(action: viewModel.showConfirmSync,
+                   label: {
+                    HStack {
+                        Image(systemName: "checkmark.seal.text.page.fill")
+                            .symbolEffect(.pulse, options: .repeat(.continuous))
+                        Text("Completar y Sincronizar")
+                    }
             })
+            .confirmationDialog(
+                "¿Desea completar y sincronizar esta factura con el ministerio de hacienda?",
+                isPresented: $viewModel.showConfirmSyncSheet,
+                titleVisibility: .visible
+            ) {
+                
+                Button(action: SyncInvoice,
+                       label: { Text("Sincronizar") })
+                 
+                 
+                Button("Cancelar", role: .cancel) {}
+            }
             .frame(maxWidth: .infinity)
             .foregroundColor(.white)
             .padding()
@@ -134,7 +149,7 @@ struct InvoiceDetailView: View {
         }.disabled(invoice.status == .Completada)
         
         NavigationLink {
-            if let pdfData = pdfData {
+            if let pdfData = viewModel.pdfData {
                 InvoicePDFPreview(pdfData: pdfData,invoice: invoice)
             }
         } label: {
