@@ -31,7 +31,6 @@ struct InvoicesView: View {
                 InvoiceDetailView(invoice: inv)
             }
             else{
-                //list.bullet.rectangle.portrait
                 ContentUnavailableView {
                     Label("Seleccione una factura", systemImage: "list.bullet.rectangle.fill")
                 } description: {

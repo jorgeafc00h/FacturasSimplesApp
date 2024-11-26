@@ -10,7 +10,10 @@ import SwiftData
 
 struct EmisorEditView: View {
     @Environment(\.modelContext)   var modelContext
-    @State var emisor: Emisor  = Emisor()
+    
+    @Query(sort: (\Emisor.id))
+    var emisores : [Emisor]
+     
     @Environment(\.dismiss)   var dismiss
     
     @Query(filter: #Predicate<CatalogOption> { $0.catalog.id == "CAT-012"})
@@ -22,8 +25,8 @@ struct EmisorEditView: View {
     @Query(filter: #Predicate<CatalogOption> { $0.catalog.id == "CAT-008"})
     var tipo_establecimientos : [CatalogOption]
     
-    @State var viewModel = EmisorEditViewModel()
-    
+    @State var viewModel : EmisorEditViewModel  = EmisorEditViewModel(emisor: Emisor())
+     
     var body: some View {
         NavigationStack {
             EditEmisorForm
@@ -34,40 +37,42 @@ struct EmisorEditView: View {
     private var EditEmisorForm: some View {
         Form {
             Section("Información General") {
-                TextField("Nombre", text: $emisor.nombre)
-                TextField("Nombre o Razón Social", text: $emisor.nombreComercial)
-                TextField("NIT", text: $emisor.nit)
-                TextField("NRC", text: $emisor.nrc)
+                TextField("Nombre", text: $viewModel.emisor.nombre)
+                TextField("Nombre o Razón Social", text: $viewModel.emisor.nombreComercial)
+                TextField("NIT", text: $viewModel.emisor.nit)
+                    .keyboardType(.numberPad)
+                
+                TextField("NRC", text: $viewModel.emisor.nrc)
             }.foregroundColor(.darkCyan)
             
             Section("Dirección") {
-                Picker("Departamento",selection: $emisor.departamento){
+                Picker("Departamento",selection: $viewModel.emisor.departamento){
                     ForEach(departamentos,id:\.self){
                         dep in
                         Text(dep.details).tag(dep.code)
                     }
                 }.pickerStyle(.menu)
                 
-                Picker("Municipio",selection:$emisor.municipio){
+                Picker("Municipio",selection:$viewModel.emisor.municipio){
                     ForEach(filteredMunicipios,id:\.self){
                         munic in
                         Text(munic.details).tag(munic.code)
                     }
                 }.pickerStyle(.menu)
-                TextField("Direccion", text: $emisor.complemento)
+                TextField("Direccion", text: $viewModel.emisor.complemento)
                 
             }
             
             Section("Contacto") {
-                TextField("Correo Electrónico", text: $emisor.correo)
-                TextField("Teléfono", text: $emisor.telefono)
+                TextField("Correo Electrónico", text: $viewModel.emisor.correo)
+                TextField("Teléfono", text: $viewModel.emisor.telefono)
             }.foregroundColor(.darkCyan)
             
             Section("Actividad Economica") {
-                Button(emisor.actividadEconomicaLabel){
+                Button(viewModel.emisor.actividadEconomicaLabel){
                     viewModel.displayCategoryPicker.toggle()
                 }.foregroundColor(.darkBlue)
-                Picker("Tipo Establecimiento",selection: $emisor.tipoEstablecimiento){
+                Picker("Tipo Establecimiento",selection: $viewModel.emisor.tipoEstablecimiento){
                     ForEach(tipo_establecimientos,id:\.self){
                         dep in
                         Text(dep.details).tag(dep.code)
@@ -106,23 +111,27 @@ struct EmisorEditView: View {
         }
         .sheet(isPresented: $viewModel.displayCategoryPicker){
             SearchPicker(catalogId: "CAT-019",
-                         selection: $emisor.codActividad,
-                         selectedDescription: $emisor.descActividad,
+                         selection: $viewModel.emisor.codActividad,
+                         selectedDescription: $viewModel.emisor.descActividad,
                          showSearch: $viewModel.displayCategoryPicker,
                          title:"Actividad Economica")
-        }
+        }.onAppear(perform:{
+             
+            let em = emisores.isEmpty ? Emisor() : emisores.first!
+            viewModel = EmisorEditViewModel(emisor: em)
+        })
        
     }
 }
 
-#Preview {
-    do {
-        let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try ModelContainer(for: Emisor.self, configurations: config)
-        let example = Emisor()
-        return EmisorEditView(emisor: example)
-            .modelContainer(container)
-    } catch {
-        return Text("Failed to create preview: \(error.localizedDescription)")
-    }
-}
+//#Preview {
+//        do {
+//            let config = ModelConfiguration(isStoredInMemoryOnly: true)
+//            let container = try ModelContainer(for: Emisor.self, configurations: config)
+//            let example = Emisor()
+//            return EmisorEditView()
+//                .modelContainer(container)
+//        } catch {
+//            return Text("Failed to create preview: \(error.localizedDescription)")
+//        }
+//}

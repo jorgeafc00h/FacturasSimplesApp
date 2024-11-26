@@ -38,9 +38,14 @@ struct ProductsListView: View {
                 ProductListItemView(product: product)
                     .swipeActions(edge: .trailing) {
                         Button(role: .destructive) {
-                            deleteProduct(product)
+                            viewModel.toDeleteProduct = product
+                            viewModel.showConfirmDeleteProduct.toggle()
                         }label:{
-                            Label("Eliminar", systemImage: "trash")
+                            VStack{
+                                Text("Eliminar")
+                                Image(systemName: "trash")
+                            }
+                            
                         }.disabled(isDisabledDeleteProduct(product))
                     }
             }
@@ -65,6 +70,16 @@ struct ProductsListView: View {
             }
             .presentationDetents([.medium, .large])
         }
+        .confirmationDialog(
+            "¿Está seguro que desea eliminar este producto?",
+            isPresented: $viewModel.showConfirmDeleteProduct,
+            titleVisibility: .visible
+        ){
+            ConfirmDeleteButton
+        }
+        .alert(isPresented: $viewModel.showAlert) {
+            Alert(title: Text(viewModel.alertTitle), message: Text(viewModel.alertMessage), dismissButton: .default(Text("Ok!")))
+        }
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 EditButton()
@@ -84,5 +99,18 @@ struct ProductsListView: View {
         }
     }
     
-    
+    private var ConfirmDeleteButton: some View {
+       
+        VStack{
+            Button("Eliminar", role: .destructive) {
+                if let pr = viewModel.toDeleteProduct {
+                    deleteProduct(pr)
+                }
+            }
+            Button("Cancelar", role: .cancel) {
+                viewModel.offsets.removeAll()
+                 
+            }
+        }
+    }
 }

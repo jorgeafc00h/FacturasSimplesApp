@@ -10,7 +10,7 @@ import SwiftData
 
 struct CustomersListItem: View {
     var customer: Customer
-    let isUnread: Bool
+    let isUnread: Bool = true
     
     var body: some View {
         NavigationLink(value: customer) {
@@ -52,6 +52,6 @@ struct CustomersListItem: View {
 #Preview(traits: .sampleCustomers) {
     @Previewable @Query var customers: [Customer]
     List {
-        CustomersListItem(customer: customers.first!, isUnread: true)
+        CustomersListItem(customer: customers.first!)
     }
 }

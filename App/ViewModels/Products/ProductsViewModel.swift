@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import SwiftData
 
 extension ProductsListView {
     
@@ -13,7 +14,13 @@ extension ProductsListView {
         var unitPrice: Decimal = 0
         var productDescription: String = ""
         
-         
+        var toDeleteProduct : Product?
+        var showConfirmDeleteProduct: Bool = false
+        var offsets: IndexSet = []
+        
+        var showAlert: Bool = false
+        var alertTitle: String = ""
+        var alertMessage: String = ""
     }
     
     func createNewProduct() {
@@ -23,7 +30,22 @@ extension ProductsListView {
     }
     
     func deleteProduct(_ product: Product) {
-        modelContext.delete(product)
+        
+        let id = product.persistentModelID
+        
+        let descriptor = FetchDescriptor<InvoiceDetail>(predicate: #Predicate { $0.product.persistentModelID ==  id })
+        
+        let count = (try? modelContext.fetchCount(descriptor)) ?? 0
+        
+        if count > 0 {
+            viewModel.alertTitle = "Error"
+            viewModel.alertMessage = "No se puede eliminar un cliente con _\(count) facturas asociadas"
+            viewModel.showAlert = true
+            return
+        }
+        withAnimation{
+            modelContext.delete(product)
+        }
     }
     
     func isDisabledDeleteProduct(_ product: Product) -> Bool {

@@ -12,7 +12,7 @@ struct ProductListItemView: View {
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
-            //.buttonStyle(BorderlessButtonStyle())
+            .buttonStyle(BorderlessButtonStyle())
         }
     }
 } 

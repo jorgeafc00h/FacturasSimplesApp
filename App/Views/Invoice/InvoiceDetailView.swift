@@ -11,11 +11,10 @@ import SwiftData
 struct InvoiceDetailView: View {
     
     @Bindable var invoice: Invoice
-//    @State private var pdfData: Data?
-//    @State private var showShareSheet = false
-//    @State private var pdfURL: URL?
     
     @State var viewModel = InvoiceDetailViewModel()
+    @Environment(\.dismiss) var dismiss;
+    @Environment(\.modelContext) var modelContext
     
     var body: some View {
         NavigationStack{
@@ -71,32 +70,35 @@ struct InvoiceDetailView: View {
     
     private var ButtonActions : some View {
         Section {
-            
-            Button(action: viewModel.showConfirmSync,
-                   label: {
+            if invoice.status == .Nueva {
+                
+                
+                Button(action: viewModel.showConfirmSync,
+                       label: {
                     HStack {
                         Image(systemName: "checkmark.seal.text.page.fill")
                             .symbolEffect(.pulse, options: .repeat(.continuous))
                         Text("Completar y Sincronizar")
                     }
-            })
-            .confirmationDialog(
-                "¿Desea completar y sincronizar esta factura con el ministerio de hacienda?",
-                isPresented: $viewModel.showConfirmSyncSheet,
-                titleVisibility: .visible
-            ) {
-                
-                Button(action: SyncInvoice,
-                       label: { Text("Sincronizar") })
-                 
-                 
-                Button("Cancelar", role: .cancel) {}
+                })
+                .confirmationDialog(
+                    "¿Desea completar y sincronizar esta factura con el ministerio de hacienda?",
+                    isPresented: $viewModel.showConfirmSyncSheet,
+                    titleVisibility: .visible
+                ) {
+                    
+                    Button(action: SyncInvoice,
+                           label: { Text("Sincronizar") })
+                    
+                    
+                    Button("Cancelar", role: .cancel) {}
+                }
+                .frame(maxWidth: .infinity)
+                .foregroundColor(.white)
+                .padding()
+                .background(.darkCyan)
+                .cornerRadius(10)
             }
-            .frame(maxWidth: .infinity)
-            .foregroundColor(.white)
-            .padding()
-            .background(.darkCyan)
-            .cornerRadius(10)
         }
     }
     
@@ -160,6 +162,28 @@ struct InvoiceDetailView: View {
             }.foregroundColor(.darkCyan)
         }
         
+        
+        if invoice.status == .Nueva {
+            Button(role: .destructive,
+                   action: { viewModel.showingDeleteConfirmation = true },
+                   label: {
+                        Label("Eliminar Factura",systemImage: "trash")
+                    .symbolEffect(.breathe, options: .nonRepeating)
+                    .foregroundColor(.red)
+                })
+                
+            .confirmationDialog(
+                "¿Está seguro que desea eliminar esta Factura?",
+                isPresented: $viewModel.showingDeleteConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button("Eliminar", role: .destructive) {
+                    deleteInvoice()
+                    dismiss()
+                }
+                Button("Cancelar", role: .cancel) {}
+            }
+        }
         Section {
             Group{
                 VStack(alignment: .leading) {

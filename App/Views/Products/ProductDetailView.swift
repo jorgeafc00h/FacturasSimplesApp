@@ -37,9 +37,14 @@ struct ProductDetailView: View {
                 }
                 
                 Section {
-                    Button("Eliminar Producto", role: .destructive) {
-                        showingDeleteConfirmation = true
-                    }.disabled(viewModel.isDisbledDeleteProduct)
+                    Button(role: .destructive,
+                           action: { showingDeleteConfirmation = true },
+                           label: {
+                                Label("Eliminar Producto",systemImage: "trash")
+                            .foregroundColor(.red)
+                        })
+                        
+                    .disabled(viewModel.isDisbledDeleteProduct)
                     .confirmationDialog(
                         "¿Está seguro que desea eliminar este producto?",
                         isPresented: $showingDeleteConfirmation,
@@ -60,7 +65,11 @@ struct ProductDetailView: View {
                 }
             }
             .navigationTitle(product.productName.isEmpty ? "Nuevo Producto" : product.productName)
-        }.onAppear(perform: refreshProductUsage)
+        }
+        .onChange(of: product.id) {
+            refreshProductUsage()
+        }
+       
         
     }
     
