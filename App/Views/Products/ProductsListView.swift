@@ -38,15 +38,14 @@ struct ProductsListView: View {
                 ProductListItemView(product: product)
                     .swipeActions(edge: .trailing) {
                         Button(role: .destructive) {
-                            viewModel.toDeleteProduct = product
+                            selection = product
                             viewModel.showConfirmDeleteProduct.toggle()
                         }label:{
                             VStack{
                                 Text("Eliminar")
                                 Image(systemName: "trash")
                             }
-                            
-                        }.disabled(isDisabledDeleteProduct(product))
+                        }
                     }
             }
         }
@@ -81,10 +80,7 @@ struct ProductsListView: View {
             Alert(title: Text(viewModel.alertTitle), message: Text(viewModel.alertMessage), dismissButton: .default(Text("Ok!")))
         }
         .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                EditButton()
-                    .disabled(viewModel.productCount==0)
-            }
+            
             ToolbarItemGroup(placement: .topBarTrailing) {
                 Spacer()
                 Button("Agregar Producto",systemImage: "plus"){ viewModel.isShowingAddProductSheet=true}
@@ -103,7 +99,7 @@ struct ProductsListView: View {
        
         VStack{
             Button("Eliminar", role: .destructive) {
-                if let pr = viewModel.toDeleteProduct {
+                if let pr = selection {
                     deleteProduct(pr)
                 }
             }

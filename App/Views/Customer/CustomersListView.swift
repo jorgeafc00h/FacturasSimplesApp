@@ -38,22 +38,33 @@ struct CustomersListView: View {
             ForEach(customers) { customer in
                 CustomersListItem(customer: customer)
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                        DeleteSwipeButton
-                            .disabled(customer.invoices.count > 0)
-                            .confirmationDialog(
-                                "¿Está seguro que desea eliminar el CLiente :\(customer.fullName) de manera permanente?",
-                                isPresented: $viewModel.showDeleteCustomerConfirmation,
-                                titleVisibility: .visible
-                            ){
-                                Button("Eliminar", role: .destructive) {
-                                    deleteCustomer(customer)
-                                }
-                                Button("Cancelar", role: .cancel){}
-                            }
+                        Button(role: .destructive,
+                               action:{
+                                viewModel.showDeleteCustomerConfirmation = true
+                                selection = customer
+                                },label: {
+                                    VStack{
+                                        Text("Eliminar")
+                                        Image(systemName: "trash")
+                                    }
+                                })
                     }
+            }
+            .confirmationDialog(
+                "¿Está seguro que desea eliminar el CLiente :\( selection != nil ? selection!.fullName : "" ) de manera permanente?",
+                isPresented: $viewModel.showDeleteCustomerConfirmation,
+                titleVisibility: .visible
+            ){
+                Button("Eliminar", role: .destructive) {
+                    if let cust = selection {
+                        deleteCustomer(cust)
+                    }
+                }
+                Button("Cancelar", role: .cancel){}
             }
             //.onDelete(perform: viewModel.ConfirmDelete(at:))
         }
+        
         .alert(isPresented: $viewModel.showAlert) {
             Alert(title: Text(viewModel.alertTitle), message: Text(viewModel.alertMessage), dismissButton: .default(Text("Ok!")))
                 }
@@ -87,17 +98,7 @@ struct CustomersListView: View {
     }
     
  
-    private var DeleteSwipeButton: some View {
-        Button(role: .destructive,
-               action:{
-                viewModel.showDeleteCustomerConfirmation = true
-                },label: {
-                    VStack{
-                        Text("Eliminar")
-                        Image(systemName: "trash")
-                    }
-                })
-    }
+   
      
     private var ConfirmDeleteButton: some View {
        

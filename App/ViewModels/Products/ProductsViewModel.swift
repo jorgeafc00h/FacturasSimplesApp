@@ -14,7 +14,7 @@ extension ProductsListView {
         var unitPrice: Decimal = 0
         var productDescription: String = ""
         
-        var toDeleteProduct : Product?
+        
         var showConfirmDeleteProduct: Bool = false
         var offsets: IndexSet = []
         
@@ -39,7 +39,7 @@ extension ProductsListView {
         
         if count > 0 {
             viewModel.alertTitle = "Error"
-            viewModel.alertMessage = "No se puede eliminar un cliente con _\(count) facturas asociadas"
+            viewModel.alertMessage = "No se puede eliminar \(product.productName) producto con \(count) facturas asociadas"
             viewModel.showAlert = true
             return
         }
@@ -48,9 +48,7 @@ extension ProductsListView {
         }
     }
     
-    func isDisabledDeleteProduct(_ product: Product) -> Bool {
-        return product.invoiceDetails.count > 0
-    }
+    
     
     func addProduct() {
         let newProduct = Product(productName: viewModel.productName,

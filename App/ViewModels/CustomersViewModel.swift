@@ -24,6 +24,8 @@ extension CustomersListView {
         var alertTitle: String = ""
         var alertMessage: String = ""
         
+        var showDeleteAlert : Bool = false
+        
         var isDisabledEdit:Bool {
             customersCount == 0
         }
