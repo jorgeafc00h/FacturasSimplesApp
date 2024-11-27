@@ -165,7 +165,7 @@ class InvoicePDFGenerator {
     }
     private static func SplitText(_ text: String, _ maxLength: Int) -> String {
         return text.count >= maxLength ?
-        "\(String(text.prefix(maxLength)))...\n\(String(text.suffix(maxLength)))":
+        "\(String(text.prefix(maxLength)))...\n\(String(text.suffix(text.count-maxLength)))":
         text
     }
     
