@@ -55,8 +55,13 @@ struct InvoiceDetailView: View {
             }
         }
         .onAppear(){
-            viewModel.pdfData = InvoicePDFGenerator.generatePDF(from: invoice)
-            
+            refreshPDF()
+        }
+        .onChange(of: invoice) {
+            refreshPDF()
+        }
+        .onChange(of: viewModel.emisor){
+            refreshPDF()
         }
         .sheet(isPresented: $viewModel.showShareSheet) {
             if let pdfData = viewModel.pdfData {
@@ -71,8 +76,6 @@ struct InvoiceDetailView: View {
     private var ButtonActions : some View {
         Section {
             if invoice.status == .Nueva {
-                
-                
                 Button(action: viewModel.showConfirmSync,
                        label: {
                     HStack {

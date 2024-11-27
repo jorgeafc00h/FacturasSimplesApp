@@ -16,6 +16,9 @@ extension InvoiceDetailView {
         var alertMessage: String = ""
         
         
+        var emisor : Emisor = Emisor()
+        
+        
         
         func showConfirmSync(){
             showConfirmSyncSheet.toggle()
@@ -37,6 +40,29 @@ extension InvoiceDetailView {
             modelContext.delete(invoice)
             dismiss()
         }
+    }
+    
+    func loadEmisor() {
+        do{
+            
+            
+            let descriptor = FetchDescriptor<Emisor>()
+            
+            let data = try modelContext.fetch(descriptor)
+             
+            if !data.isEmpty{
+                viewModel.emisor = data.first!
+              
+            }
+        }
+        catch{
+            print("error loading emisor data")
+        }
+    }
+    func refreshPDF(){
+        viewModel.pdfData = nil
+        loadEmisor()
+        viewModel.pdfData = InvoicePDFGenerator.generatePDF(from: invoice, emisor: viewModel.emisor)
     }
 }
 

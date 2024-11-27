@@ -76,7 +76,7 @@ struct CustomerDetailView: View {
         
         Section {
             VStack(alignment: .leading) {
-                Text(customer.departammento)
+                Text(customer.departamento)
                     .font(.title)
                     .bold()
                 Text(customer.municipio)

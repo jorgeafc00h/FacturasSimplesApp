@@ -12,15 +12,11 @@ extension EmisorEditView {
         
         
         var displayCategoryPicker: Bool = false
-        var emisor: Emisor
-        
+        var emisor: Emisor = Emisor()
+         
         
         var isDisabledSaveChanges: Bool{
             return false
-        }
-        
-        init(emisor: Emisor){
-            self.emisor = emisor
         }
         
       
@@ -28,27 +24,73 @@ extension EmisorEditView {
     
    
     var filteredMunicipios: [CatalogOption] {
-        return viewModel.emisor.departamento.isEmpty ?
+        return viewModel.emisor.departamentoCode.isEmpty ?
         municipios :
-        municipios.filter{$0.departamento == viewModel.emisor.departamento}
+        municipios.filter{$0.departamento == viewModel.emisor.departamentoCode}
     }
     
-//    func loadData() {
-//        do{
-//            
-//            
-//            let descriptor = FetchDescriptor<Emisor>()
-//            
-//            let data = try modelContext.fetch(descriptor)
-//            
-//            _ = data.isEmpty ? Emisor() : data.first
-//            
-//           // viewModel.emisor = _emisor
-//        }
-//        catch{
-//            print("error loading emisor data")
-//        }
-//    }
+    
+    func onDepartamentoChange() {
+        print("dep: \(viewModel.emisor.departamentoCode)")
+        viewModel.emisor.departamento =
+        !viewModel.emisor.departamentoCode.isEmpty ?
+        departamentos.first(where: { $0.code == viewModel.emisor.departamentoCode })!.details
+        : ""
+        print("dep: \(viewModel.emisor.departamento) \(viewModel.emisor.departamentoCode)")
+    }
+    func onMunicipioChange() {
+        print("mun \(viewModel.emisor.municipioCode)")
+        
+        if !viewModel.emisor.municipioCode.isEmpty &&
+           !viewModel.emisor.departamentoCode.isEmpty{
+            
+            let m =  municipios.first(where:{
+                $0.departamento == viewModel.emisor.departamentoCode && $0.code == viewModel.emisor.municipioCode
+            })
+            
+            if m != nil{
+                viewModel.emisor.municipio = m!.details
+            }
+            
+        }
+         
+    }
+    
+    
+    func loadData() {
+        do{
+            
+            
+            let descriptor = FetchDescriptor<Emisor>()
+            
+            let data = try modelContext.fetch(descriptor)
+             
+            if data.isEmpty{
+                let em  = Emisor()
+                modelContext.insert(em)
+                viewModel.emisor = em
+            }
+            else{
+                
+                viewModel.emisor = data.first!
+            }
+            
+            let em = viewModel.emisor
+            
+            if !em.departamentoCode.isEmpty {
+                em.departamento = departamentos.first(where: { $0.code == viewModel.emisor.departamentoCode })!.details
+            }
+            if  em.departamentoCode.isEmpty &&
+                !em.municipioCode.isEmpty &&
+                !em.departamentoCode.isEmpty {
+                em.municipio = municipios.first(where: { $0.departamento == viewModel.emisor.departamento && $0.code == viewModel.emisor.municipioCode })!.details
+            }
+            viewModel.emisor = em
+        }
+        catch{
+            print("error loading emisor data")
+        }
+    }
     
     func saveChanges() {
         try? modelContext.save()

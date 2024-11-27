@@ -9,7 +9,9 @@ import SwiftData
 
 @Model
 class Emisor{
-    var id: Int
+    
+    @Attribute(.unique)
+    var id:  String = UUID().uuidString
     var nit: String
     var nrc: String
     var nombre: String
@@ -27,8 +29,11 @@ class Emisor{
     
     // Dirección
     var departamento: String
+    var departamentoCode : String = ""
     var municipio: String
+    var municipioCode :String = ""
     var complemento: String
+    
     
     
     var actividadEconomicaLabel :String {
@@ -38,7 +43,6 @@ class Emisor{
     }
     
     init(
-        id: Int = 0,
         nit: String = "",
         nrc: String = "",
         nombre: String = "", 
@@ -56,7 +60,7 @@ class Emisor{
         municipio: String = "",
         complemento: String = ""
     ) {
-        self.id = id
+        
         self.nit = nit
         self.nrc = nrc
         self.nombre = nombre
@@ -73,6 +77,8 @@ class Emisor{
         self.departamento = departamento
         self.municipio = municipio
         self.complemento = complemento
+        self.departamentoCode = ""
+        self.municipioCode = ""
     }
     
  
@@ -80,7 +86,6 @@ class Emisor{
     // Preview helper
     static var preview: Emisor {
         Emisor(
-            id: 1,
             nit: "0614-130687-101-0",
             nrc: "12345-6",
             nombre: "Empresa de Ejemplo, S.A. de C.V.",

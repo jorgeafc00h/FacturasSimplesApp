@@ -31,7 +31,7 @@ import SwiftData
     var descActividad: String?
     var departamentoCode: String = ""
     var municipioCode: String = ""
-    var departammento: String
+    var departamento: String = ""
     var municipio: String
     //var color: Color
     
@@ -44,7 +44,7 @@ import SwiftData
     init(firstName: String,lastName: String, nationalId: String,
          email: String,
          phone: String,
-         departammento: String = "-",
+         departamento: String = "-",
          municipio: String = "-",
          address: String = "-",
          company: String = "-") {
@@ -54,7 +54,7 @@ import SwiftData
         self.lastName = lastName
         self.email = email
         self.phone = phone
-        self.departammento = departammento
+        self.departamento = departamento
         self.municipio = municipio
         self.address = address
         self.company = company

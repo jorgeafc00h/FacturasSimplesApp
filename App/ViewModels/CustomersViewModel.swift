@@ -131,7 +131,7 @@ extension AddCustomerView{
                                         nationalId: viewModel.nationalId,
                                         email: viewModel.email,
                                         phone: viewModel.phone,
-                                        departammento: dp,
+                                        departamento: dp,
                                         municipio: mp,
                                         address: viewModel.address,
                                         company: viewModel.company
@@ -194,7 +194,7 @@ extension CustomerEditView {
         print("departamento: \(viewModel.departamento)")
         customer.departamentoCode = viewModel.departamento
         
-        customer.departammento = departamentos.first(where: {$0.code == viewModel.departamento})!.details
+        customer.departamento = departamentos.first(where: {$0.code == viewModel.departamento})!.details
     }
     
     

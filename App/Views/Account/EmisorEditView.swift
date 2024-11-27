@@ -10,9 +10,6 @@ import SwiftData
 
 struct EmisorEditView: View {
     @Environment(\.modelContext)   var modelContext
-    
-    @Query(sort: (\Emisor.id))
-    var emisores : [Emisor]
      
     @Environment(\.dismiss)   var dismiss
     
@@ -25,7 +22,9 @@ struct EmisorEditView: View {
     @Query(filter: #Predicate<CatalogOption> { $0.catalog.id == "CAT-008"})
     var tipo_establecimientos : [CatalogOption]
     
-    @State var viewModel : EmisorEditViewModel  = EmisorEditViewModel(emisor: Emisor())
+    
+    
+    @State var viewModel   = EmisorEditViewModel()
      
     var body: some View {
         NavigationStack {
@@ -46,19 +45,27 @@ struct EmisorEditView: View {
             }.foregroundColor(.darkCyan)
             
             Section("Dirección") {
-                Picker("Departamento",selection: $viewModel.emisor.departamento){
+                Picker("Departamento",selection: $viewModel.emisor.departamentoCode){
                     ForEach(departamentos,id:\.self){
                         dep in
                         Text(dep.details).tag(dep.code)
                     }
-                }.pickerStyle(.menu)
+                }
+                .onChange(of: viewModel.emisor.departamentoCode){
+                    onDepartamentoChange()
+                }
+                .pickerStyle(.menu)
                 
-                Picker("Municipio",selection:$viewModel.emisor.municipio){
+                Picker("Municipio",selection:$viewModel.emisor.municipioCode){
                     ForEach(filteredMunicipios,id:\.self){
                         munic in
                         Text(munic.details).tag(munic.code)
                     }
-                }.pickerStyle(.menu)
+                }
+                .onChange(of: viewModel.emisor.municipioCode){
+                    onMunicipioChange()
+                }
+                .pickerStyle(.menu)
                 TextField("Direccion", text: $viewModel.emisor.complemento)
                 
             }
@@ -115,23 +122,19 @@ struct EmisorEditView: View {
                          selectedDescription: $viewModel.emisor.descActividad,
                          showSearch: $viewModel.displayCategoryPicker,
                          title:"Actividad Economica")
-        }.onAppear(perform:{
-             
-            let em = emisores.isEmpty ? Emisor() : emisores.first!
-            viewModel = EmisorEditViewModel(emisor: em)
-        })
+        }.onAppear(perform: loadData)
        
     }
 }
 
-//#Preview {
-//        do {
-//            let config = ModelConfiguration(isStoredInMemoryOnly: true)
-//            let container = try ModelContainer(for: Emisor.self, configurations: config)
-//            let example = Emisor()
-//            return EmisorEditView()
-//                .modelContainer(container)
-//        } catch {
-//            return Text("Failed to create preview: \(error.localizedDescription)")
-//        }
-//}
+#Preview {
+        do {
+            let config = ModelConfiguration(isStoredInMemoryOnly: true)
+            let container = try ModelContainer(for: Emisor.self, configurations: config)
+            let example = Emisor()
+            return EmisorEditView()
+                .modelContainer(container)
+        } catch {
+            return Text("Failed to create preview: \(error.localizedDescription)")
+        }
+}
