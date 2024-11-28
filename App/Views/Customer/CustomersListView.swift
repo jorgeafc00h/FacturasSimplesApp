@@ -75,10 +75,7 @@ struct CustomersListView: View {
             .presentationDetents([.medium, .large])
         }
         .toolbar{
-            ToolbarItem(placement: .topBarLeading) {
-                EditButton()
-                    .disabled(viewModel.isDisabledEdit)
-            }
+           
             ToolbarItemGroup(placement: .topBarTrailing) {
                 Spacer()
                 Button("Agregar Cliente",systemImage: "plus"){ viewModel.isShowingItemsSheet=true}

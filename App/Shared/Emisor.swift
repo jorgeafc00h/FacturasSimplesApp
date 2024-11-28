@@ -34,7 +34,7 @@ class Emisor{
     var municipioCode :String = ""
     var complemento: String
     
-    
+    var invoiceLogo: String = ""
     
     var actividadEconomicaLabel :String {
         descActividad == nil || descActividad!.isEmpty ?

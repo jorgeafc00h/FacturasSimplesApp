@@ -157,7 +157,7 @@ struct InicioSesiónView: View {
     
     func iniciarSesion() {
         
-        print("Mi correo es \(correo) y mi contraseña es \(contraseña)")
+        //print("Mi correo es \(correo) y mi contraseña es \(contraseña)")
         //isHomeActive=true
         isAuthenticated=true
     }

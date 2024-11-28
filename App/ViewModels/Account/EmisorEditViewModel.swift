@@ -12,6 +12,8 @@ extension EmisorEditView {
         
         
         var displayCategoryPicker: Bool = false
+        
+        var isFileImporterPresented : Bool = false
         var emisor: Emisor = Emisor()
          
         

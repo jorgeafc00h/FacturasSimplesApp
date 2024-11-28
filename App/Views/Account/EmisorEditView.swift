@@ -78,7 +78,7 @@ struct EmisorEditView: View {
             Section("Actividad Economica") {
                 Button(viewModel.emisor.actividadEconomicaLabel){
                     viewModel.displayCategoryPicker.toggle()
-                }.foregroundColor(.darkBlue)
+                }.foregroundColor(.darkCyan)
                 Picker("Tipo Establecimiento",selection: $viewModel.emisor.tipoEstablecimiento){
                     ForEach(tipo_establecimientos,id:\.self){
                         dep in
@@ -86,6 +86,21 @@ struct EmisorEditView: View {
                     }
                 }.pickerStyle(.menu)
             }.foregroundColor(.darkCyan)
+            
+            Section("Logo Facturas"){
+                Button("Seleccione una imagen"){
+                    viewModel.isFileImporterPresented.toggle()
+                }.foregroundColor(.darkCyan).padding(.vertical , 20)
+                
+                if !viewModel.emisor.invoiceLogo.isEmpty {
+                    
+                    Image(viewModel.emisor.invoiceLogo)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 400)
+                        .padding(.bottom, 1.0)
+                }
+            }
             Section{
                 Button(action: saveChanges, label: {
                     HStack {
@@ -122,7 +137,22 @@ struct EmisorEditView: View {
                          selectedDescription: $viewModel.emisor.descActividad,
                          showSearch: $viewModel.displayCategoryPicker,
                          title:"Actividad Economica")
-        }.onAppear(perform: loadData)
+        }
+        .fileImporter(
+            isPresented: $viewModel.isFileImporterPresented,
+            allowedContentTypes: [.image],
+            allowsMultipleSelection: false
+        ) { result in
+            switch result {
+            case .success(let urls):
+                if let url = urls.first {
+                    viewModel.emisor.invoiceLogo = url.path
+                }
+            case .failure(let error):
+                print("Error selecting file: \(error.localizedDescription)")
+            }
+        }
+        .onAppear(perform: loadData)
        
     }
 }
