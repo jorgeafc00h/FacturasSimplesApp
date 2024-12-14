@@ -9,13 +9,59 @@ import SwiftUI
 import SwiftData
 
 struct Home: View {
+    
+    @State var isActive : Bool = false
+    
+    var body: some View {
+        ZStack{
+            
+            if self.isActive{
+                mainView()
+            }
+            else{
+                splash
+            }
+        }
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                withAnimation {
+                    self.isActive = true
+                }
+            }
+        }
+        
+        
+    }
+    
+    
+    init(){
+        UITabBar.appearance().barTintColor = UIColor(Color("TabBar-Color"))
+        UITabBar.appearance().isTranslucent = true
+    }
+    
+    private var splash : some View{
+        ZStack{
+            Rectangle()
+                .background(Color.black)
+            
+            Image("AppLogo")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 450, height: 450)
+        }
+    }
+    
+    
+    
+}
+
+private struct mainView : View{
     @State var selectedTab:Int = 2
     @State var isAuthenticated: Bool = false
     
-    
-    var body: some View {
+    var body: some View{
         
-        if(isAuthenticated){
+        if isAuthenticated{
             TabView(selection: $selectedTab){
                 ProfileView()
                     .navigationBarHidden(true).navigationBarBackButtonHidden(true)
@@ -40,26 +86,18 @@ struct Home: View {
                         Text("Productos")
                     }.tag(3)
                 
-            }.accentColor(.darkCyan)
-                
+            }
+            .accentColor(.darkCyan)
         }
         else{
             LoginView(isAuthenticated: $isAuthenticated)
         }
-        
-    }
-    
-    
-    init(){
-        UITabBar.appearance().barTintColor = UIColor(Color("TabBar-Color"))
-        UITabBar.appearance().isTranslucent = true
     }
 }
 
-
 struct HomeView_Previews: PreviewProvider {
     static var previews: some View {
-        Home()
+        mainView()
     }
 }
 

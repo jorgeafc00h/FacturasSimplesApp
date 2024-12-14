@@ -127,6 +127,37 @@ struct SampleProducts : PreviewModifier{
     }
 }
 
+struct SampleCompanies : PreviewModifier{
+    static func makeSharedContext() throws -> ModelContainer {
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(
+            for: Company.self,
+            configurations: config
+        )
+        SampleCompanies.createSampleData(into: container.mainContext)
+        return container
+    }
+    
+    func body(content: Content, context: ModelContainer) -> some View {
+          content.modelContainer(context)
+    }
+    
+    static func createSampleData(into modelContext: ModelContext) {
+        Task { @MainActor in
+            let samples: [Company] = Company.prewiewCompanies
+            
+            let sampleData: [any PersistentModel] = samples
+            sampleData.forEach {
+                modelContext.insert($0)
+            }
+             
+            try? modelContext.save()
+        }
+    }
+}
+
+ 
+
 @available(iOS 18.0, *)
 extension PreviewTrait where T == Preview.ViewTraits {
     @MainActor static var sampleCustomers: Self = .modifier(SampleData())
@@ -136,6 +167,7 @@ extension PreviewTrait where T == Preview.ViewTraits {
     @MainActor static var sampleInvoices: Self = .modifier(SampleInvoices())
     
     @MainActor static var sampleProducts: Self = .modifier(SampleProducts())
+    
+    @MainActor static var sampleCompanies: Self = .modifier(SampleCompanies())
+
 }
-
-

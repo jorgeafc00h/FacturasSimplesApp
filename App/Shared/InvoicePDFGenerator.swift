@@ -3,7 +3,7 @@ import PDFKit
 import SwiftUI
 
 class InvoicePDFGenerator {
-    static func generatePDF(from invoice: Invoice, emisor: Emisor) -> (Data) {
+    static func generatePDF(from invoice: Invoice, company: Company) -> (Data) {
         let fileName = "Factura-\(invoice.invoiceNumber).pdf"
         let pdfMetaData = [
             kCGPDFContextCreator: "Facturas Simples",
@@ -51,10 +51,26 @@ class InvoicePDFGenerator {
              
             
             // Logo placeholder
-            let logoRect = CGRect(x: pageWidth - 150, y: 30, width: 100, height: 60)
+            let logoRect = CGRect(x: pageWidth - 150, y: 7, width: 100, height: 125)
             context.cgContext.stroke(logoRect)
             "".draw(at: CGPoint(x: pageWidth - 130, y: 50), withAttributes: regularAttributes)
             
+            
+            // Draw the logo from base64 string
+//            if !company.invoiceLogo.isEmpty {
+//                let imageData = Data(base64Encoded: company.invoiceLogo)!
+//                    let image = UIImage(data: imageData)!
+//                        image.draw(in: logoRect)
+//            }
+//            else {
+//                if  let logoImage = UIImage(named: "logo"){
+//                    logoImage.draw(in: logoRect)
+//                }
+//            }
+            
+            if let logoImage = UIImage(named:"logo"){
+                logoImage.draw(in: logoRect)
+            }
             // Document details
             let documentDetails = """
             Código Generación: \(invoice.generationCode ?? "")
@@ -75,15 +91,15 @@ class InvoicePDFGenerator {
             let sellerInfo = """
             EMISOR
             
-            Nombre: \(emisor.nombre)
-            NIT: \(emisor.nit)
-            NRC: \(emisor.nrc)
-            Dirección: \(SplitText(emisor.complemento,35))
-            \(emisor.departamento) \(emisor.municipio)
-            Número de teléfono: \(emisor.telefono)
-            Correo electrónico: \(emisor.correo)
-            Nombre Comercial: \(emisor.nombreComercial)
-            Tipo Establecimiento: \(emisor.tipoEstablecimiento)
+            Nombre: \(company.nombre)
+            NIT: \(company.nit)
+            NRC: \(company.nrc)
+            Dirección: \(SplitText(company.complemento,35))
+            \(company.departamento) \(company.municipio)
+            Número de teléfono: \(company.telefono)
+            Correo electrónico: \(company.correo)
+            Nombre Comercial: \(company.nombreComercial)
+            Tipo Establecimiento: \(company.tipoEstablecimiento)
             """
             sellerInfo.draw(at: CGPoint(x: 30, y: 160), withAttributes: regularAttributes)
             
@@ -170,9 +186,9 @@ class InvoicePDFGenerator {
     }
     
     
-    static func generateAndSavePDF(from invoice: Invoice,emisor: Emisor) throws -> URL {
+    static func generateAndSavePDF(from invoice: Invoice,company: Company) throws -> URL {
         // Generate the PDF data
-        let pdfData = generatePDF(from: invoice, emisor: emisor)
+        let pdfData = generatePDF(from: invoice, company: company)
         
         // Create a temporary directory URL
         let temporaryDirectoryURL = FileManager.default.temporaryDirectory

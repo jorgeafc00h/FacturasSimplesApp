@@ -7,6 +7,9 @@
 
 import SwiftUI
 
+import AuthenticationServices
+
+
 struct LoginView: View {
     
     @Binding var isAuthenticated:Bool
@@ -15,83 +18,77 @@ struct LoginView: View {
     
     init(isAuthenticated:Binding<Bool>)
     {
-     _isAuthenticated = isAuthenticated
+        _isAuthenticated = isAuthenticated
     }
     
     var body: some View {
-        //NavigationStack{
+        ZStack{
+            Color(red: 18/255, green: 31/255, blue: 61/255, opacity: 100).ignoresSafeArea()
             
-            
-            ZStack{
-                Color(red: 18/255, green: 31/255, blue: 61/255, opacity: 100).ignoresSafeArea()
-                
+            VStack{
+                Spacer()
+                Image("AppLogo").resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 400)
+                    .padding(.bottom, 1.0)
+                Text("Facturas Simples")
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                    .padding(.bottom,10)
+                Spacer()
                 VStack{
-                    Spacer()
-                    Image("AppLogo").resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 400)
-                        .padding(.bottom, 1.0)
-                    Text("Facturas Simples")
-                        .font(.title)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                        .padding(.bottom,10)
-                    Spacer()
-                    VStack{
+                    
+                    HStack{
                         
-                        HStack{
-                            
-                            Spacer()
-                            
-                            Button("INICIAR SESIÓN"){
-                                tipoInicioSesion = true
-                            }
-                            .foregroundColor(tipoInicioSesion ? .white : .gray)
-                            Spacer()
-                            
-                            Button("REGÍSTRATE"){
-                                tipoInicioSesion = false
-                            }
-                            .foregroundColor(tipoInicioSesion ? .gray : .white)
-                            Spacer()
+                        Spacer()
+                        
+                        Button("INICIAR SESIÓN"){
+                            tipoInicioSesion = true
                         }
+                        .foregroundColor(tipoInicioSesion ? .white : .gray)
+                        Spacer()
                         
-                        
-                        Spacer(minLength: 42)
-                        
-                        
-                        if(tipoInicioSesion){
-                            InicioSesiónView(isAuthenticated: $isAuthenticated)
-                        }else{
-                            RegistroView()
+                        Button("REGÍSTRATE"){
+                            tipoInicioSesion = false
                         }
-                        
+                        .foregroundColor(tipoInicioSesion ? .gray : .white)
+                        Spacer()
+                    }
+                    
+                    
+                    Spacer(minLength: 42)
+                    
+                    
+                    if(tipoInicioSesion){
+                        LoginSectionView(isAuthenticated: $isAuthenticated)
+                    }else{
+                        RegistroView()
                     }
                     
                 }
                 
             }
-            //.navigationBarHidden(false)
-//        }
-//        .toolbar{
-//            Button(action: {}) {
-//                Image(systemName: "plus")
-//            }
-//        }
+            
+        }
     }
 }
 
- 
 
-struct InicioSesiónView: View {
+
+struct LoginSectionView: View {
     
-    @State var correo:String = ""
+    @State var userEmail:String = ""
+    @State var userName: String = ""
     @State var contraseña:String = ""
+    @State var accountId: String = ""
     @Binding var isAuthenticated:Bool
     
     init(isAuthenticated:Binding<Bool>){
         _isAuthenticated = isAuthenticated
     }
+    
+    let service = LocalStorageService()
     
     var body: some View {
         
@@ -104,9 +101,9 @@ struct InicioSesiónView: View {
                     .foregroundColor(Color("Marine"))
                 
                 ZStack(alignment: .leading){
-                    if correo.isEmpty { Text("ejemplo@gmail.com").font(.caption).foregroundColor(Color(red: 174/255, green: 177/255, blue: 185/255, opacity: 1.0)) }
+                    if userEmail.isEmpty { Text("ejemplo@gmail.com").font(.caption).foregroundColor(Color(red: 174/255, green: 177/255, blue: 185/255, opacity: 1.0)) }
                     
-                    TextField("", text: $correo).foregroundColor(.white)
+                    TextField("", text: $userEmail).foregroundColor(.white)
                 }
                 
                 Divider()
@@ -144,25 +141,47 @@ struct InicioSesiónView: View {
                             .stroke(Color("Dark-Cyan"), lineWidth: 3).shadow(color: .white, radius: 6))
                 }.padding(.bottom)
                 
+                SignInWithAppleButton(.signIn){ request in
+                    onRequest(request)
+                       } onCompletion: { result in
+                           switch result {
+                           case .success(let authorization):
+                               handleSuccessfulLogin(with: authorization)
+                           case .failure(let error):
+                               handleLoginError(with: error)
+                           }
+                       }
+                // black button
+                    .signInWithAppleButtonStyle(.black)
+                    .frame( maxWidth: .infinity,minHeight: 50, alignment: .center)
                 
                 
-            }.padding(.horizontal, 42.0)
-//            NavigationLink(""){}
-//                .navigationDestination(isPresented: $isHomeActive){
-//                    Home()
-//                }
+                
+            }
+            .padding(.horizontal, 42.0)
+            .task {
+                await Authorize()
+            }
+            
+            
         }
     }
-    
-    
-    func iniciarSesion() {
-        
-        //print("Mi correo es \(correo) y mi contraseña es \(contraseña)")
-        //isHomeActive=true
-        isAuthenticated=true
+     
+    @AppStorage("storedName")   var storedName : String = ""{
+        didSet{
+            userName = storedName
+        }
     }
-    
-    
+    @AppStorage("storedEmail")   var storedEmail : String = ""{
+        didSet{
+            userEmail = storedEmail
+        }
+    }
+    @AppStorage("userID")  var userID : String = ""{
+        didSet{
+            accountId = userID
+        }
+    }
 }
 
 struct RegistroView: View {
@@ -244,7 +263,7 @@ struct RegistroView: View {
                 }.padding(.bottom)
                 
                 
-              
+                
                 
             }.padding(.horizontal, 42.0)
             
@@ -277,7 +296,7 @@ struct ContentView_Previews: PreviewProvider {
         @State var isAuthenticated: Bool = true
         Group{
             LoginView(isAuthenticated: $isAuthenticated )
-            InicioSesiónView(isAuthenticated: $isAuthenticated)
+            LoginSectionView(isAuthenticated: $isAuthenticated)
                 .background(Color(red: 18/255, green: 31/255, blue: 61/255, opacity: 100).ignoresSafeArea())
         }
     }

@@ -10,7 +10,7 @@ import SwiftData
 
 @main
 struct AppApp: App {
-    let modelContainer = DataModel.shared.modelContainer
+    let modelContainer = DataModel.shared.modelContainer 
     
     var body: some Scene {
         WindowGroup {

@@ -1,17 +1,15 @@
 {
   "images" : [
     {
-      "filename" : "payment.png",
+      "filename" : "tallerLogo.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "payment 1.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "payment 2.png",
       "idiom" : "universal",
       "scale" : "3x"
     }

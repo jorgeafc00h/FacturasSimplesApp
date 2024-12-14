@@ -22,8 +22,7 @@ struct InvoiceDetailView: View {
                 InvoiceViewForiOS()
                 productsSection
                 ButtonActions
-            }
-            
+            } 
         }
         .navigationTitle(Text("Factura"))
         .toolbar {
@@ -60,7 +59,7 @@ struct InvoiceDetailView: View {
         .onChange(of: invoice) {
             refreshPDF()
         }
-        .onChange(of: viewModel.emisor){
+        .onChange(of: viewModel.company){
             refreshPDF()
         }
         .sheet(isPresented: $viewModel.showShareSheet) {

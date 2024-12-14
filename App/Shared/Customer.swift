@@ -11,8 +11,7 @@ import SwiftData
 @Model class Customer : Identifiable
 {
      
-   // #Unique<Customer>([\.nationalId])
-    
+   // #Unique<Customer>([\.nationalId]) 
     var firstName: String
     var lastName: String
     var company: String

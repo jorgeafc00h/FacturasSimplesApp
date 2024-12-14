@@ -14,11 +14,8 @@ extension InvoiceDetailView {
         var showAlert: Bool = false
         var alertTitle: String = ""
         var alertMessage: String = ""
-        
-        
-        var emisor : Emisor = Emisor()
-        
-        
+         
+        var company : Company = Company(nit:"",nrc:"",nombre:"")
         
         func showConfirmSync(){
             showConfirmSyncSheet.toggle()
@@ -46,12 +43,12 @@ extension InvoiceDetailView {
         do{
             
             
-            let descriptor = FetchDescriptor<Emisor>()
+            let descriptor = FetchDescriptor<Company>()
             
             let data = try modelContext.fetch(descriptor)
              
             if !data.isEmpty{
-                viewModel.emisor = data.first!
+                viewModel.company = data.first ?? Company(nit: "",nrc:"", nombre: "")
               
             }
         }
@@ -62,7 +59,7 @@ extension InvoiceDetailView {
     func refreshPDF(){
         viewModel.pdfData = nil
         loadEmisor()
-        viewModel.pdfData = InvoicePDFGenerator.generatePDF(from: invoice, emisor: viewModel.emisor)
+        viewModel.pdfData = InvoicePDFGenerator.generatePDF(from: invoice, company: viewModel.company)
     }
 }
 

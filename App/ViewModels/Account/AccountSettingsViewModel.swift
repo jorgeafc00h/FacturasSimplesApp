@@ -30,12 +30,23 @@ extension ProfileView {
         
         if UserDefaults.standard.object(forKey: "datosUsuario") != nil {
             
-            nombreUsuario = UserDefaults.standard.stringArray(forKey: "datosUsuario")![2]
-            print("UserName-> \(nombreUsuario)")
+            userName = UserDefaults.standard.stringArray(forKey: "datosUsuario")![2]
+            print("UserName-> \(userName)")
         }else{
             
             print("user not found")
             
         }
+        let localStorage = LocalStorageService()
+        
+        let data = localStorage.getProfileData()
+        if  data.isEmpty {
+            
+            email=data[0]
+            userName=data[1]
+            print("email-> \(email)")
+            
+        }
+        
     }
 }

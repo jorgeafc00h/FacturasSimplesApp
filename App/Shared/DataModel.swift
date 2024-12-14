@@ -9,9 +9,7 @@ import SwiftUI
 import SwiftData
 
 actor DataModel {
-    struct TransactionAuthor {
-        static let widget = "widget"
-    }
+    
 
     static let shared = DataModel()
     private init() {}
@@ -19,7 +17,15 @@ actor DataModel {
     nonisolated lazy var modelContainer: ModelContainer = {
         let modelContainer: ModelContainer
         do {
-            let schema = Schema([Invoice.self,Customer.self, Catalog.self,CatalogOption.self, Product.self, InvoiceDetail.self, Emisor.self])
+            let schema = Schema([
+                Invoice.self,
+                Customer.self,
+                Catalog.self,
+                CatalogOption.self,
+                Product.self,
+                InvoiceDetail.self,
+                Company.self
+            ])
             modelContainer = try ModelContainer(for: schema,configurations: [])
         } catch {
             fatalError("Failed to create the model container: \(error)")

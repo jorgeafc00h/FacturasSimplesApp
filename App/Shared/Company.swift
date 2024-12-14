@@ -1,22 +1,15 @@
-//
-//  Emisor.swift
-//  App
-//
-//  Created by Jorge Flores on 11/17/24.
-//
 import Foundation
 import SwiftData
 
-@Model
-class Emisor{
+@Model class Company {
     
     @Attribute(.unique)
-    var id:  String = UUID().uuidString
+    var id: String = UUID().uuidString
     var nit: String
     var nrc: String
     var nombre: String
-    var codActividad: String?
-    var descActividad: String?
+    var codActividad: String
+    var descActividad: String
     var nombreComercial: String
     var tipoEstablecimiento: String
     
@@ -29,24 +22,21 @@ class Emisor{
     
     // Dirección
     var departamento: String
-    var departamentoCode : String = ""
+    var departamentoCode: String
     var municipio: String
-    var municipioCode :String = ""
+    var municipioCode: String
     var complemento: String
     
-    var invoiceLogo: String = ""
+     var invoiceLogo: String
     
-    var actividadEconomicaLabel :String {
-        descActividad == nil || descActividad!.isEmpty ?
-        "Seleccione una actividad económica" :
-        descActividad!
+    var actividadEconomicaLabel: String {
+        descActividad == "" ? "Seleccione una actividad económica" : descActividad
     }
-    
+   
     init(
-        nit: String = "",
-        nrc: String = "",
-        nombre: String = "", 
-        codActividad: String = "",
+        nit: String,
+        nrc: String,
+        nombre: String,
         descActividad: String = "",
         nombreComercial: String = "",
         tipoEstablecimiento: String = "",
@@ -58,9 +48,12 @@ class Emisor{
         codPuntoVenta: String = "",
         departamento: String = "",
         municipio: String = "",
-        complemento: String = ""
+        complemento: String = "",
+        invoiceLogo: String = "",
+        departamentoCode: String = "",
+        municipioCode: String = "",
+        codActividad: String = ""
     ) {
-        
         self.nit = nit
         self.nrc = nrc
         self.nombre = nombre
@@ -77,31 +70,26 @@ class Emisor{
         self.departamento = departamento
         self.municipio = municipio
         self.complemento = complemento
-        self.departamentoCode = ""
-        self.municipioCode = ""
-    }
-    
- 
-   
-    // Preview helper
-    static var preview: Emisor {
-        Emisor(
-            nit: "0614-130687-101-0",
-            nrc: "12345-6",
-            nombre: "Empresa de Ejemplo, S.A. de C.V.",
-            codActividad: "12345",
-            descActividad: "Venta al por menor",
-            nombreComercial: "Empresa Ejemplo",
-            tipoEstablecimiento: "Sucursal",
-            telefono: "2222-2222",
-            correo: "ejemplo@empresa.com",
-            codEstableMH: "EST001",
-            codEstable: "SUC001",
-            codPuntoVentaMH: "PV001",
-            codPuntoVenta: "CAJA01",
-            departamento: "San Salvador",
-            municipio: "San Salvador",
-            complemento: "Calle Principal #123, Colonia Centro"
-        )
+        self.departamentoCode = departamentoCode
+        self.municipioCode = municipioCode
+        self.invoiceLogo = invoiceLogo
     }
 }
+
+
+
+extension Company{
+    
+    
+    
+    static var prewiewCompanies: [Company] {
+        [
+            Company(nit: "1234567890",nrc:"2342342", nombre: "Empresa 1",nombreComercial: "Nombre comercial"),
+            Company(nit: "1234567891",nrc:"34563456", nombre: "Empresa 2",nombreComercial: "Nombre comercial"),
+            Company(nit: "1234567892",nrc:"345634562", nombre: "Empresa 3",nombreComercial: "Nombre comercial"),
+            Company(nit: "1234567893",nrc:"345634563", nombre: "Empresa 4",nombreComercial: "Nombre comercial"),
+            Company(nit: "1234567894",nrc:"345634564", nombre: "Empresa 5",nombreComercial: "Nombre comercial")
+        ]
+    }
+}
+

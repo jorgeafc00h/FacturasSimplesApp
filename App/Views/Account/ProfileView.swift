@@ -3,11 +3,16 @@ import SwiftUI
 struct ProfileView: View {
     
     
-    @State var nombreUsuario:String = "Joe Cool"
+    @State var userName:String = "-"
+    @State var email: String = "@id.com"
     @State var imagenPerfil:UIImage = UIImage(named: "perfilEjemplo")!
     
     @State var isToggleOn = true
     
+   @State   var selection: Company?
+   
+   
+   @State var viewModel = ProfileViewModel()
     
     var body: some View {
         NavigationSplitView{
@@ -18,33 +23,41 @@ struct ProfileView: View {
                 VStack{
                     VStack{ 
                         Image(uiImage: imagenPerfil ).resizable().aspectRatio(contentMode: .fill)
-                            .frame(width: 180.0, height: 180.0)
+                            .frame(width: 120, height: 120)
                             .clipShape(Circle())
-                        Text(nombreUsuario)
+                        Text(userName)
                             .fontWeight(.bold)
                             .foregroundColor(Color.white)
+                        Text(email)
+                            .fontWeight(.ultraLight)
+                            .foregroundStyle(Color.white)
                         
-                    }.padding(EdgeInsets(top: 64, leading: 0, bottom: 32, trailing: 0))
-                     
-                    Text("Configuracion")
-                        .fontWeight(.bold)
-                        .foregroundColor(Color.white).frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity,  alignment: .leading).padding(.leading,18)
-                    Settings
-                    Spacer()
+                    }.padding(EdgeInsets(top: 10, leading: 0, bottom: 10, trailing: 0))
+                    ScrollView{
+                        Text("configuración")
+                            .fontWeight(.bold)
+                            .foregroundColor(Color.white).frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity,  alignment: .leading).padding(.leading,18)
+                        
+                        SelectedCompany
+                        Settings
+                         
+                    }
                 }
-            } .onAppear{loadUserProfileImage()}
+            }
+            .navigationTitle("configuración")
+            .onAppear{loadUserProfileImage()}
         }
         detail:{
-            EmisorEditView()
+            CompaniesView(selection: $selection)
         }
     }
     
     private var Settings : some View {
         VStack{
             
-            NavigationLink {EmisorEditView()}
+            NavigationLink {CompaniesView(selection: $selection)}
             label: {
-                NavigationLabel(title:"Perfil Ministerio de Hacienda",imagename: "person.crop.circle.fill")
+                NavigationLabel(title:"Aministracion Empresas",imagename: "widget.small")
             }
             NavigationLink {EditProfileView()}
             label: {
@@ -52,7 +65,7 @@ struct ProfileView: View {
             }
             NavigationLink {CertificateUpdate()}
             label: {
-                NavigationLabel(title:"Contraseña Cerficado",imagename:  "lock.fill")
+                NavigationLabel(title:"Contraseña Certificado",imagename:  "lock.fill")
             }
             NavigationLink {EditProfileView()}
             label: {
@@ -74,7 +87,64 @@ struct ProfileView: View {
         }
     }
     
-    
+    private var SelectedCompany : some View {
+        Button(action: {}, label: {
+            
+            if let company = selection {
+                HStack {
+                    Circle()
+                        .fill(Color(.darkCyan ))
+                        .frame(width: 55, height: 55)
+                        .overlay {
+                            Image(systemName: "widget.small")
+                                .font(.system(size: 30))
+                                .foregroundStyle(.background)
+                                .symbolEffect(.breathe, options: .nonRepeating)
+                        }
+                    
+                    
+                    VStack(alignment: .leading) {
+                        HStack{
+                            Text(company.nombreComercial)
+                                .font(.title)
+                                .foregroundColor(.white)
+                        }
+                        Text(company.nombre)
+                            .font(.headline)
+                            .foregroundColor(.white)
+                        Text(company.correo)
+                            .font(.headline)
+                            .foregroundColor(.white)
+                        if case let (id?, p?) = (company.nit, company.telefono) {
+                            Divider()
+                            HStack {
+                                Image(systemName: "widget.small")
+                                    .foregroundColor(.white)
+                                Text(id).font(.headline).foregroundColor(.white)
+                                Image(systemName: "phone")
+                                    .foregroundColor(.white)
+                                Text(p).font(.headline).foregroundColor(.white)
+                            }
+                            .font(.caption)
+                        }
+                    }.padding(.leading, 10.0)
+                    // Spacer()
+                }.padding()
+            }
+            else{
+                HStack {
+                    Image(systemName: "dollarsign.bank.building").padding(.horizontal, 5.0)
+                        .foregroundColor(Color.white)
+                    Text("Seleccione Empresa")
+                        .foregroundColor(Color.white)
+                    Spacer()
+                     
+                    
+                }.padding()
+            }
+        }) .background(Color( selection == nil ? .clear : .darkBlue))
+            .clipShape(RoundedRectangle(cornerRadius: 1.0)).padding(.horizontal, 8.0)
+    }
     
 }
 
@@ -100,9 +170,6 @@ private struct NavigationLabel : View {
 
 
  
-
-struct ProfileView_Previews: PreviewProvider {
-    static var previews: some View {
-        ProfileView()
-    }
+#Preview (traits: .sampleCompanies) {
+    ProfileView()
 }

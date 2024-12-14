@@ -121,11 +121,11 @@ private struct EditUserCredentials:View {
     }
     
     func actualizarDatos()  {
-        let objetoActualizadorDatos = SaveData()
+       // let objetoActualizadorDatos = LocalStorageService()
         
-        let resultado = objetoActualizadorDatos.guardarDatos(correo: correo, contrasena: contraseña, nombre: nombre)
+//        let resultado = objetoActualizadorDatos.guardarDatos(correo: correo, contrasena: contraseña, nombre: nombre)
         
-        print("Se guardaron los datos con exito?: \(resultado)")
+        //print("Se guardaron los datos con exito?: \(resultado)")
     }
 }
 

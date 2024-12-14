@@ -1,8 +1,11 @@
-// 
-//import SwiftUI
-//import SwiftData
-//
-//extension DataModel {
+ 
+import SwiftUI
+import SwiftData
+
+extension DataModel {
+
+    
+}
 //    struct UserDefaultsKey {
 //        static let unreadCustomerIdentifiers = "unreadCustomersIdentifiers"
 //        static let historyToken = "historyToken"

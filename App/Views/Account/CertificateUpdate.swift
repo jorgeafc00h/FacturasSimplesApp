@@ -26,16 +26,7 @@ struct CertificateUpdate: View {
                         EditUserCertificateCredentials
                     }
                 }
-            }
-        
-//        .toolbar {
-//            ToolbarItem(placement: .topBarLeading) {
-//                Button("Cancelar") {
-//                    dismiss()
-//                }
-//            }
-//        }
-//        .accentColor(.darkCyan)
+            } 
     }
     
     private var EditUserCertificateCredentials:   some View {
