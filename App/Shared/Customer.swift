@@ -11,7 +11,10 @@ import SwiftData
 @Model class Customer : Identifiable
 {
      
-   // #Unique<Customer>([\.nationalId]) 
+   // #Unique<Customer>([\.nationalId])
+    
+    var companyOwnerId: String
+    
     var firstName: String
     var lastName: String
     var company: String
@@ -46,7 +49,8 @@ import SwiftData
          departamento: String = "-",
          municipio: String = "-",
          address: String = "-",
-         company: String = "-") {
+         company: String = "-",
+         compnayOwnerId: String = "") {
         //self.id = id
         self.firstName = firstName
         self.nationalId = nationalId
@@ -57,6 +61,7 @@ import SwiftData
         self.municipio = municipio
         self.address = address
         self.company = company
+        self.companyOwnerId = compnayOwnerId
     }
 }
 

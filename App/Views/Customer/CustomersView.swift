@@ -10,12 +10,12 @@ import SwiftData
 
 struct CustomersView: View {
     @State  var selection: Customer?
-    @State var searchText: String = ""
+    @Binding var selectedCompanyId : String 
     @State var showAddCustomerSheet = false
     
     var body: some View {
         NavigationSplitView {
-            CustomersListView(selection:$selection,searchText: searchText)
+            CustomersListView(selection:$selection, selectedCompanyId: selectedCompanyId)
         }
         detail: {
             if let cust = selection {
@@ -42,7 +42,6 @@ struct CustomersView: View {
                 }
             }
         }
-        .searchable(text: $searchText, placement: .sidebar)
         
    }
 }
@@ -50,5 +49,13 @@ struct CustomersView: View {
 
 
 #Preview (traits:   .sampleCustomers) {
-    CustomersView()
+    CustomersViewWrapper()
+}
+
+private struct CustomersViewWrapper: View{
+    @State private var selectedCompanyId: String = ""
+    
+    var body : some View{
+        CustomersView(selectedCompanyId: $selectedCompanyId)
+    }
 }

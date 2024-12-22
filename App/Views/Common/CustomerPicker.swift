@@ -19,15 +19,19 @@ struct CustomerPicker :View {
     @Binding var selection : Customer?
     
     @State private var searchText: String = ""
+    @AppStorage("selectedCompanyIdentifier")  var companyIdentifier : String = ""
     
     var filteredCustomers: [Customer] {
         if searchText.isEmpty {
            customers
         } else {
-            customers.filter{searchText.isEmpty ? true :
+            customers.filter{searchText.isEmpty ?
+                $0.companyOwnerId == companyIdentifier:
                 $0.firstName.contains(searchText) ||
                 $0.lastName.contains(searchText) ||
-                $0.email.contains(searchText)}
+                $0.email.contains(searchText) &&
+                $0.companyOwnerId == companyIdentifier
+            }
         }
     }
      
@@ -36,10 +40,12 @@ struct CustomerPicker :View {
         _selection = selection
         
         let filterPredicate = #Predicate<Customer> {
-                searchText.isEmpty ? true :
-                $0.firstName.contains(searchText) ||
-                $0.lastName.contains(searchText) ||
-                $0.email.contains(searchText)
+            searchText.isEmpty ?
+            $0.companyOwnerId == companyIdentifier :
+            $0.firstName.contains(searchText) ||
+            $0.lastName.contains(searchText) ||
+            $0.email.contains(searchText) ||
+            $0.companyOwnerId == companyIdentifier
             }
          
         _customers = Query(filter: filterPredicate, sort: \Customer.firstName)

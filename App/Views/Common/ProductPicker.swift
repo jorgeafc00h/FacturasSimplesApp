@@ -21,14 +21,18 @@ struct ProductPicker: View {
     @Environment(\.modelContext) var modelContext
     
     @Query(sort: \Product.productName)
-    var products: [Product] = []
+    var products: [Product]
+    
+    @AppStorage("selectedCompanyIdentifier")  var companyIdentifier : String = ""
     
     var filteredProducts: [Product] {
         if searchText.isEmpty {
             products
         } else {
-            products.filter{searchText.isEmpty ? true :
-                $0.productName.contains(searchText)
+            products.filter{searchText.isEmpty ?
+                $0.companyId == companyIdentifier:
+                $0.productName.localizedStandardContains(searchText) &&
+                $0.companyId == companyIdentifier
             }
         }
     }
@@ -36,7 +40,10 @@ struct ProductPicker: View {
     init(details: Binding<[InvoiceDetail]>) {
         _details = details
         let predicate = #Predicate<Product> {
-            searchText.isEmpty ? true : $0.productName.contains(searchText)
+            searchText.isEmpty ?
+            $0.companyId == companyIdentifier :
+            $0.productName.localizedStandardContains(searchText) &&
+            $0.companyId == companyIdentifier
         }
         _products = Query(filter: predicate, sort: \Product.productName)
     }

@@ -9,6 +9,7 @@ struct AddProductView: View {
     @Environment(\.modelContext) var modelContext 
     
     @State var viewModel = AddProductViewModel()
+    @AppStorage("selectedCompanyIdentifier")  var companyIdentifier : String = ""
     
     var body: some View {
         Form {

@@ -196,6 +196,7 @@
 			mainGroup = AE28776F2CBC28C300005450;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				AE491E8C2D0E386B00B9B4BD /* XCRemoteSwiftPackageReference "microsoft-authentication-library-for-objc" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = AE2877792CBC28C300005450 /* Products */;
@@ -567,6 +568,17 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		AE491E8C2D0E386B00B9B4BD /* XCRemoteSwiftPackageReference "microsoft-authentication-library-for-objc" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/AzureAD/microsoft-authentication-library-for-objc";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.6.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
 	};
 	rootObject = AE2877702CBC28C300005450 /* Project object */;
 }

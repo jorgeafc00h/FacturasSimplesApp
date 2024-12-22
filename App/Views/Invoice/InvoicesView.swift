@@ -9,23 +9,19 @@ import SwiftUI
 import SwiftData
 
 struct InvoicesView: View {
+    
+    @Binding var selectedCompanyId: String
     @State private var selection: Invoice?
     @State private var searchText: String = ""
-    
-    @Environment(\.modelContext)  var modelContext
-    
-    @Query(filter: #Predicate<Catalog> { $0.id == "CAT-012"}, sort: \Catalog.id)
-    var catalog: [Catalog]
-    var syncService = CatalogServiceClient()
+  
     
     @State var viewModel = InvoicesViewModel()
    
     var body: some View {
         
         NavigationSplitView{
-            InvoicesListView(selection:$selection, 
-                             searchText: searchText)
-        } 
+            InvoicesListView(selection:$selection, selectedCompanyId: selectedCompanyId)
+        }
         detail:{
             if let inv = selection {
                 InvoiceDetailView(invoice: inv)
@@ -53,14 +49,20 @@ struct InvoicesView: View {
                     }
                 }
             }
-        }
-        .searchable(text: $searchText, placement: .sidebar)
-        .task { await SyncCatalogs()}
+        } 
+        
     }
-    
    
 }
 
-#Preview (traits: .sampleInvoices) {
-    InvoicesView()
+#Preview (traits: .sampleInvoices){
+    InvoicesViewWrapper()
+}
+
+private struct InvoicesViewWrapper: View {
+    @State private var selectedCompanyId: String = ""
+    
+    var body: some View {
+        InvoicesView( selectedCompanyId: $selectedCompanyId)
+    }
 }

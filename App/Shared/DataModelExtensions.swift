@@ -3,7 +3,34 @@ import SwiftUI
 import SwiftData
 
 extension DataModel {
-
+    
+     
+    private func getSelectedCompanyIdentifier() -> String? {
+         return UserDefaults.standard.string(forKey: Constants.selectedCompany)
+      
+    }
+    private func setSelectedCompanyIdentifier(_ company: String) {
+         
+        
+        UserDefaults.standard.set(company, forKey: Constants.selectedCompany)
+    }
+    func saveProfileData(email:String,userName:String,userId:String)-> Bool {
+        print("saving to local storage \(email) \(userName) \(userId)")
+        
+        UserDefaults.standard.set([email,userName,userId], forKey: "profileData")
+        return true;
+        
+    }
+    
+   
+    func getProfileData()-> [String] {
+        
+        let profileData:[String] = UserDefaults.standard.stringArray(forKey: "profileData") ?? ["","",""]
+        
+        print("get from local storage: \(profileData)")
+        
+        return profileData
+    }
     
 }
 //    struct UserDefaultsKey {

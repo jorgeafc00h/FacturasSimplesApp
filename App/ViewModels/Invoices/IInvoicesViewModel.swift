@@ -10,24 +10,6 @@ extension InvoicesView{
         var showAddCustomerSheet: Bool = false
         
     }
-    
-    func SyncCatalogs() async {
-        
-        if(catalog.isEmpty){
-            do{
-                let collection = try await syncService.getCatalogs()
-                
-                for c in collection{
-                    modelContext.insert(c)
-                }
-                
-                try? modelContext.save()
-            }
-            catch{
-                print(error)
-            }
-        }
-    }
 }
 
 extension AddInvoiceView {
@@ -71,6 +53,7 @@ extension AddInvoiceView {
             invoice.items = viewModel.details
             
             modelContext.insert(invoice)
+            try? modelContext.save()
             dismiss()
         }
     }
@@ -108,12 +91,15 @@ extension AddInvoiceView {
     }
     func getNextInoviceNumber(){
         let descriptor = FetchDescriptor<Invoice>(
+            predicate: #Predicate<Invoice>{
+                $0.customer.companyOwnerId == companyIdentifier
+            },
             sortBy: [SortDescriptor(\.date, order: .reverse)]
         )
         
         if let latestInvoice = try? modelContext.fetch(descriptor).first {
             if let currentNumber = Int(latestInvoice.invoiceNumber) {
-                viewModel.invoiceNumber = String(format: "%04d", currentNumber + 1)
+                viewModel.invoiceNumber = String(format: "%05d", currentNumber + 1)
             } else {
                 viewModel.invoiceNumber = "00001"
             }

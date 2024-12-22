@@ -23,13 +23,14 @@ import SwiftData
     @Relationship(deleteRule: .cascade, inverse: \ InvoiceDetail.product)
     var invoiceDetails : [InvoiceDetail] = []
     
-  
+    var companyId: String
     
-    init(productName:String,unitPrice:Decimal, productDescription:String = "")
+    init(productName:String,unitPrice:Decimal, productDescription:String = "",companyId:String = "")
     {
         self.productName = productName
         self.unitPrice = unitPrice
         self.productDescription = ""
+        self.companyId = companyId
     }
 }
 

@@ -23,7 +23,7 @@ struct Home: View {
             }
         }
         .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                 withAnimation {
                     self.isActive = true
                 }
@@ -37,17 +37,32 @@ struct Home: View {
     init(){
         UITabBar.appearance().barTintColor = UIColor(Color("TabBar-Color"))
         UITabBar.appearance().isTranslucent = true
+        
     }
     
     private var splash : some View{
         ZStack{
             Rectangle()
                 .background(Color.black)
+    
             
-            Image("AppLogo")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 450, height: 450)
+            VStack{
+                Image("AppLogo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 450, height: 450)
+                Text("Facturas Simples")
+                    .font(.title)
+                    .font(.system(size: 27, weight: .bold, design: .serif))
+                    .foregroundColor(.white)
+                
+                Spacer()
+                Text("Facturacion Facil y Rapido.... ")
+                    .font(.footnote)
+                    .foregroundColor(.white)
+                
+            }
+            
         }
     }
     
@@ -58,28 +73,28 @@ struct Home: View {
 private struct mainView : View{
     @State var selectedTab:Int = 2
     @State var isAuthenticated: Bool = false
-    
+    @State var selectedCompanyId: String = ""
     var body: some View{
         
         if isAuthenticated{
             TabView(selection: $selectedTab){
-                ProfileView()
+                ProfileView(selectedCompanyId: $selectedCompanyId)
                     .navigationBarHidden(true).navigationBarBackButtonHidden(true)
                     .tabItem {
                         Image(systemName: "person")
                         Text("Perfil")
                     }.tag(0)
-                CustomersView()
+                CustomersView(selectedCompanyId: $selectedCompanyId)
                     .tabItem {
                         Image(systemName: "person.crop.badge.magnifyingglass.fill")
                         Text("Clientes")
                     }.tag(1)
-                InvoicesView()
+                InvoicesView(selectedCompanyId: $selectedCompanyId)
                     .tabItem {
                         Image(systemName: "list.bullet.rectangle.portrait")
                         Text("Facturas")
                     }.tag(2)
-                ProductsView()
+                ProductsView(selectedCompanyId: $selectedCompanyId)
                 // .font(.system(size: 30, weight: .bold, design: .rounded))
                     .tabItem {
                         Image(systemName: "list.bullet.rectangle.fill")

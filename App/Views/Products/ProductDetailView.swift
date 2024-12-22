@@ -37,11 +37,10 @@ struct ProductDetailView: View {
                 }
                 
                 Section {
-                    Button(role: .destructive,
-                           action: { showingDeleteConfirmation = true },
+                    Button(action: { showingDeleteConfirmation = true },
                            label: {
                                 Label("Eliminar Producto",systemImage: "trash")
-                            .foregroundColor(.red)
+                            .foregroundColor(viewModel.isDisbledDeleteProduct ? .gray : .red)
                         })
                         
                     .disabled(viewModel.isDisbledDeleteProduct)
@@ -69,7 +68,9 @@ struct ProductDetailView: View {
         .onChange(of: product.id) {
             refreshProductUsage()
         }
-       
+        .onAppear {
+            refreshProductUsage()
+        }
         
     }
     

@@ -10,20 +10,32 @@ struct InvoicesListView: View {
     @Binding var selection: Invoice?
     
     @State var viewModel = InvoicesListViewModel()
+    @State var searchText: String = ""
+     
+    @AppStorage("selectedCompanyName")  var selectedCompanyName : String = ""
+    @AppStorage("selectedCompanyIdentifier")  var companyIdentifier : String = ""
     
-    init(selection: Binding<Invoice?>,
-         searchText: String) {
+    @Query(filter: #Predicate<Catalog> { $0.id == "CAT-012"}, sort: \Catalog.id)
+    var catalog: [Catalog]
+    var syncService = CatalogServiceClient()
+    
+    init(selection: Binding<Invoice?>, selectedCompanyId: String) {
         
         _selection = selection
         
+        let companyId = selectedCompanyId.isEmpty ? companyIdentifier : selectedCompanyId
+        
         let predicate = #Predicate<Invoice> {
-            searchText.isEmpty ? true :
+            searchText.isEmpty ?
+            $0.customer.companyOwnerId == companyId :
             $0.invoiceNumber.localizedStandardContains(searchText) ||
             $0.customer.firstName.localizedStandardContains(searchText) ||
             $0.customer.lastName.localizedStandardContains(searchText) ||
-            $0.customer.email.localizedStandardContains(searchText)
+            $0.customer.email.localizedStandardContains(searchText) &&
+            $0.customer.companyOwnerId == companyId
         }
-        _invoices = Query(filter: predicate, sort: \Invoice.date, order: .reverse)
+        
+        _invoices = Query(filter: predicate, sort: \Invoice.invoiceNumber, order: .reverse)
     }
     
     var body: some View {
@@ -48,13 +60,9 @@ struct InvoicesListView: View {
                 EmptyInvoicesOverlay
             }
         }
-        .navigationTitle("Facturas")
-        .onChange(of: invoices) {
-            viewModel.invocesCount = invoices.count
-        }
-        .onAppear {
-            viewModel.invocesCount = invoices.count
-        }
+        .navigationTitle("Facturas: \(selectedCompanyName)")
+        .searchable(text: $searchText, placement: .sidebar)
+        .task { await SyncCatalogs()}
         
     }
     

@@ -56,21 +56,19 @@ class InvoicePDFGenerator {
             "".draw(at: CGPoint(x: pageWidth - 130, y: 50), withAttributes: regularAttributes)
             
             
-            // Draw the logo from base64 string
-//            if !company.invoiceLogo.isEmpty {
-//                let imageData = Data(base64Encoded: company.invoiceLogo)!
-//                    let image = UIImage(data: imageData)!
-//                        image.draw(in: logoRect)
-//            }
-//            else {
-//                if  let logoImage = UIImage(named: "logo"){
-//                    logoImage.draw(in: logoRect)
-//                }
-//            }
-            
-            if let logoImage = UIImage(named:"logo"){
-                logoImage.draw(in: logoRect)
+             //Draw the logo from base64 string
+            if !company.invoiceLogo.isEmpty {
+                let imageData = Data(base64Encoded: company.invoiceLogo)!
+                    let image = UIImage(data: imageData)!
+                        image.draw(in: logoRect)
             }
+            else {
+                if  let logoImage = UIImage(named: "logo"){
+                    logoImage.draw(in: logoRect)
+                }
+            }
+            
+             
             // Document details
             let documentDetails = """
             Código Generación: \(invoice.generationCode ?? "")

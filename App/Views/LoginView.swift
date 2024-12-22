@@ -87,9 +87,7 @@ struct LoginSectionView: View {
     init(isAuthenticated:Binding<Bool>){
         _isAuthenticated = isAuthenticated
     }
-    
-    let service = LocalStorageService()
-    
+     
     var body: some View {
         
         
@@ -146,7 +144,7 @@ struct LoginSectionView: View {
                        } onCompletion: { result in
                            switch result {
                            case .success(let authorization):
-                               handleSuccessfulLogin(with: authorization)
+                                handleSuccessfulLogin(with: authorization)
                            case .failure(let error):
                                handleLoginError(with: error)
                            }

@@ -3,16 +3,30 @@ import SwiftUI
 struct ProfileView: View {
     
     
-    @State var userName:String = "-"
-    @State var email: String = "@id.com"
+//    @State var userName:String = "-"
+//    @State var email: String = "@id.com"
+//
+    @Environment(\.modelContext) var modelContext
+    
     @State var imagenPerfil:UIImage = UIImage(named: "perfilEjemplo")!
     
     @State var isToggleOn = true
     
-   @State   var selection: Company?
-   
-   
-   @State var viewModel = ProfileViewModel()
+    @State var selection: Company?
+    @AppStorage("storedName")   var userName : String = ""
+    @AppStorage("storedEmail")   var email : String = ""
+    
+    @AppStorage("userID")  var userID : String = ""
+    @AppStorage("selectedCompanyIdentifier")  var companyId : String = ""{
+        didSet {
+            selectedCompanyId = companyId
+        }
+    }
+    
+
+    @State var viewModel = ProfileViewModel()
+    
+    @Binding var selectedCompanyId: String
     
     var body: some View {
         NavigationSplitView{
@@ -48,14 +62,17 @@ struct ProfileView: View {
             .onAppear{loadUserProfileImage()}
         }
         detail:{
-            CompaniesView(selection: $selection)
+            CompaniesView(selection: $selection, selectedCompanyId: $selectedCompanyId)
         }
     }
     
     private var Settings : some View {
         VStack{
             
-            NavigationLink {CompaniesView(selection: $selection)}
+            NavigationLink {
+                CompaniesView(selection: $selection,
+                              selectedCompanyId:  $selectedCompanyId)
+            }
             label: {
                 NavigationLabel(title:"Aministracion Empresas",imagename: "widget.small")
             }
@@ -169,7 +186,15 @@ private struct NavigationLabel : View {
 }
 
 
- 
-#Preview (traits: .sampleCompanies) {
-    ProfileView()
+#Preview (traits: .sampleCompanies){
+    ProfileViewWrapper()
+}
+
+struct ProfileViewWrapper: View {
+    @State private var selectedCompany: Company? = nil
+    @State private var selectedCompanyId: String = ""
+    
+    var body: some View {
+        ProfileView( selectedCompanyId: $selectedCompanyId)
+    }
 }

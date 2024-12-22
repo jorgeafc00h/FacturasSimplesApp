@@ -9,15 +9,13 @@ import SwiftUI
 import SwiftData
 
 struct ProductsView: View {
-    @State var selection: Product?
-    @State var searchText: String = ""
-    @State var searchScope: ProductSearchScope = .Editable
+    @State var selection: Product? 
+    @Binding var selectedCompanyId: String
     
     var body: some View {
         NavigationSplitView {
             ProductsListView(selection: $selection,
-                             searchText: searchText,
-                             scope: searchScope)
+                             selectedCompanyId: selectedCompanyId)
         } detail: {
             if let pr = selection {
                 ProductDetailView(product: pr)
@@ -29,14 +27,19 @@ struct ProductsView: View {
                 }
             }
         }
-        .searchable(text: $searchText, placement: .sidebar)
-        .searchScopes($searchScope){
-            Text("Editable").tag(ProductSearchScope.Editable)
-            Text("No Editable").tag(ProductSearchScope.NonEditable)
-        }
+       
     }
 }
 
-#Preview (traits: .sampleProducts) {
-    ProductsView()
+
+#Preview (traits: .sampleProducts){
+    ProductsViewWrapper()
+}
+
+private struct ProductsViewWrapper: View {
+    @State private var selectedCompanyId: String = ""
+    
+    var body: some View {
+        ProductsView( selectedCompanyId: $selectedCompanyId)
+    }
 }

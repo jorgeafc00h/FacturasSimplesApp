@@ -34,7 +34,7 @@ extension LoginSectionView {
                 userName = storedName
                 userEmail = storedEmail
                 
-                _ = service.saveProfileData(email: userEmail, userName: userName, userId: userID)
+                _ = await DataModel.shared.saveProfileData(email: userEmail, userName: userName, userId: userID)
                 isAuthenticated = true
                 
             case .revoked:
@@ -77,8 +77,11 @@ extension LoginSectionView {
                 
                 userEmail = email
                 userName = name
-                _ = service.saveProfileData(email: userEmail, userName: userName, userId: userID)
-                
+                // _ = await DataModel.shared.saveProfileData(email: userEmail, userName: userName, userId: userID)
+            }
+            else{
+                userEmail = "Apple@id.com"
+                userName = "Apple User"
             }
             isAuthenticated = true
         }

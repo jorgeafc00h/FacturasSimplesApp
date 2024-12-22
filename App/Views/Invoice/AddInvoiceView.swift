@@ -14,7 +14,7 @@ struct AddInvoiceView: View {
     @Environment(\.dismiss)  var dismiss
     @Environment(\.timeZone) private var timeZone
     
-    
+    @AppStorage("selectedCompanyIdentifier")  var companyIdentifier : String = ""
     
     @State var viewModel = AddInvoiceViewModel()
     
@@ -62,7 +62,7 @@ struct AddInvoiceView: View {
             }.accentColor(.darkCyan)
         }
         .onAppear(perform: getNextInoviceNumber)
-        //.presentationDetents([.medium, .large])
+        .presentationDetents([.medium, .large])
     }
     
     

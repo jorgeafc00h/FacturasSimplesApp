@@ -15,6 +15,7 @@ extension CustomersListView {
         
         var offsets: IndexSet = []
         
+        
         //var selection: Customer?
         var customersCount: Int = 0
         
@@ -38,14 +39,15 @@ extension CustomersListView {
             toDeleteCustomer = customer
            showDeleteCustomerConfirmation = true
         }
-         
         
+       
+          
     }
     
     
     
     func deleteCustomers(at offsets: IndexSet) {
-            offsets.map { customers[$0] }.forEach(deleteCustomer)
+        offsets.map { customers[$0] }.forEach(deleteCustomer)
         
     }
     
@@ -73,6 +75,30 @@ extension CustomersListView {
             modelContext.delete(cust)
         }
     }
+//    
+//    func fetchCustomers() {
+//        let predicate = #Predicate<Customer> {
+//            searchText.isEmpty ?
+//            $0.companyOwnerId == selectedCompanyId :
+//            $0.firstName.contains(searchText) ||
+//            $0.lastName.contains(searchText) ||
+//            $0.email.contains(searchText) &&
+//            $0.companyOwnerId == selectedCompanyId
+//        }
+//        
+//        let sortDescriptor =  SortDescriptor(\Customer.firstName,order: .forward)
+//        
+//        let descriptor = FetchDescriptor<Customer>(predicate: predicate, sortBy: [sortDescriptor])
+//        
+//        let _customers = try? modelContext.fetch(descriptor)
+//        
+//        if let collection = _customers {
+//            viewModel.customers = collection
+//            viewModel.customersCount = collection.count
+//        }
+//    }
+//    
+    
 }
 
 
@@ -136,7 +162,7 @@ extension AddCustomerView{
                                         address: viewModel.address,
                                         company: viewModel.company
             )
-            
+            newCustomer.companyOwnerId = selectedCompanyId
             newCustomer.departamentoCode  = viewModel.departamentoCode
             newCustomer.municipioCode = viewModel.municipioCode
             

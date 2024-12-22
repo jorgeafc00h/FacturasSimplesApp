@@ -14,24 +14,32 @@ struct CustomersListView: View {
     var customers: [Customer]
       
     @Binding var selection: Customer?
-    
     @State  var viewModel: CustomersListViewModel
+    @State var searchText: String = ""
     
-    init(selection: Binding<Customer?>,
-         searchText: String) {
+    @AppStorage("selectedCompanyName")  var selectedCompanyName : String = ""
+    @AppStorage("selectedCompanyIdentifier")  var companyIdentifier : String = ""
+    
+    init(selection: Binding<Customer?>, selectedCompanyId: String ) {
         
         _selection = selection
-        let predicate = #Predicate<Customer> {
-            searchText.isEmpty ? true :
-            $0.firstName.contains(searchText) ||
-            $0.lastName.contains(searchText) ||
-            $0.email.contains(searchText)
-        }
-        _customers = Query(filter: predicate, sort: \Customer.firstName)
-        
+      
         viewModel = CustomersListViewModel()
         
+        let companyId = selectedCompanyId.isEmpty ? companyIdentifier : selectedCompanyId
+        
+        let predicate = #Predicate<Customer> {
+            searchText.isEmpty ?
+            $0.companyOwnerId == companyId :
+            $0.firstName.localizedStandardContains(searchText) ||
+            $0.lastName.localizedStandardContains(searchText) ||
+            $0.email.localizedStandardContains(searchText) &&
+            $0.companyOwnerId == companyId
+        }
+        
+        _customers  = Query(filter: predicate, sort: \Customer.firstName)
     }
+     
     
     var body: some View {
         List(selection: $selection) {
@@ -85,13 +93,10 @@ struct CustomersListView: View {
         .overlay {
             OverlaySection
         }
-        .navigationTitle("Clientes")
-        .onChange(of: customers) {
-            viewModel.customersCount = customers.count
-        }
-        .onAppear {
-            viewModel.customersCount = customers.count
-        }
+        .navigationTitle("Clientes: \(selectedCompanyName)")
+        .navigationBarTitleDisplayMode(.automatic)
+        .searchable(text: $searchText, placement: .sidebar)
+        
     }
     
  

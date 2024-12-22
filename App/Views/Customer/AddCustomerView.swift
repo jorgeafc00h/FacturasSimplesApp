@@ -22,6 +22,8 @@ struct AddCustomerView: View {
     @Query(filter: #Predicate<CatalogOption> { $0.catalog.id == "CAT-013"})
     var municipios : [CatalogOption]
     
+    @AppStorage("selectedCompanyIdentifier")  var selectedCompanyId : String = ""
+    
     @State var viewModel = AddCustomerViewModel()
     
     var body: some View {

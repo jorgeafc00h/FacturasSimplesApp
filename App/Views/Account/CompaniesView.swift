@@ -10,19 +10,30 @@ struct CompaniesView: View {
     var companies: [Company]
     
     @Binding var selection: Company?
+    @Binding var selectedCompanyId: String
     @State var viewModel = CompaniesViewModel()
     
     @State var searchText = ""
+    @AppStorage("selectedCompanyIdentifier")  var companyId : String = ""{
+        didSet{
+            selectedCompanyId = companyId
+        }
+    }
+    @AppStorage("selectedCompanyName")  var selectedCompanyName : String = ""
     
-    init(selection: Binding<Company?>) {
+    init(selection: Binding<Company?>, selectedCompanyId: Binding<String>) {
         
         _selection = selection
+        _selectedCompanyId = selectedCompanyId
+        
         let predicate = #Predicate<Company> {
             searchText.isEmpty ? true :
             $0.nit.contains(searchText) ||
             $0.nrc.contains(searchText) ||
             $0.nombre.contains(searchText)
         }
+        
+        
         _companies = Query(filter: predicate, sort: \Company.nombre)
     }
     
@@ -34,6 +45,8 @@ struct CompaniesView: View {
                         withAnimation {
                             selection = c
                             searchText = ""
+                            companyId = c.id
+                            selectedCompanyName = c.nombreComercial
                         }
                     }
 //                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
@@ -54,18 +67,11 @@ struct CompaniesView: View {
             
             ToolbarItemGroup(placement: .topBarTrailing) {
                 Spacer()
-//                if let selected = selection {
-//                    
-//                    NavigationLink(destination: EmisorEditView(company: selected)) {
-//                        Image(systemName: "pencil")
-//                            .symbolEffect(.breathe, options: .nonRepeating)
-//                    }
-//                    .buttonStyle(BorderlessButtonStyle())
-//                    
-//                }
-                Button("Editar Empresa",systemImage: "pencil"){
-                    viewModel.isShowingEditCompany=true
-                }.buttonStyle(BorderlessButtonStyle())
+               if let selected = selection {
+                    Button(selected.nombreComercial,systemImage: "pencil"){
+                        viewModel.isShowingEditCompany=true
+                    }.buttonStyle(BorderlessButtonStyle())
+                }
                 Button("Agregar Empresa",systemImage: "plus"){
                     viewModel.isShowingAddCompany=true}
                     .buttonStyle(BorderlessButtonStyle())
@@ -74,6 +80,11 @@ struct CompaniesView: View {
         }
         .overlay {
             OverlaySection
+        }
+        .onAppear {
+            if selectedCompanyId.isEmpty {
+                selectedCompanyId = companyId
+            }
         }
         .navigationTitle("Empresas")
     }
@@ -95,18 +106,16 @@ struct CompaniesView: View {
     }
     
 }
-//
-//#Preview (traits: .sampleCompanies) {
-//    CompaniesView(selection: nil)
-//}
+
 #Preview (traits: .sampleCompanies){
     CompaniesViewWrapper()
 }
 
 struct CompaniesViewWrapper: View {
     @State private var selectedCompany: Company? = nil
+    @State private var selectedCompanyId: String = ""
     
     var body: some View {
-        CompaniesView(selection: $selectedCompany)
+        CompaniesView(selection: $selectedCompany, selectedCompanyId: $selectedCompanyId)
     }
 }

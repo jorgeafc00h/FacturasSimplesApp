@@ -11,23 +11,35 @@ struct ProductsListView: View {
     
     @State var viewModel = ProductListViewModel()
     
-    init(selection: Binding<Product?>, searchText: String, scope: ProductSearchScope) {
+    @State var searchText : String = ""
+    @State var searchScope: ProductSearchScope = .Editable
+    
+    @AppStorage("selectedCompanyIdentifier")  var companyIdentifier : String = ""
+    
+    init(selection: Binding<Product?>, selectedCompanyId: String) {
+        
         _selection = selection
          
-        let predicate = #Predicate<Product> {
-            searchText.isEmpty ? true :
-            $0.productName.localizedStandardContains(searchText)
-        }
-//        
-//        let predicate = #Predicate<Product> {
-//            searchText.isEmpty ? true :
-//             
-//            scope == .Editable ?
-//            $0.productName.localizedStandardContains(searchText) && $0.invoiceDetails.count == 0:
-//            $0.productName.localizedStandardContains(searchText) && $0.invoiceDetails.count > 0
-//                
-//            
-//        }
+        let companyId = selectedCompanyId.isEmpty ? companyIdentifier : companyIdentifier
+        
+        let predicate =
+           // searchScope == .Editable ?
+            #Predicate<Product> {
+            searchText.isEmpty ?
+            $0.companyId == companyId:
+            $0.productName.localizedStandardContains(searchText) &&
+            $0.companyId == companyId //&&
+            //$0.invoiceDetails.count == 0
+            }
+//            :
+//            #Predicate<Product> {
+//            searchText.isEmpty ?
+//            true:
+//            $0.productName.localizedStandardContains(searchText) //&&
+//            $0.companyId == companyId //&&
+//            //$0.invoiceDetails.count > 0
+//            }
+         
         
         _products = Query(filter: predicate, sort: \Product.productName)
     }
@@ -92,6 +104,11 @@ struct ProductsListView: View {
         }
         .onAppear {
             viewModel.productCount = products.count
+        }
+        .searchable(text: $searchText, placement: .sidebar)
+        .searchScopes($searchScope){
+            Text("Editable").tag(ProductSearchScope.Editable)
+            Text("No Editable").tag(ProductSearchScope.NonEditable)
         }
     }
     
