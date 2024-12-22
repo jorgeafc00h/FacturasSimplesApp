@@ -27,7 +27,9 @@ import SwiftData
     var municipioCode: String
     var complemento: String
     
-     var invoiceLogo: String
+    var invoiceLogo: String
+    var logoWidht : Double = 100
+    var logoHeight: Double = 100
     
     var actividadEconomicaLabel: String {
         descActividad == "" ? "Seleccione una actividad económica" : descActividad

@@ -51,7 +51,7 @@ class InvoicePDFGenerator {
              
             
             // Logo placeholder
-            let logoRect = CGRect(x: pageWidth - 150, y: 7, width: 100, height: 125)
+            let logoRect = CGRect(x: pageWidth - 150, y: 7, width: company.logoWidht, height: company.logoHeight)
             context.cgContext.stroke(logoRect)
             "".draw(at: CGPoint(x: pageWidth - 130, y: 50), withAttributes: regularAttributes)
             
@@ -63,7 +63,7 @@ class InvoicePDFGenerator {
                         image.draw(in: logoRect)
             }
             else {
-                if  let logoImage = UIImage(named: "logo"){
+                if  let logoImage = UIImage(named: "AppIcon"){
                     logoImage.draw(in: logoRect)
                 }
             }

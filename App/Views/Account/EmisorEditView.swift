@@ -20,7 +20,7 @@ struct EmisorEditView: View {
     var municipios : [CatalogOption]
     
     @Query(filter: #Predicate<CatalogOption> { $0.catalog.id == "CAT-008"})
-    var tipo_establecimientos : [CatalogOption] 
+    var tipo_establecimientos : [CatalogOption]
     
     @State var company : Company
     
@@ -93,11 +93,27 @@ struct EmisorEditView: View {
                 }.foregroundColor(.darkCyan).padding(.vertical , 20)
                 
                 if !company.invoiceLogo.isEmpty {
-                    Image(company.invoiceLogo)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 400)
-                        .padding(.bottom, 1.0)
+                    if let data = Data(base64Encoded: company.invoiceLogo), let uiImage = UIImage(data: data) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 400)
+                            .padding(.bottom, 1.0)
+                    } else {
+                        let _ = print("FAIL")
+                    }
+                    
+                }
+                VStack{
+                    
+                    HStack{
+                        Label("Ancho de Logo", systemImage: "rectangle.grid.1x2")
+                        TextField("Ancho", value: $company.logoWidht, format: .number)
+                    }
+                    HStack{
+                        Label("Alto de Logo", systemImage: "rectangle.grid.1x2")
+                        TextField("Ancho", value: $company.logoHeight, format: .number)
+                    }
                 }
             }
             Section{
@@ -137,7 +153,7 @@ struct EmisorEditView: View {
                          showSearch: $viewModel.displayCategoryPicker,
                          title:"Actividad Economica")
         }
-         
+        
         .onAppear {
             loadData()
         }

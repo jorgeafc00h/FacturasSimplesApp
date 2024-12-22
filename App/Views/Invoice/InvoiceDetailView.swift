@@ -15,6 +15,7 @@ struct InvoiceDetailView: View {
     @State var viewModel = InvoiceDetailViewModel()
     @Environment(\.dismiss) var dismiss;
     @Environment(\.modelContext) var modelContext
+    @AppStorage("selectedCompanyIdentifier")  var companyIdentifier : String = ""
     
     var body: some View {
         NavigationStack{

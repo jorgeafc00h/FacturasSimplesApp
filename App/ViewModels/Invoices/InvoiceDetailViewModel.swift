@@ -41,15 +41,15 @@ extension InvoiceDetailView {
     
     func loadEmisor() {
         do{
+            let descriptor = FetchDescriptor<Company>(
+                predicate: #Predicate<Company>{
+                    $0.id == companyIdentifier
+                }
+               // sortBy: [SortDescriptor(\.date, order: .reverse)]
+            )
             
-            
-            let descriptor = FetchDescriptor<Company>()
-            
-            let data = try modelContext.fetch(descriptor)
-             
-            if !data.isEmpty{
-                viewModel.company = data.first ?? Company(nit: "",nrc:"", nombre: "")
-              
+            if let company = try modelContext.fetch(descriptor).first {
+                viewModel.company = company
             }
         }
         catch{
