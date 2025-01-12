@@ -104,18 +104,20 @@ struct EmisorEditView: View {
                     }
                     
                 }
-                VStack{
-                    
-                    HStack{
-                        Label("Ancho de Logo", systemImage: "rectangle.grid.1x2")
-                        TextField("Ancho", value: $company.logoWidht, format: .number)
-                    }
-                    HStack{
-                        Label("Alto de Logo", systemImage: "rectangle.grid.1x2")
-                        TextField("Ancho", value: $company.logoHeight, format: .number)
-                    }
-                }
+                
             }
+            Section("Dimensión Logo en pixeles") {
+                 
+          
+            HStack{
+                Label("Ancho Logo", systemImage: "arrow.trianglehead.left.and.right.righttriangle.left.righttriangle.right.fill")
+                TextField("Ancho", value: $company.logoWidht, format: .number)
+            }
+            HStack{
+                Label("Alto Logo", systemImage: "arrow.trianglehead.up.and.down.righttriangle.up.righttriangle.down.fill")
+                TextField("Ancho", value: $company.logoHeight, format: .number)
+            }
+            }.foregroundColor(.darkCyan)
             Section{
                 Button(action: saveChanges, label: {
                     HStack {

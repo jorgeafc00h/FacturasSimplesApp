@@ -10,7 +10,7 @@ struct InvoicesListView: View {
     @Binding var selection: Invoice?
     
     @State var viewModel = InvoicesListViewModel()
-    @State var searchText: String = ""
+    
      
     @AppStorage("selectedCompanyName")  var selectedCompanyName : String = ""
     @AppStorage("selectedCompanyIdentifier")  var companyIdentifier : String = ""
@@ -19,7 +19,7 @@ struct InvoicesListView: View {
     var catalog: [Catalog]
     var syncService = CatalogServiceClient()
     
-    init(selection: Binding<Invoice?>, selectedCompanyId: String) {
+    init(selection: Binding<Invoice?>, selectedCompanyId: String, searchText: String) {
         
         _selection = selection
         
@@ -28,10 +28,10 @@ struct InvoicesListView: View {
         let predicate = #Predicate<Invoice> {
             searchText.isEmpty ?
             $0.customer.companyOwnerId == companyId :
-            $0.invoiceNumber.localizedStandardContains(searchText) ||
-            $0.customer.firstName.localizedStandardContains(searchText) ||
-            $0.customer.lastName.localizedStandardContains(searchText) ||
-            $0.customer.email.localizedStandardContains(searchText) &&
+            $0.invoiceNumber.contains(searchText) ||
+            $0.customer.firstName.contains(searchText) ||
+            $0.customer.lastName.contains(searchText) &&
+           // $0.customer.email.contains(searchText) &&
             $0.customer.companyOwnerId == companyId
         }
         
@@ -61,7 +61,6 @@ struct InvoicesListView: View {
             }
         }
         .navigationTitle("Facturas: \(selectedCompanyName)")
-        .searchable(text: $searchText, placement: .sidebar)
         .task { await SyncCatalogs()}
         
     }

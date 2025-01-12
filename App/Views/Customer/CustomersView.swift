@@ -12,11 +12,14 @@ struct CustomersView: View {
     @State  var selection: Customer?
     @Binding var selectedCompanyId : String 
     @State var showAddCustomerSheet = false
-    
+    @State private var searchText: String = ""
     var body: some View {
         NavigationSplitView {
-            CustomersListView(selection:$selection, selectedCompanyId: selectedCompanyId)
+            CustomersListView(selection:$selection,
+                              selectedCompanyId: selectedCompanyId,
+                              searchText: searchText)
         }
+       
         detail: {
             if let cust = selection {
                 NavigationStack {
@@ -42,7 +45,7 @@ struct CustomersView: View {
                 }
             }
         }
-        
+        .searchable(text: $searchText, placement: .sidebar)
    }
 }
 

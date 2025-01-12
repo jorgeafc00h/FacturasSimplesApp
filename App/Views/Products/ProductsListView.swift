@@ -11,12 +11,9 @@ struct ProductsListView: View {
     
     @State var viewModel = ProductListViewModel()
     
-    @State var searchText : String = ""
-    @State var searchScope: ProductSearchScope = .Editable
-    
     @AppStorage("selectedCompanyIdentifier")  var companyIdentifier : String = ""
     
-    init(selection: Binding<Product?>, selectedCompanyId: String) {
+    init(selection: Binding<Product?>, selectedCompanyId: String, searchText: String,searchScope : ProductSearchScope) {
         
         _selection = selection
          
@@ -24,10 +21,11 @@ struct ProductsListView: View {
         
         let predicate =
            // searchScope == .Editable ?
-            #Predicate<Product> {
+        #Predicate<Product> {
+        
             searchText.isEmpty ?
             $0.companyId == companyId:
-            $0.productName.localizedStandardContains(searchText) &&
+            $0.productName.contains(searchText) &&
             $0.companyId == companyId //&&
             //$0.invoiceDetails.count == 0
             }
@@ -105,11 +103,7 @@ struct ProductsListView: View {
         .onAppear {
             viewModel.productCount = products.count
         }
-        .searchable(text: $searchText, placement: .sidebar)
-        .searchScopes($searchScope){
-            Text("Editable").tag(ProductSearchScope.Editable)
-            Text("No Editable").tag(ProductSearchScope.NonEditable)
-        }
+        
     }
     
     private var ConfirmDeleteButton: some View {

@@ -33,7 +33,7 @@ struct ProductDetailView: View {
                                 .symbolEffect(.breathe, options: .nonRepeating)
                             Text("Editar Producto")
                         }.foregroundColor(.darkCyan)
-                    }
+                    }.disabled(viewModel.isDisbleEditProduct)
                 }
                 
                 Section {

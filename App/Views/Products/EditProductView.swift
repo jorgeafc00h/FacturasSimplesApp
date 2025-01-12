@@ -47,3 +47,8 @@ struct EditProductView: View {
     }
 }
  
+#Preview(traits: .sampleProducts)  {
+    @Previewable @Query var products: [Product]
+    
+    EditProductView(product: products.first!)
+}

@@ -20,7 +20,10 @@ struct InvoicesView: View {
     var body: some View {
         
         NavigationSplitView{
-            InvoicesListView(selection:$selection, selectedCompanyId: selectedCompanyId)
+            InvoicesListView(
+                selection:$selection,
+                selectedCompanyId:selectedCompanyId,
+                searchText: searchText)
         }
         detail:{
             if let inv = selection {
@@ -50,7 +53,7 @@ struct InvoicesView: View {
                 }
             }
         } 
-        
+        .searchable(text: $searchText, placement: .sidebar)
     }
    
 }

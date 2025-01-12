@@ -36,7 +36,7 @@ import SwiftData
 
 enum ProductSearchScope: String, Codable, CaseIterable, Identifiable, Hashable {
      
-    
+    case Todos
     case Editable
     case NonEditable
     var id: String { rawValue }

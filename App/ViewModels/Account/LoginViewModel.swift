@@ -1,5 +1,7 @@
 import SwiftUI
 import AuthenticationServices
+//import MSAL
+
 
 extension LoginSectionView {
     
@@ -83,6 +85,9 @@ extension LoginSectionView {
                 userEmail = "Apple@id.com"
                 userName = "Apple User"
             }
+            
+            //var nativeAuth: MSALNativeAuthPublicClientApplication!
+            
             isAuthenticated = true
         }
     }

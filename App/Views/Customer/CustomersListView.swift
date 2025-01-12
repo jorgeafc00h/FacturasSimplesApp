@@ -15,12 +15,11 @@ struct CustomersListView: View {
       
     @Binding var selection: Customer?
     @State  var viewModel: CustomersListViewModel
-    @State var searchText: String = ""
-    
+   
     @AppStorage("selectedCompanyName")  var selectedCompanyName : String = ""
     @AppStorage("selectedCompanyIdentifier")  var companyIdentifier : String = ""
     
-    init(selection: Binding<Customer?>, selectedCompanyId: String ) {
+    init(selection: Binding<Customer?>, selectedCompanyId: String ,searchText: String) {
         
         _selection = selection
       
@@ -31,9 +30,10 @@ struct CustomersListView: View {
         let predicate = #Predicate<Customer> {
             searchText.isEmpty ?
             $0.companyOwnerId == companyId :
-            $0.firstName.localizedStandardContains(searchText) ||
-            $0.lastName.localizedStandardContains(searchText) ||
-            $0.email.localizedStandardContains(searchText) &&
+            $0.firstName.contains(searchText) ||
+            $0.lastName.contains(searchText) ||
+            $0.nationalId.contains(searchText) &&
+            //$0.email.contains(searchText) &&
             $0.companyOwnerId == companyId
         }
         
@@ -95,7 +95,7 @@ struct CustomersListView: View {
         }
         .navigationTitle("Clientes: \(selectedCompanyName)")
         .navigationBarTitleDisplayMode(.automatic)
-        .searchable(text: $searchText, placement: .sidebar)
+        
         
     }
     
