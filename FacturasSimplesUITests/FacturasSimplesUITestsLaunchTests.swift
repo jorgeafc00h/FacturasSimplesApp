@@ -1,13 +1,13 @@
 //
-//  AppUITestsLaunchTests.swift
-//  AppUITests
+//  FacturasSimplesUITestsLaunchTests.swift
+//  FacturasSimplesUITests
 //
-//  Created by Jorge Flores on 10/13/24.
+//  Created by Jorge Flores on 1/16/25.
 //
 
 import XCTest
 
-final class AppUITestsLaunchTests: XCTestCase {
+final class FacturasSimplesUITestsLaunchTests: XCTestCase {
 
     override class var runsForEachTargetApplicationUIConfiguration: Bool {
         true

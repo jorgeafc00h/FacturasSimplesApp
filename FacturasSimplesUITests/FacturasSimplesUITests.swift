@@ -1,13 +1,13 @@
 //
-//  AppUITests.swift
-//  AppUITests
+//  FacturasSimplesUITests.swift
+//  FacturasSimplesUITests
 //
-//  Created by Jorge Flores on 10/13/24.
+//  Created by Jorge Flores on 1/16/25.
 //
 
 import XCTest
 
-final class AppUITests: XCTestCase {
+final class FacturasSimplesUITests: XCTestCase {
 
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.

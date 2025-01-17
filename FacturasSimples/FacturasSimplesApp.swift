@@ -1,16 +1,16 @@
 //
-//  AppApp.swift
-//  App
+//  FacturasSimplesApp.swift
+//  FacturasSimples
 //
-//  Created by Jorge Flores on 10/13/24.
+//  Created by Jorge Flores on 1/16/25.
 //
 
 import SwiftUI
 import SwiftData
 
 @main
-struct AppApp: App {
-    let modelContainer = DataModel.shared.modelContainer 
+struct FacturasSimplesApp: App {
+    let modelContainer = DataModel.shared.modelContainer
     init() {
         let attrs = [
             //Arial Rounded MT Bold
