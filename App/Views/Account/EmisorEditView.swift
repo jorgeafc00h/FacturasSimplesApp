@@ -162,6 +162,10 @@ struct EmisorEditView: View {
         .onChange(of: company){
             loadData()
         }
+        .onChange(of: viewModel.codActividad){
+            company.descActividad = viewModel.desActividad ?? ""
+            company.codActividad = viewModel.codActividad ?? ""
+        }
         .fileImporter(
             isPresented: $viewModel.isFileImporterPresented,
             allowedContentTypes: [.image],
@@ -171,12 +175,33 @@ struct EmisorEditView: View {
             case .success(let urls):
                 if let url = urls.first {
                     // get image as string base64
-                    print("url \(url)")
-                    if let imageData = try? Data(contentsOf: url) {
+                        print("url \(url)")
+                    
+                    do {
+                        let imageData = try Data(contentsOf: url)
                         let stringBase64 = imageData.base64EncodedString()
                         print("image path \(url.path)")
+                        print("image base64 \(stringBase64)")
                         company.invoiceLogo = stringBase64
+
+                        // Copy file to app storage
+//                        let fileManager = FileManager.default
+//                        let documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
+//                        let destinationURL = documentsDirectory.appendingPathComponent(url.lastPathComponent)
+//
+//                        do {
+//                            if fileManager.fileExists(atPath: destinationURL.path) {
+//                                try fileManager.removeItem(at: destinationURL)
+//                            }
+//                            try fileManager.copyItem(at: url, to: destinationURL)
+//                            print("File copied to \(destinationURL.path)")
+//                        } catch {
+//                            print("Error copying file: \(error.localizedDescription)")
+//                        }
+                    } catch {
+                        print("Error creating imageData: \(error.localizedDescription)")
                     }
+                    
                 }
             case .failure(let error):
                 print("Error selecting file: \(error.localizedDescription)")

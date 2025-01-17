@@ -82,6 +82,7 @@ struct LoginSectionView: View {
     @State var userName: String = ""
     @State var contraseña:String = ""
     @State var accountId: String = ""
+    @State var token: String = ""
     @Binding var isAuthenticated:Bool
     
     init(isAuthenticated:Binding<Bool>){
@@ -139,21 +140,11 @@ struct LoginSectionView: View {
                             .stroke(Color("Dark-Cyan"), lineWidth: 3).shadow(color: .white, radius: 6))
                 }.padding(.bottom)
                 
-                SignInWithAppleButton(.signIn){ request in
-                    onRequest(request)
-                       } onCompletion: { result in
-                           switch result {
-                           case .success(let authorization):
-                                handleSuccessfulLogin(with: authorization)
-                           case .failure(let error):
-                               handleLoginError(with: error)
-                           }
-                       }
-                // black button
-                    .signInWithAppleButtonStyle(.black)
-                    .frame( maxWidth: .infinity,minHeight: 50, alignment: .center)
-                
-                
+                SignInWithAppleButton(.signIn,
+                                      onRequest: onRequest,
+                                      onCompletion: onCompletion)
+                                    .signInWithAppleButtonStyle(.black)
+                //                    .frame( maxWidth: .infinity,minHeight: 50, alignment: .center)
                 
             }
             .padding(.horizontal, 42.0)
@@ -178,6 +169,12 @@ struct LoginSectionView: View {
     @AppStorage("userID")  var userID : String = ""{
         didSet{
             accountId = userID
+        }
+    }
+    
+    @AppStorage("identityToken")  var identityToken : String = ""{
+        didSet{
+            token = identityToken
         }
     }
 }
