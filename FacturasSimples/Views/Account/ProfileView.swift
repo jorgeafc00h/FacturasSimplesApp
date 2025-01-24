@@ -52,7 +52,7 @@ struct ProfileView: View {
                             .fontWeight(.bold)
                             .foregroundColor(Color.white).frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity,  alignment: .leading).padding(.leading,18)
                         
-                        SelectedCompany
+                        SelectedCompanyButton(selection: $selection)
                         Settings
                          
                     }
@@ -80,7 +80,8 @@ struct ProfileView: View {
             label: {
                 NavigationLabel(title:"Usuario y contraseña",imagename: "person.badge.key.fill")
             }
-            NavigationLink {CertificateUpdate()}
+            
+            NavigationLink {CertificateUpdate(selection: $selection)}
             label: {
                 NavigationLabel(title:"Contraseña Certificado",imagename:  "lock.fill")
             }
@@ -103,66 +104,6 @@ struct ProfileView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 1.0)).padding(.horizontal, 8.0)
         }
     }
-    
-    private var SelectedCompany : some View {
-        Button(action: {}, label: {
-            
-            if let company = selection {
-                HStack {
-                    Circle()
-                        .fill(Color(.darkCyan ))
-                        .frame(width: 55, height: 55)
-                        .overlay {
-                            Image(systemName: "widget.small")
-                                .font(.system(size: 30))
-                                .foregroundStyle(.background)
-                                .symbolEffect(.breathe, options: .nonRepeating)
-                        }
-                    
-                    
-                    VStack(alignment: .leading) {
-                        HStack{
-                            Text(company.nombreComercial)
-                                .font(.title)
-                                .foregroundColor(.white)
-                        }
-                        Text(company.nombre)
-                            .font(.headline)
-                            .foregroundColor(.white)
-                        Text(company.correo)
-                            .font(.headline)
-                            .foregroundColor(.white)
-                        if case let (id?, p?) = (company.nit, company.telefono) {
-                            Divider()
-                            HStack {
-                                Image(systemName: "widget.small")
-                                    .foregroundColor(.white)
-                                Text(id).font(.headline).foregroundColor(.white)
-                                Image(systemName: "phone")
-                                    .foregroundColor(.white)
-                                Text(p).font(.headline).foregroundColor(.white)
-                            }
-                            .font(.caption)
-                        }
-                    }.padding(.leading, 10.0)
-                    // Spacer()
-                }.padding()
-            }
-            else{
-                HStack {
-                    Image(systemName: "dollarsign.bank.building").padding(.horizontal, 5.0)
-                        .foregroundColor(Color.white)
-                    Text("Seleccione Empresa")
-                        .foregroundColor(Color.white)
-                    Spacer()
-                     
-                    
-                }.padding()
-            }
-        }) .background(Color( selection == nil ? .clear : .darkBlue))
-            .clipShape(RoundedRectangle(cornerRadius: 1.0)).padding(.horizontal, 8.0)
-    }
-    
 }
 
  

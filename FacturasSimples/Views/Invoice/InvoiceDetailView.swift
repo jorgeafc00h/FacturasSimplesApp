@@ -90,8 +90,14 @@ struct InvoiceDetailView: View {
                     titleVisibility: .visible
                 ) {
                     
-                    Button(action: SyncInvoice,
-                           label: { Text("Sincronizar") })
+                    Button{
+                        Task{
+                           _ =   await viewModel.SignDocument(invoice)
+                        }
+                    }
+                    label: {
+                        Text("Sincronizar")
+                    }
                     
                     
                     Button("Cancelar", role: .cancel) {}
@@ -99,8 +105,15 @@ struct InvoiceDetailView: View {
                 .frame(maxWidth: .infinity)
                 .foregroundColor(.white)
                 .padding()
-                .background(.darkCyan)
+                .background(.green)
                 .cornerRadius(10)
+                .alert(isPresented: $viewModel.showErrorAlert) {
+                           Alert(
+                               title: Text("Error"),
+                               message: Text(viewModel.errorMessage),
+                               dismissButton: .default(Text("OK"))
+                           )
+                       }
             }
         }
     }

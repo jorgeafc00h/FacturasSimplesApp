@@ -89,7 +89,8 @@ struct EmisorEditView: View {
             
             Section("Logo Facturas"){
                 Button("Seleccione una imagen"){
-                    viewModel.isFileImporterPresented.toggle()
+                    viewModel.isFileImporterPresented = true
+                    viewModel.isCertificateImporterPresented = false
                 }.foregroundColor(.darkCyan).padding(.vertical , 20)
                 
                 if !company.invoiceLogo.isEmpty {
@@ -105,6 +106,47 @@ struct EmisorEditView: View {
                     
                 }
                 
+            }
+            Section("Certificado Hacienda"){
+                
+                Button(action: {
+                    viewModel.isCertificateImporterPresented = true
+                    viewModel.isFileImporterPresented = true
+                }){
+                    SyncCertButonLabel
+                }
+                .alert(viewModel.message,isPresented: $viewModel.showAlertMessage){
+                    Button("Ok",role:.cancel){}
+                }
+                        .confirmationDialog(
+                            "¿Desea actualizar el certificado?",
+                            isPresented: $viewModel.showConfirmSyncSheet,
+                            titleVisibility: .visible
+                        ) {
+                
+                            Button{
+                                viewModel.isBusy = true
+                                Task{
+                                    _ =  await uploadAsync()
+                                }
+                            }
+                            label: {
+                                Text("Guardar Cambios").foregroundColor(.darkBlue)
+                            }
+                            Button("Cancelar", role: .cancel) {}
+                        }
+                        .frame(maxWidth: .infinity)
+                        .foregroundColor(.white)
+                        .padding()
+                        .cornerRadius(10)
+                
+                if company.certificatePath != "" {
+                    
+                    Button(action: {},label: {
+                        Image(systemName: "checkmark.circle.fill")
+                            .contentTransition(.symbolEffect(.replace))
+                    })
+                }
             }
             Section("Dimensión Logo en pixeles") {
                  
@@ -166,49 +208,33 @@ struct EmisorEditView: View {
             company.descActividad = viewModel.desActividad ?? ""
             company.codActividad = viewModel.codActividad ?? ""
         }
-        .fileImporter(
-            isPresented: $viewModel.isFileImporterPresented,
-            allowedContentTypes: [.image],
-            allowsMultipleSelection: false
-        ) { result in
-            switch result {
-            case .success(let urls):
-                if let url = urls.first {
-                    // get image as string base64
-                        print("url \(url)")
-                    
-                    do {
-                        let imageData = try Data(contentsOf: url)
-                        let stringBase64 = imageData.base64EncodedString()
-                        print("image path \(url.path)")
-                        print("image base64 \(stringBase64)")
-                        company.invoiceLogo = stringBase64
+        .fileImporter(isPresented: $viewModel.isFileImporterPresented,
+                      allowedContentTypes: viewModel.isCertificateImporterPresented ?  [.x509Certificate] : [.image],
+                      allowsMultipleSelection : false,
+                      onCompletion: viewModel.isCertificateImporterPresented ? importFile : importImageLogo)
 
-                        // Copy file to app storage
-//                        let fileManager = FileManager.default
-//                        let documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
-//                        let destinationURL = documentsDirectory.appendingPathComponent(url.lastPathComponent)
-//
-//                        do {
-//                            if fileManager.fileExists(atPath: destinationURL.path) {
-//                                try fileManager.removeItem(at: destinationURL)
-//                            }
-//                            try fileManager.copyItem(at: url, to: destinationURL)
-//                            print("File copied to \(destinationURL.path)")
-//                        } catch {
-//                            print("Error copying file: \(error.localizedDescription)")
-//                        }
-                    } catch {
-                        print("Error creating imageData: \(error.localizedDescription)")
-                    }
-                    
-                }
-            case .failure(let error):
-                print("Error selecting file: \(error.localizedDescription)")
-            }
-        }
-        
     }
+    private var SyncCertButonLabel: some View {
+        VStack{
+            if viewModel.isBusy{
+                HStack {
+                    Image(systemName: "circle.hexagonpath")
+                        .symbolEffect(.rotate, options: .repeat(.continuous))
+                    Text(" Actualizando.....")
+                }
+            }
+            else{
+                Text("Actualizar Certificado")
+                    
+            }
+        }.fontWeight(.bold)
+            .foregroundColor(.blueGray)
+            .frame( maxWidth: .infinity, alignment: .center)
+            .padding(EdgeInsets(top: 11, leading: 18, bottom: 11, trailing: 18))
+            .overlay(RoundedRectangle(cornerRadius: 6)
+                .stroke(Color("Dark-Cyan"), lineWidth: 3).shadow(color: .white, radius: 6))
+    }
+    
 }
 
 #Preview {

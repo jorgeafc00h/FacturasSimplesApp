@@ -63,11 +63,23 @@ struct CompaniesView: View {
                 EmisorEditView(company: selected)
             }
         }
+        
         .toolbar{
             
             ToolbarItemGroup(placement: .topBarTrailing) {
-                Spacer()
+                NavigationLink {
+                     
+                    CertificateUpdate(selection: $selection) 
+                } label: {
+                    HStack{
+                        Image(systemName: "lock.fill")
+                            .symbolEffect(.breathe, options: .nonRepeating)
+                        
+                    }.foregroundColor(.darkCyan)
+                }
+                
                if let selected = selection {
+                    
                     Button(selected.nombreComercial,systemImage: "pencil"){
                         viewModel.isShowingEditCompany=true
                     }.buttonStyle(BorderlessButtonStyle())
@@ -75,8 +87,9 @@ struct CompaniesView: View {
                 Button("Agregar Empresa",systemImage: "plus"){
                     viewModel.isShowingAddCompany=true}
                     .buttonStyle(BorderlessButtonStyle())
+                
             }
-            
+             
         }
         .overlay {
             OverlaySection

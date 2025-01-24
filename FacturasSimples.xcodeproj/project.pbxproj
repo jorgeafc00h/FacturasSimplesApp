@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		AE57DD692D3ADF3A000927CB /* JWTKit in Frameworks */ = {isa = PBXBuildFile; productRef = AE57DD682D3ADF3A000927CB /* JWTKit */; };
+		AE9D9CC92D41433100623FAD /* XMLCoder in Frameworks */ = {isa = PBXBuildFile; productRef = AE9D9CC82D41433100623FAD /* XMLCoder */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		AE669BFB2D39D39E003ECE7C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +57,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AE9D9CC92D41433100623FAD /* XMLCoder in Frameworks */,
+				AE57DD692D3ADF3A000927CB /* JWTKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,6 +119,8 @@
 			);
 			name = FacturasSimples;
 			packageProductDependencies = (
+				AE57DD682D3ADF3A000927CB /* JWTKit */,
+				AE9D9CC82D41433100623FAD /* XMLCoder */,
 			);
 			productName = FacturasSimples;
 			productReference = AE669BE82D39D39C003ECE7C /* FacturasSimples.app */;
@@ -195,6 +204,10 @@
 			);
 			mainGroup = AE669BDF2D39D39C003ECE7C;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				AE57DD652D3ACC34000927CB /* XCRemoteSwiftPackageReference "jwt-kit" */,
+				AE9D9CC72D4140B900623FAD /* XCRemoteSwiftPackageReference "XMLCoder" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = AE669BE92D39D39C003ECE7C /* Products */;
 			projectDirPath = "";
@@ -400,6 +413,7 @@
 				DEVELOPMENT_TEAM = 62V6DQB2H6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -432,6 +446,7 @@
 				DEVELOPMENT_TEAM = 62V6DQB2H6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -564,6 +579,38 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		AE57DD652D3ACC34000927CB /* XCRemoteSwiftPackageReference "jwt-kit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/vapor/jwt-kit.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.0.0;
+			};
+		};
+		AE9D9CC72D4140B900623FAD /* XCRemoteSwiftPackageReference "XMLCoder" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/CoreOffice/XMLCoder";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.17.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		AE57DD682D3ADF3A000927CB /* JWTKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AE57DD652D3ACC34000927CB /* XCRemoteSwiftPackageReference "jwt-kit" */;
+			productName = JWTKit;
+		};
+		AE9D9CC82D41433100623FAD /* XMLCoder */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AE9D9CC72D4140B900623FAD /* XCRemoteSwiftPackageReference "XMLCoder" */;
+			productName = XMLCoder;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = AE669BE02D39D39C003ECE7C /* Project object */;
 }

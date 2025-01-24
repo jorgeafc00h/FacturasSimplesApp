@@ -77,6 +77,10 @@ import SwiftData
     var incomeWithheld : Decimal{
         return 0
     }
+   
+    var totalWithoutTax: Decimal {
+        return (totalAmount / 1.13)
+    }
     
     init(invoiceNumber: String,
          date: Date,

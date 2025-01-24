@@ -8,7 +8,7 @@ extension CompaniesView{
          
         var isShowingAddCompany: Bool = false
         var isShowingEditCompany: Bool = false
-          
+        var isShowingEditCertificateCredentials : Bool = false
       
     }
 }

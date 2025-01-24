@@ -28,7 +28,7 @@ extension  InvoicesListView{
             catch{
                 print(error)
             }
-        }
+        } 
     }
      
 //    func fetchInvoices(){

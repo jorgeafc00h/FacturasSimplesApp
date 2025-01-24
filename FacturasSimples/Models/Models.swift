@@ -1,42 +1,42 @@
-//
-//  Models.swift
-//  App
-//
-//  Created by Jorge Flores on 10/20/24.
-//
-
 import Foundation
-struct Games:Codable {
-    var games:[Game]
+struct DocumentSigningRequest: Codable {
+    var nit: String
+    var passwordPri: String
+    var dteJson: String
 }
 
-struct Resultados:Codable {
-    var results:[Game]
-}
-
-struct Game:Codable,Hashable {
-    
-    
-    var title:String
-    var studio:String
-    var contentRaiting:String
-    var publicationYear:String
-    var description:String
-    var platforms:[String]
-    var tags:[String]
-    var videosUrls:videoUrl
-    var galleryImages:[String]
-        
-    
-}
-
-
-struct videoUrl:Codable,Hashable {
-   
-    var mobile:String
-    var tablet:String
-    
+struct SigningResponse: Codable {
+    var success: Bool
+    var signature: String?
+    var error: String?
 }
 
 
  
+// Helper enums and functions
+enum SigningError: LocalizedError {
+    case invalidInput(String)
+    case certificateError
+    case jsonConversionError
+    case signingError
+    
+    var errorDescription: String? {
+        switch self {
+        case .invalidInput(let message):
+            return "Invalid input: \(message)"
+        case .certificateError:
+            return "Fallo al recuperar Certificado digital de hacienda, por favor actualize el certificado"
+        case .jsonConversionError:
+            return "Failed to convert JSON"
+        case .signingError:
+            return "Failed to sign document"
+        }
+    }
+}
+ 
+
+// Mock certificate struct
+struct Certificate {
+    let nit: String
+    let privateKey: Data
+}

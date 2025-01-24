@@ -30,6 +30,8 @@ import SwiftData
     var invoiceLogo: String
     var logoWidht : Double = 100
     var logoHeight: Double = 100
+    var certificatePath : String = ""
+    var certificatePassword: String = ""
     
     var actividadEconomicaLabel: String {
         descActividad == "" ? "Seleccione una actividad económica" : descActividad
@@ -54,7 +56,9 @@ import SwiftData
         invoiceLogo: String = "",
         departamentoCode: String = "",
         municipioCode: String = "",
-        codActividad: String = ""
+        codActividad: String = "",
+        certificatePath: String = "",
+        certificatePassword: String = ""
     ) {
         self.nit = nit
         self.nrc = nrc
@@ -75,6 +79,8 @@ import SwiftData
         self.departamentoCode = departamentoCode
         self.municipioCode = municipioCode
         self.invoiceLogo = invoiceLogo
+        self.certificatePath = certificatePath  
+        self.certificatePassword = certificatePassword
     }
 }
 
