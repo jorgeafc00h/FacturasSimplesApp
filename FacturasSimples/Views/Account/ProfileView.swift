@@ -76,7 +76,7 @@ struct ProfileView: View {
             label: {
                 NavigationLabel(title:"Aministracion Empresas",imagename: "widget.small")
             }
-            NavigationLink {EditProfileView()}
+            NavigationLink {EditProfileView(selection: $selection)}
             label: {
                 NavigationLabel(title:"Usuario y contraseña",imagename: "person.badge.key.fill")
             }
@@ -85,7 +85,7 @@ struct ProfileView: View {
             label: {
                 NavigationLabel(title:"Contraseña Certificado",imagename:  "lock.fill")
             }
-            NavigationLink {EditProfileView()}
+            NavigationLink { }
             label: {
                 NavigationLabel(title:"Facturas",imagename: "document.badge.gearshape.fill")
             }

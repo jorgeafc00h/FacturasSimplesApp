@@ -19,31 +19,52 @@ extension CertificateUpdate{
         var nit: String = ""
         var showConfirmSyncSheet : Bool = false
         
-        var IsDisabledSaveCertificate : Bool {
-            return password.isEmpty || confirmPassword.isEmpty
-        }
+        var isValidatingCertificateCredentials : Bool = false
+        var showConfirmUpdatePassword: Bool = false
+        
+        var showValidationMessage: Bool = false
+        
+        
     }
     
-    func updateCert()  {
-       
-        if(viewModel.confirmPassword != viewModel.password){
-            viewModel.showAlertMessage = true
+    func updateCertCredentialValidation(){
+        if(viewModel.confirmPassword != viewModel.password ||
+           viewModel.confirmPassword.isEmpty || viewModel.password.isEmpty){
+            viewModel.showValidationMessage = true
             viewModel.message="Passwords no coinciden"
             return
         }
-        
+        else{
+            viewModel.showConfirmUpdatePassword = true
+        }
+    }
+    
+    func updateCertCredentials() async  {
+        viewModel.isValidatingCertificateCredentials = true
         if let company = selection{
-            company.certificatePassword = viewModel.password
-            //modelContext.save(options: .atomic)
-            viewModel.showAlertMessage = true
-            viewModel.message = "Contraseña del certificado actualizada"
-            try? modelContext.save()
+            let encryptedPassword = try! Cryptographic.encrypt(viewModel.password)
             
+           
+            
+            let service = InvoiceServiceClient()
+            let result = try? await service.validateCertificate(nit: company.nit, key: encryptedPassword)
+           
+            if(result != nil && result!){
+                company.certificatePassword = encryptedPassword
+                viewModel.showAlertMessage = true
+                viewModel.message = "Contraseña del certificado actualizada"
+                try? modelContext.save()
+            }
+            else{
+                viewModel.showValidationMessage = true
+                viewModel.message = "Error al actualizar Contraseña, actualize y verifique la contraseña del certificado en el portal de Hacienda"
+            }
         }
         else{
             viewModel.showAlertMessage = true
             viewModel.message = ""
         }
+        viewModel.isValidatingCertificateCredentials = false
     }
     
     func importFile(_ result : Result<[URL], Error>) {
@@ -80,7 +101,7 @@ extension CertificateUpdate{
                 
                 if let certificate = fileData {
                     
-                    let result = try await service.uploadCertificate(data: certificate, nit: viewModel.nit)
+                    _ = try await service.uploadCertificate(data: certificate, nit: viewModel.nit)
                     viewModel.showAlertMessage = true
                     viewModel.message = "Certificado Actualizado!"
                 }
@@ -95,8 +116,4 @@ extension CertificateUpdate{
         
         return false
     }
-//    func getDocumentsDirectory() -> URL {
-//        return FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-//    }
-// 
 }

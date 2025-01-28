@@ -7,7 +7,7 @@ class MhClient {
     func mapInvoice(invoice: Invoice, company: Company)throws -> DTE_Base {
         var index = 1
         
-        var items = invoice.items.map { detail -> CuerpoDocumento in
+        let items = invoice.items.map { detail -> CuerpoDocumento in
             var item = formatFromProductDetail(detail: detail, isCCF: invoice.isCCF)
             item.numItem = index
             index += 1

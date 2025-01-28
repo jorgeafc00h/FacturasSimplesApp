@@ -8,4 +8,13 @@ struct Constants {
     static let EnvironmentCode = "00"
     
     static let Apikey = "eyJhbGciOiJFUzI1NiIsImtpZCI6IlVSS0VZSUQwMDEifQ"
+    
+    static let CertificateKey  = "key";
+
+    static let InvoiceNumber = "reference";
+    static let ApiKeyName = "apiKey";
+
+    static let MH_USER = "MH_USER";
+
+    static let MH_KEY = "MH_KEY";
 }

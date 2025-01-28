@@ -33,6 +33,8 @@ import SwiftData
     var certificatePath : String = ""
     var certificatePassword: String = ""
     
+    var credentials: String = ""
+    
     var actividadEconomicaLabel: String {
         descActividad == "" ? "Seleccione una actividad económica" : descActividad
     }
@@ -58,7 +60,8 @@ import SwiftData
         municipioCode: String = "",
         codActividad: String = "",
         certificatePath: String = "",
-        certificatePassword: String = ""
+        certificatePassword: String = "",
+        credentials: String = ""
     ) {
         self.nit = nit
         self.nrc = nrc
@@ -81,6 +84,7 @@ import SwiftData
         self.invoiceLogo = invoiceLogo
         self.certificatePath = certificatePath  
         self.certificatePassword = certificatePassword
+        self.credentials = credentials
     }
 }
 

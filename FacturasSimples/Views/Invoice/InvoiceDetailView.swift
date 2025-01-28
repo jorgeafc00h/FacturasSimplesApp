@@ -78,12 +78,21 @@ struct InvoiceDetailView: View {
             if invoice.status == .Nueva {
                 Button(action: viewModel.showConfirmSync,
                        label: {
-                    HStack {
-                        Image(systemName: "checkmark.seal.text.page.fill")
-                            .symbolEffect(.pulse, options: .repeat(.continuous))
-                        Text("Completar y Sincronizar")
+                    if viewModel.isBusy{
+                        HStack {
+                            Image(systemName: "circle.hexagonpath")
+                                .symbolEffect(.rotate, options: .repeat(.continuous))
+                            Text(" Enviando.....")
+                        }
                     }
-                })
+                    else {
+                        HStack {
+                            Image(systemName: "checkmark.seal.text.page.fill")
+                                .symbolEffect(.pulse, options: .repeat(.continuous))
+                            Text("Completar y Sincronizar")
+                        }
+                    }
+                }).disabled(viewModel.isBusy)
                 .confirmationDialog(
                     "¿Desea completar y sincronizar esta factura con el ministerio de hacienda?",
                     isPresented: $viewModel.showConfirmSyncSheet,
@@ -91,8 +100,11 @@ struct InvoiceDetailView: View {
                 ) {
                     
                     Button{
+                        viewModel.isBusy = true
                         Task{
-                           _ =   await viewModel.SignDocument(invoice)
+                           _ =   await viewModel.SyncInvoice(invoice)
+                            viewModel.isBusy = false
+                          try? modelContext.save()
                         }
                     }
                     label: {
@@ -220,20 +232,26 @@ struct InvoiceDetailView: View {
                         Spacer()
                         Text(invoice.status.stringValue())
                     }
-                    HStack{
+                    VStack(alignment: .leading){
                         Text("Cod. Gen.")
-                        Spacer()
+                            .padding(.top, 5)
                         Text(invoice.generationCode!)
+                            .font(.footnote)
+                            .padding(.top, 5)
                     }
-                    HStack{
+                    VStack(alignment: .leading){
                         Text("Sello")
-                        Spacer()
+                            .padding(.top, 5)
                         Text(invoice.receptionSeal!)
+                            .font(.footnote)
+                            .padding(.top, 5)
                     }
-                    HStack{
+                    VStack(alignment: .leading){
                         Text("Numero Control")
-                        Spacer()
+                            .padding(.top, 5)
                         Text(invoice.controlNumber!)
+                            .font(.footnote)
+                            .padding(.top, 5)
                     }
                     
                 }

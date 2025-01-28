@@ -14,42 +14,10 @@
             filePath = "FacturasSimples/Services/InvoiceServiceClient.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "120"
-            endingLineNumber = "120"
+            startingLineNumber = "193"
+            endingLineNumber = "193"
             landmarkName = "unknown"
             landmarkType = "0">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "394C674C-A5A9-48AD-A123-9FE2EFE9EE4F"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FacturasSimples/Services/DocumentSigner.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "48"
-            endingLineNumber = "48"
-            landmarkName = "getCertificate(nit:password:path:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "6F8FF8F2-EEBA-4714-8436-1E9536F2F7A3"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FacturasSimples/Services/DocumentSigner.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "85"
-            endingLineNumber = "85"
-            landmarkName = "DocumentSigner"
-            landmarkType = "3">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -62,56 +30,40 @@
             filePath = "FacturasSimples/ViewModels/Invoices/InvoiceDetailViewModel.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "64"
-            endingLineNumber = "64"
-            landmarkName = "SignDocument(_:)"
+            startingLineNumber = "82"
+            endingLineNumber = "82"
+            landmarkName = "SyncInvoice(_:)"
             landmarkType = "7">
             <Locations>
                <Location
-                  uuid = "E38F6E1F-549C-4A2F-8814-180870421269 - cb8cf937b167c1eb"
+                  uuid = "E38F6E1F-549C-4A2F-8814-180870421269 - 25385cdbb3df51ab"
                   shouldBeEnabled = "Yes"
                   ignoreCount = "0"
                   continueAfterRunningActions = "No"
-                  symbolName = "(1) suspend resume partial function for FacturasSimples.InvoiceDetailView.InvoiceDetailViewModel.SignDocument(FacturasSimples.Invoice) async -&gt; Swift.Optional&lt;FacturasSimples.DTE_Base&gt;"
+                  symbolName = "(1) suspend resume partial function for FacturasSimples.InvoiceDetailView.InvoiceDetailViewModel.SyncInvoice(FacturasSimples.Invoice) async -&gt; Swift.Optional&lt;FacturasSimples.DTE_Base&gt;"
                   moduleName = "FacturasSimples.debug.dylib"
                   usesParentBreakpointCondition = "Yes"
                   urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/ViewModels/Invoices/InvoiceDetailViewModel.swift"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "64"
-                  endingLineNumber = "64">
+                  startingLineNumber = "82"
+                  endingLineNumber = "82">
                </Location>
                <Location
-                  uuid = "E38F6E1F-549C-4A2F-8814-180870421269 - 5a182d64a71da7e6"
+                  uuid = "E38F6E1F-549C-4A2F-8814-180870421269 - 8e49741dab154bae"
                   shouldBeEnabled = "Yes"
                   ignoreCount = "0"
                   continueAfterRunningActions = "No"
-                  symbolName = "(4) suspend resume partial function for FacturasSimples.InvoiceDetailView.InvoiceDetailViewModel.SignDocument(FacturasSimples.Invoice) async -&gt; Swift.Optional&lt;FacturasSimples.DTE_Base&gt;"
+                  symbolName = "(4) suspend resume partial function for FacturasSimples.InvoiceDetailView.InvoiceDetailViewModel.SyncInvoice(FacturasSimples.Invoice) async -&gt; Swift.Optional&lt;FacturasSimples.DTE_Base&gt;"
                   moduleName = "FacturasSimples.debug.dylib"
                   usesParentBreakpointCondition = "Yes"
                   urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/ViewModels/Invoices/InvoiceDetailViewModel.swift"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "64"
-                  endingLineNumber = "64">
+                  startingLineNumber = "82"
+                  endingLineNumber = "82">
                </Location>
             </Locations>
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "CA897CC0-8191-422D-9666-60A8233ED21A"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FacturasSimples/ViewModels/Invoices/InvoiceDetailViewModel.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "44"
-            endingLineNumber = "44"
-            landmarkName = "SignDocument(_:)"
-            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -140,9 +92,133 @@
             filePath = "FacturasSimples/ViewModels/Account/CertificateUpdateViewModel.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "67"
-            endingLineNumber = "67"
+            startingLineNumber = "88"
+            endingLineNumber = "88"
             landmarkName = "importFile(_:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "CE693BEC-6AC1-44EB-A347-472BE6F57276"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FacturasSimples/ViewModels/Invoices/InvoiceDetailViewModel.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "34"
+            endingLineNumber = "34"
+            landmarkName = "SyncInvoice(_:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "5E383671-E7A6-448A-855F-C45F4693AFD7"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FacturasSimples/ViewModels/Account/CertificateUpdateViewModel.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "45"
+            endingLineNumber = "45"
+            landmarkName = "updateCertCredentials()"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "5E383671-E7A6-448A-855F-C45F4693AFD7 - 3be03403336edc80"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(1) suspend resume partial function for FacturasSimples.CertificateUpdate.updateCertCredentials() async -&gt; ()"
+                  moduleName = "FacturasSimples.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/ViewModels/Account/CertificateUpdateViewModel.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "45"
+                  endingLineNumber = "45">
+               </Location>
+               <Location
+                  uuid = "5E383671-E7A6-448A-855F-C45F4693AFD7 - 63df936b02b5d886"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(3) suspend resume partial function for FacturasSimples.CertificateUpdate.updateCertCredentials() async -&gt; ()"
+                  moduleName = "FacturasSimples.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/ViewModels/Account/CertificateUpdateViewModel.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "45"
+                  endingLineNumber = "45">
+               </Location>
+               <Location
+                  uuid = "5E383671-E7A6-448A-855F-C45F4693AFD7 - c7b44f24f9e05687"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(4) suspend resume partial function for FacturasSimples.CertificateUpdate.updateCertCredentials() async -&gt; ()"
+                  moduleName = "FacturasSimples.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/ViewModels/Account/CertificateUpdateViewModel.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "45"
+                  endingLineNumber = "45">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "8F5BCE38-42E1-42A5-83A7-4D57D8CA169F"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FacturasSimples/Services/InvoiceServiceClient.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "72"
+            endingLineNumber = "72"
+            landmarkName = "validateCertificate(nit:key:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "4F5F3063-FC29-430B-B95D-B762DEA600F9"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FacturasSimples/Services/InvoiceServiceClient.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "133"
+            endingLineNumber = "133"
+            landmarkName = "Sync(dte:credentials:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "A4D9D66A-A191-4977-A81E-543465C8AC1F"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FacturasSimples/ViewModels/Invoices/InvoiceDetailViewModel.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "56"
+            endingLineNumber = "56"
+            landmarkName = "SyncInvoice(_:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

@@ -225,6 +225,7 @@ struct EmisorEditView: View {
             }
             else{
                 Text("Actualizar Certificado")
+                    .foregroundColor(.darkCyan)
                     
             }
         }.fontWeight(.bold)

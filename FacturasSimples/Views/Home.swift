@@ -19,7 +19,7 @@ struct Home: View {
                 mainView()
             }
             else{
-                splash
+                SplashView()
             }
         }
         .onAppear {
@@ -40,31 +40,7 @@ struct Home: View {
         
     }
     
-    private var splash : some View{
-        ZStack{
-            Rectangle()
-                .background(Color.black)
     
-            
-            VStack{
-                Image("AppLogo")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 450, height: 450)
-                Text("Facturas Simples")
-                    .font(.title)
-                    .font(.system(size: 27, weight: .bold, design: .serif))
-                    .foregroundColor(.white)
-                
-                Spacer()
-                Text("Facturacion Facil y Rapido.... ")
-                    .font(.footnote)
-                    .foregroundColor(.white)
-                
-            }
-            
-        }
-    }
     
     
     

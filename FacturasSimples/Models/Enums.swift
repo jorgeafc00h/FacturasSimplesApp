@@ -1,9 +1,26 @@
 import Foundation
 
-enum ApiErrors : Error {
+enum ApiErrors : LocalizedError {
     case invalidResponse
     case invalidData
     case invalidURL
+    case custom(message: String)
+    
+    var errorDescription: String? {
+        switch self {
+        case .invalidResponse:
+            return NSLocalizedString("La respuesta es invalida verifique los parametros", comment: "")
+        case .invalidURL:
+            return NSLocalizedString("URL invalida", comment: "")
+        case .invalidData:
+            return NSLocalizedString("no coincide con el formato esperado.", comment: "")
+        
+        case .custom(let message):
+        
+        
+            return message
+        }
+    }
 }
 
 

@@ -166,8 +166,18 @@ extension EmisorEditView {
                 if let certificate = fileData {
                     
                     let result = try await service.uploadCertificate(data: certificate, nit: viewModel.nit)
+                    
+                    // now check certificate crecentials if credentials are empty , lets display a warning.
                     viewModel.showAlertMessage = true
-                    viewModel.message = "Certificado Actualizado!"
+                    if(result){
+                         
+                        viewModel.message = company.certificatePassword.isEmpty ?
+                        "El Certificado se actualizao correctamente, Debe establecer una contraseña para el certificado" :
+                        "Certificado Actualizado!"
+                    }
+                    else{
+                        viewModel.message = "Error al actualizar el certificado"
+                    }
                 }
                 viewModel.isBusy = false
                  return true

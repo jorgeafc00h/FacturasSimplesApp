@@ -16,6 +16,14 @@ struct CertificateUpdate: View {
     @Environment(\.dismiss)   var dismiss
     
     @Binding var selection : Company?
+    
+//    @Environment(\.horizontalSizeClass) var horizontalSizeClass
+//    @Environment(\.verticalSizeClass) var verticalSizeClass
+//       
+    
+//    var isIPad: Bool {
+//            horizontalSizeClass == .regular && verticalSizeClass == .regular
+//        }
      
     var body: some View {
             ZStack {
@@ -28,8 +36,10 @@ struct CertificateUpdate: View {
                             .frame(width: 55.0, height: 55.0)
                             .foregroundColor(.darkCyan)
                             .padding(.top, 10)
-                        SelectedCompanyButton(selection: $selection)
-                            .padding(.top, 10)
+                        
+                  
+                            SelectedCompanyButton(selection: $selection)
+                                .padding(.top, 10)
                         
                         EditUserCertificateCredentials
                             .fileImporter(isPresented: $viewModel.isCertificateImporterPresented,
@@ -75,7 +85,7 @@ struct CertificateUpdate: View {
             Text("Actualizar contraseña de cerficado Hacienda (firma de DTE)")
                 .foregroundColor(.darkCyan)
                 .padding(.top, 50)
-             
+            
             
             Text("Contraseña").foregroundColor(.white).padding(.top,25)
             
@@ -105,20 +115,38 @@ struct CertificateUpdate: View {
                 .frame(height: 1)
                 .background(Color("Dark-Cyan")).padding(.bottom,32)
             
-            Button(action:{ updateCert()}) {
-                Text("Actualizar contraseña")
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                    .frame( maxWidth: .infinity, alignment: .center)
-                    .padding(EdgeInsets(top: 11, leading: 18, bottom: 11, trailing: 18))
-                    .overlay(RoundedRectangle(cornerRadius: 6)
-                        .stroke(Color("Dark-Cyan"), lineWidth: 3).shadow(color: .white, radius: 6))
-            }.padding(.bottom)
-                .disabled(viewModel.IsDisabledSaveCertificate)
-            
+            Button(action: updateCertCredentialValidation ){
+               UpdatePasswordCertButonLabel
+            }.disabled(viewModel.isValidatingCertificateCredentials)
+             .padding(.bottom)
+             .confirmationDialog(
+                 "¿Desea actualizar la  contraseña de el certificado?",
+                 isPresented: $viewModel.showConfirmUpdatePassword,
+                 titleVisibility: .visible
+             ) {
+                 Button{
+                     viewModel.isValidatingCertificateCredentials = true
+                     Task{
+                         _ =  await updateCertCredentials()
+                     }
+                 }
+                 label: {
+                     Text("Guardar Cambios").accentColor(.darkBlue)
+                 }
+                 
+                 Button("Cancelar", role: .cancel) {}
+             }
+             .frame(maxWidth: .infinity)
+             .foregroundColor(.white)
+                .alert(viewModel.message, isPresented: $viewModel.showValidationMessage) {
+                    Button("OK", role: .cancel){}
+                   }
+             
+                
             Button(action:{ viewModel.isCertificateImporterPresented.toggle() }) {
                 SyncCertButonLabel
             }.padding(.bottom)
+                .disabled(viewModel.isBusy)
             
         }.padding(.horizontal, 42.0)
     }
@@ -142,20 +170,29 @@ struct CertificateUpdate: View {
             .overlay(RoundedRectangle(cornerRadius: 6)
                 .stroke(Color("Dark-Cyan"), lineWidth: 3).shadow(color: .white, radius: 6))
     }
+    
+    private var UpdatePasswordCertButonLabel: some View {
+        VStack{
+            if viewModel.isValidatingCertificateCredentials{
+                HStack {
+                    Image(systemName: "circle.hexagonpath")
+                        .symbolEffect(.rotate, options: .repeat(.continuous))
+                    Text(" Verificando Certificado.....")
+                }
+            }
+            else{
+                Text("Actualizar contraseña")
+            }
+        }.fontWeight(.bold)
+            .foregroundColor(.white)
+            .frame( maxWidth: .infinity, alignment: .center)
+            .padding(EdgeInsets(top: 11, leading: 18, bottom: 11, trailing: 18))
+            .overlay(RoundedRectangle(cornerRadius: 6)
+                .stroke(Color("Dark-Cyan"), lineWidth: 3).shadow(color: .white, radius: 6))
+    }
 }
 
-
-//#Preview {
-//    do {
-//        let config = ModelConfiguration(isStoredInMemoryOnly: true)
-//        let container = try ModelContainer(for: Company.self, configurations: config)
-//        let example = Company.prewiewCompanies.randomElement()!
-//        return CertificateUpdate(company: example)
-//            .modelContainer(container)
-//    } catch {
-//        return Text("Failed to create preview: \(error.localizedDescription)")
-//    }
-//}
+ 
 #Preview (traits: .sampleCompanies){
     CertificateUpdateViewWrapper()
 }

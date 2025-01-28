@@ -52,17 +52,90 @@ class InvoiceServiceClient
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue(Constants.Apikey, forHTTPHeaderField: "apiKey")
-        request.setValue(nit, forHTTPHeaderField: "MH_USER")
+        request.setValue(nit, forHTTPHeaderField: Constants.MH_USER)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
                
         request.httpBody = data
         
-        let (_, response) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await URLSession.shared.data(for: request)
         guard let httpResponse = response as? HTTPURLResponse,
               httpResponse.statusCode == 200 else {
-            throw URLError(.badServerResponse)
+            //throw URLError(.badServerResponse)
+            let message = String(data: data, encoding: .utf8)!
+            throw ApiErrors.custom(message: message)
         }
         return true;
+    }
+    
+    func validateCertificate(nit: String,key: String) async throws -> Bool
+    {
+        let endpoint = Constants.InvoiceServiceUrl+"/settings/certificate/validate"
+        guard let url = URL(string: endpoint) else {
+            throw ApiErrors.invalidURL
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        
+        request.setValue(Constants.Apikey, forHTTPHeaderField: "apiKey")
+        request.setValue(key, forHTTPHeaderField: Constants.CertificateKey)
+        request.setValue(nit, forHTTPHeaderField: Constants.MH_USER)
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.statusCode == 200 else {
+            let message = String(data: data, encoding: .utf8)!
+            throw ApiErrors.custom(message: message)
+        }
+        
+        let resultMessage = String(data: data, encoding: .utf8)!
+        
+        print("result validate certificate: \(resultMessage)")
+        return resultMessage == "true"
+        
+    }
+    
+    func Sync(dte: DTE_Base, credentials: ServiceCredentials)async throws -> DTEResponseWrapper
+    {
+        let encoder = JSONEncoder()
+        //encoder.outputFormatting = .prettyPrinted
+        encoder.dateEncodingStrategy = .iso8601
+        
+        let jsonData =  try encoder.encode(dte)
+        let jsonString = String(data: jsonData, encoding: .utf8)!
+            
+        print("DTE JSON")
+        print(jsonString)
+        
+        let endpoint = Constants.InvoiceServiceUrl+"/document/dte/sync"
+        guard let url = URL(string: endpoint) else {
+            throw ApiErrors.invalidURL
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue(Constants.Apikey, forHTTPHeaderField: "apiKey")
+        request.setValue(credentials.key, forHTTPHeaderField: Constants.CertificateKey)
+        
+        request.setValue(credentials.user, forHTTPHeaderField: Constants.MH_USER)
+        request.setValue(credentials.credential, forHTTPHeaderField: Constants.MH_KEY)
+        
+        request.setValue(credentials.invoiceNumber, forHTTPHeaderField: Constants.InvoiceNumber)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+               
+        request.httpBody = jsonData
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.statusCode == 200 else {
+            let message = String(data: data, encoding: .utf8)!
+            throw ApiErrors.custom(message: message)
+        }
+        do{
+            return try JSONDecoder().decode(DTEResponseWrapper.self, from: data)
+        }
+        catch(let error){
+            let message = String(data: data, encoding: .utf8)!
+            throw ApiErrors.custom(message: message)
+        }
     }
     
 }
