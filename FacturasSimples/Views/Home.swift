@@ -46,31 +46,36 @@ struct Home: View {
     
 }
 
-private struct mainView : View{
-    @State var selectedTab:Int = 2
-    @State var isAuthenticated: Bool = false
-    @State var selectedCompanyId: String = ""
+struct mainView : View{
+//    @State var selectedTab:Int = 2
+//    @State var isAuthenticated: Bool = false
+//    @State var selectedCompanyId: String = ""
+    
+    @Environment(\.modelContext) var modelContext
+    
+    @State var viewModel = MainViewModel()
+    
     var body: some View{
         
-        if isAuthenticated{
-            TabView(selection: $selectedTab){
-                ProfileView(selectedCompanyId: $selectedCompanyId)
+        if viewModel.isAuthenticated{
+            TabView(selection: $viewModel.selectedTab){
+                ProfileView(selectedCompanyId: $viewModel.selectedCompanyId)
                     .navigationBarHidden(true).navigationBarBackButtonHidden(true)
                     .tabItem {
                         Image(systemName: "person")
                         Text("Perfil")
                     }.tag(0)
-                CustomersView(selectedCompanyId: $selectedCompanyId)
+                CustomersView(selectedCompanyId: $viewModel.selectedCompanyId)
                     .tabItem {
                         Image(systemName: "person.crop.badge.magnifyingglass.fill")
                         Text("Clientes")
                     }.tag(1)
-                InvoicesView(selectedCompanyId: $selectedCompanyId)
+                InvoicesView(selectedCompanyId: $viewModel.selectedCompanyId)
                     .tabItem {
                         Image(systemName: "list.bullet.rectangle.portrait")
                         Text("Facturas")
                     }.tag(2)
-                ProductsView(selectedCompanyId: $selectedCompanyId)
+                ProductsView(selectedCompanyId: $viewModel.selectedCompanyId)
                 // .font(.system(size: 30, weight: .bold, design: .rounded))
                     .tabItem {
                         Image(systemName: "list.bullet.rectangle.fill")
@@ -79,9 +84,12 @@ private struct mainView : View{
                 
             }
             .accentColor(.darkCyan)
+            .task {
+                RefreshRequiresOnboardingPage()
+            }
         }
         else{
-            LoginView(isAuthenticated: $isAuthenticated)
+            LoginView(isAuthenticated: $viewModel.isAuthenticated)
         }
     }
 }

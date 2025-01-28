@@ -132,7 +132,7 @@ class InvoiceServiceClient
         do{
             return try JSONDecoder().decode(DTEResponseWrapper.self, from: data)
         }
-        catch(let error){
+        catch(_){
             let message = String(data: data, encoding: .utf8)!
             throw ApiErrors.custom(message: message)
         }
