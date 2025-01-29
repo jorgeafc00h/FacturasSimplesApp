@@ -90,6 +90,8 @@ extension AddInvoiceView {
         }
     }
     func getNextInoviceNumber(){
+        
+        let itype  = viewModel.invoiceType == .CCF ? InvoiceType.CCF : InvoiceType.Factura
         let descriptor = FetchDescriptor<Invoice>(
             predicate: #Predicate<Invoice>{
                 $0.customer.companyOwnerId == companyIdentifier

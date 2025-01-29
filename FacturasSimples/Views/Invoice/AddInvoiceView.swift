@@ -98,7 +98,7 @@ struct AddInvoiceView: View {
         Section {
             Group {
                 TextField("Numero de Factura",text: $viewModel.invoiceNumber)
-                    .disabled(true)
+                    .keyboardType(.numberPad)
                 HStack{
                     Text("Fecha:")
                         .font(.caption)

@@ -123,6 +123,7 @@ struct CustomersListView: View {
             if customers.isEmpty {
                 ContentUnavailableView {
                     Label("Clientes", systemImage: "person.circle")
+                        .symbolEffect(.breathe)
                 }description: {
                     Text("Los nuevos clientes aparecerán aquí.")
                 }actions: {

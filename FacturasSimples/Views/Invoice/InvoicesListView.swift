@@ -69,6 +69,7 @@ struct InvoicesListView: View {
         
         ContentUnavailableView {
             Label("Facturas", systemImage: "list.bullet.rectangle.portrait")
+                .symbolEffect(.breathe)
         }description: {
             Text("Las Nuevas Facturas apareceran aquí.")
         }actions: {

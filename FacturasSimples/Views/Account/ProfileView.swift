@@ -26,7 +26,7 @@ struct ProfileView: View {
 
     @State var viewModel = ProfileViewModel()
     
-    @Binding var selectedCompanyId: String
+    @Binding var selectedCompanyId: String 
     
     var body: some View {
         NavigationSplitView{
@@ -85,10 +85,7 @@ struct ProfileView: View {
             label: {
                 NavigationLabel(title:"Contraseña Certificado",imagename:  "lock.fill")
             }
-            NavigationLink { }
-            label: {
-                NavigationLabel(title:"Facturas",imagename: "document.badge.gearshape.fill")
-            }
+            
             Button(action: {}, label: {
                 HStack {
                     Image(systemName: "bell.fill").padding(.horizontal, 5.0)
@@ -102,6 +99,16 @@ struct ProfileView: View {
                 }.padding()
             }) .background(Color("Blue-Gray"))
                 .clipShape(RoundedRectangle(cornerRadius: 1.0)).padding(.horizontal, 8.0)
+            Button(action: {viewModel.showOnboardingSheet = true}, label: {
+                NavigationLabel(title:"info y ayuda",imagename: "info.circle.fill")
+                                   .foregroundColor(.darkCyan)
+                                    .symbolEffect(.breathe)
+            }) .background(Color("Blue-Gray"))
+                .clipShape(RoundedRectangle(cornerRadius: 1.0)).padding(.horizontal, 8.0)
+        }.sheet(isPresented: $viewModel.showOnboardingSheet) {
+             
+            OnboardingView(requiresOnboarding: $viewModel.showOnboardingSheet)
+            
         }
     }
 }

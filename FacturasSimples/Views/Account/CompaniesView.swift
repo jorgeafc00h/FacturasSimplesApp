@@ -108,6 +108,7 @@ struct CompaniesView: View {
             if companies.isEmpty {
                 ContentUnavailableView {
                     Label("Empresas", systemImage: "books.vertical.circle.fill")
+                        .symbolEffect(.breathe)
                 }description: {
                     Text("El primer paso de configuracion es agregar una empresa luego crear clientes.")
                 }actions: {

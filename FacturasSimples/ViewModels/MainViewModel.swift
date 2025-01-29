@@ -9,6 +9,7 @@ extension mainView{
         var selectedTab : Int = 2
         var selectedCompanyId: String = ""
         var isAuthenticated: Bool = false
+        var displayCompaniesByDefault: Bool = false
     }
     
     
@@ -18,10 +19,11 @@ extension mainView{
         
         let count = (try? modelContext.fetchCount(descriptor)) ?? 0
          
-        viewModel.requiresOnboarding = count > 0
+        viewModel.requiresOnboarding = count == 0
         
         if count == 0 {
             viewModel.selectedTab = 0
+            viewModel.displayCompaniesByDefault = true
         }
     }
     

@@ -11,6 +11,8 @@ extension ProfileView{
         var showAddCompanySheet: Bool = false
         
         var showSelectCompanySheet: Bool = false
+        
+        var showOnboardingSheet : Bool = false
     }
     
     func returnUiImage(named: String) -> UIImage? {
