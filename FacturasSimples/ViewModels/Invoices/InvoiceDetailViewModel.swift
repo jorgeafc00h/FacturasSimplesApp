@@ -10,6 +10,9 @@ extension InvoiceDetailView {
         var showConfirmSyncSheet : Bool = false
         
         var showingDeleteConfirmation : Bool = false
+        var showingConfirmAutoEmail : Bool = false
+        var sendingAutomaticEmail : Bool = false
+        var emailSent : Bool = false
         
         var showAlert: Bool = false
         var alertTitle: String = ""
@@ -17,7 +20,7 @@ extension InvoiceDetailView {
         
         var company : Company = Company(nit:"",nrc:"",nombre:"")
         var dteService = MhClient()
-        //var documentSigner = DocumentSigner()
+        
         
         var showErrorAlert : Bool = false
         var errorMessage : String = ""
@@ -47,27 +50,27 @@ extension InvoiceDetailView {
                     invoice.controlNumber = result.numeroControl
                     invoice.status = .Completada
                     
-                     
+                   
                     
                     let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
                     let docs = documentsURL.appendingPathComponent("DTE_DOCUMENTOS")
                     
                     do {
                         try FileManager.default.createDirectory(at: docs, withIntermediateDirectories: true, attributes: nil)
-                        let dteJsonUrl = docs.appendingPathComponent("\(invoice.invoiceNumber).json")
+                        let dteJsonUrl = docs.appendingPathComponent("\(result.numeroControl).json")
                         
                         let encoder = JSONEncoder()
                         encoder.outputFormatting = .prettyPrinted
                         encoder.dateEncodingStrategy = .iso8601
                         
                         let jsonData =  try encoder.encode(result.dte)
-                      
-                            do {
-                                try jsonData.write(to: dteJsonUrl)
-                                print("Successfully wrote to file!")
-                            } catch {
-                                print("Error writing to file: \(error)")
-                            }
+                        
+                        do {
+                            try jsonData.write(to: dteJsonUrl)
+                            print("Successfully wrote to file!")
+                        } catch {
+                            print("Error writing to file: \(error)")
+                        }
                         
                     } catch {
                         print("Error creating directory: \(error)")
@@ -82,11 +85,57 @@ extension InvoiceDetailView {
                 errorMessage = error.localizedDescription
                 showErrorAlert = true
                 return nil
-            } 
-           
+            }
+            
+        }
+        
+        func backupPDF(_ invoice: Invoice)async -> Void{
+            
+            sendingAutomaticEmail = true
+            
+            let _data = InvoicePDFGenerator.generatePDF(from: invoice, company:  company)
+             
+            let  invoiceService = InvoiceServiceClient()
+            
+            _ = try? await invoiceService.uploadPDF(data: _data, controlNum: invoice.controlNumber!, nit: company.nit)
+            
+            sendingAutomaticEmail = false
+            emailSent = true
+        }
+        
+        func testDeserialize(_ invoice: Invoice) async -> DTEResponseWrapper? {
+            let path = "https://kinvoicestdev.blob.core.windows.net/06141404941342/DTE-03-4V841VOJ-281168646418339.json?sv=2021-10-04&st=2025-02-05T13%3A23%3A43Z&se=2025-02-07T13%3A23%3A00Z&sr=b&sp=r&sig=lIG8kOvr0aFualetkFaDDzcKcd9Wz%2B0CB1%2BhsThRCUM%3D"
+            
+            let path2 = "https://kinvoicestdev.blob.core.windows.net/06141404941342/DTE-01-EE7L1BXY-939246480329284.json?sv=2021-10-04&st=2025-02-05T13%3A54%3A54Z&se=2025-02-06T13%3A54%3A54Z&sr=b&sp=r&sig=aoyi8o%2B9hoUBxCH6fBg5JtfPlDeFY0cOxkvc4SAQjtw%3D"
+            
+            let invoiceService = InvoiceServiceClient()
+            
+            let dte =  try? await invoiceService.getDocumentFromStorage(path: path)
+            
+            let dte_invoice = try? await invoiceService.getDocumentFromStorage(path: path2)
+            
+            print("\(dte_invoice?.numeroControl ?? "No hay control")")
+             
+            return dte
+        }
+        func validateCredentialsAsync() async  -> Bool {
+            let serviceClient  = InvoiceServiceClient()
+                
+            do{
+                return try await serviceClient.validateCredentials(nit: company.nit, password: company.credentials)
+            }
+            catch(let message){
+                print("\(message)")
+                isBusy = false
+                showAlert = true
+                errorMessage = "Usuario o contraseña incorrectos"
+                
+                return false
+            }
         }
     }
- 
+    
+  
     
     func deleteInvoice (){
         if invoice.status == .Completada {

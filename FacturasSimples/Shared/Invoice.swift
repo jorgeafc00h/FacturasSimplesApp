@@ -132,9 +132,9 @@ enum InvoiceType:Int, Codable {
     func stringValue() -> String {
         switch(self) {
         case .Factura:
-          return "Factura"
+          return "FACTURA"
         case .CCF:
-          return "Comprobante Credito Fiscal"
+          return "COMPROBANTE DE CRÉDITO FISCAL"
         }
       }
 }

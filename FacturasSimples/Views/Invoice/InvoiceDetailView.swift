@@ -25,32 +25,34 @@ struct InvoiceDetailView: View {
                 ButtonActions
             } 
         }
-        .navigationTitle(Text("Factura"))
+        .navigationTitle(Text(invoice.invoiceType.stringValue() ))
         .toolbar {
             ToolbarItemGroup(placement: .automatic) {
-                NavigationLink {
-                    if let pdfData = viewModel.pdfData {
-                        InvoicePDFPreview(pdfData: pdfData,invoice: invoice)
+                ShareButton()
+            }
+            
+            ToolbarItem(placement: .primaryAction) {
+                Menu {
+                    Button {
+                        Task {
+                            
+                            _ = await viewModel.testDeserialize(invoice)
+                        }
+                    } label: {
+                        Text("Open cache directory")
+                    }
+                    .help("Clears all content from the cache")
+                    EditButon()
+                        .help("Editar Informacion General de la factura")
+                    PrintButton()
+                        .help("Vista preview de impresion para compartir factura PDF")
+                    
+                    if( invoice.status == .Completada){
+                        SendEmailButton()
+                            .help( "Enviar factura por email automatico, eso es util en caso de que actualize el correo electronico del cliente o si desea enviar nuevamente la factura")
                     }
                 } label: {
-                    HStack{
-                        Image(systemName: "printer.filled.and.paper.inverse")
-                            .symbolEffect(.breathe, options: .nonRepeating)
-                        
-                    }.foregroundColor(.darkCyan)
-                }
-                
-                Button {
-                    viewModel.showShareSheet = true
-                } label: {
-                    Image(systemName: "square.and.arrow.up")
-                }
-                
-                
-                NavigationLink {
-                    InvoiceEditView(invoice: invoice)
-                } label: {
-                    Image(systemName: "pencil.line")
+                    Image(systemName: "gear")
                 }
             }
         }
@@ -73,61 +75,62 @@ struct InvoiceDetailView: View {
         }
     }
     
-    private var ButtonActions : some View {
-        Section {
-            if invoice.status == .Nueva {
-                Button(action: viewModel.showConfirmSync,
-                       label: {
-                    if viewModel.isBusy{
-                        HStack {
-                            Image(systemName: "circle.hexagonpath")
-                                .symbolEffect(.rotate, options: .repeat(.continuous))
-                            Text(" Enviando.....")
-                        }
-                    }
-                    else {
-                        HStack {
-                            Image(systemName: "checkmark.seal.text.page.fill")
-                                .symbolEffect(.pulse, options: .repeat(.continuous))
-                            Text("Completar y Sincronizar")
-                        }
-                    }
-                }).disabled(viewModel.isBusy)
-                .confirmationDialog(
-                    "¿Desea completar y sincronizar esta factura con el ministerio de hacienda?",
-                    isPresented: $viewModel.showConfirmSyncSheet,
-                    titleVisibility: .visible
-                ) {
-                    
-                    Button{
-                        viewModel.isBusy = true
-                        Task{
-                           _ =   await viewModel.SyncInvoice(invoice)
-                            viewModel.isBusy = false
-                          try? modelContext.save()
-                        }
-                    }
-                    label: {
-                        Text("Sincronizar")
-                    }
-                    
-                    
-                    Button("Cancelar", role: .cancel) {}
-                }
-                .frame(maxWidth: .infinity)
-                .foregroundColor(.white)
-                .padding()
-                .background(.green)
-                .cornerRadius(10)
-                .alert(isPresented: $viewModel.showErrorAlert) {
-                           Alert(
-                               title: Text("Error"),
-                               message: Text(viewModel.errorMessage),
-                               dismissButton: .default(Text("OK"))
-                           )
-                       }
+    @ViewBuilder
+    private func PrintButton() -> some View {
+        NavigationLink {
+            if let pdfData = viewModel.pdfData {
+                InvoicePDFPreview(pdfData: pdfData,invoice: invoice)
             }
+        } label: {
+            HStack{
+                Image(systemName: "printer.filled.and.paper.inverse")
+                    .symbolEffect(.breathe, options: .nonRepeating)
+                Text("PDF")
+                
+            }.foregroundColor(.darkCyan)
         }
+    }
+    
+    @ViewBuilder
+    private func ShareButton() -> some View {
+        Button {
+            viewModel.showShareSheet = true
+        } label: {
+            Image(systemName: "square.and.arrow.up")
+        }
+        
+        
+        
+    }
+   
+    @ViewBuilder
+    private func EditButon() -> some View {
+        NavigationLink {
+            InvoiceEditView(invoice: invoice)
+        } label: {
+            HStack{
+                Image(systemName: "pencil.line")
+                    .symbolEffect(.breathe, options: .nonRepeating)
+                Text("Editar factura")
+            }.foregroundColor(.darkCyan)
+        }.disabled(invoice.status == .Completada)
+    }
+    
+    @ViewBuilder
+    private func SendEmailButton() -> some View {
+        Button {
+            viewModel.showingConfirmAutoEmail.toggle()
+        }
+        label: {
+            HStack{
+                Image(systemName: "envelope.fill")
+                    .symbolEffect(.breathe, options: .nonRepeating)
+                Text("Enviar PDF por Email")
+                
+            }.foregroundColor(.darkCyan)
+        }
+        .disabled(viewModel.emailSent)
+        
     }
     
     @ViewBuilder
@@ -168,28 +171,10 @@ struct InvoiceDetailView: View {
             }
         }
         
-        NavigationLink {
-            InvoiceEditView(invoice: invoice)
-        } label: {
-            HStack{
-                Image(systemName: "pencil.line")
-                    .symbolEffect(.breathe, options: .nonRepeating)
-                Text("Editar factura")
-            }.foregroundColor(.darkCyan)
-        }.disabled(invoice.status == .Completada)
         
-        NavigationLink {
-            if let pdfData = viewModel.pdfData {
-                InvoicePDFPreview(pdfData: pdfData,invoice: invoice)
-            }
-        } label: {
-            HStack{
-                Image(systemName: "printer.filled.and.paper.inverse")
-                    .symbolEffect(.breathe, options: .nonRepeating)
-                Text("PDF")
-            }.foregroundColor(.darkCyan)
-        }
-        
+        EditButon()
+        PrintButton()
+      
         
         if invoice.status == .Nueva {
             Button(role: .destructive,
@@ -283,6 +268,109 @@ struct InvoiceDetailView: View {
             ForEach($invoice.items){ $detail in
                 ProductDetailItemView(detail: detail)
                 
+            }
+        }
+    }
+    
+    private var ButtonActions : some View {
+        Section {
+            if invoice.status == .Nueva {
+                Button(action: viewModel.showConfirmSync,
+                       label: {
+                        HStack {
+                            if viewModel.isBusy{
+                                Label("Enviando...",systemImage: "progress.indicator")
+                              
+                                    .symbolEffect(.variableColor.iterative.dimInactiveLayers.nonReversing, options: .repeat(.continuous))
+                            }
+                            else{
+                                Image(systemName: "checkmark.seal.text.page.fill")
+                                
+                                Text("Completar y Sincronizar")
+                            }
+                        }
+                }).disabled(viewModel.isBusy)
+                .confirmationDialog(
+                    "¿Desea completar y sincronizar esta factura con el ministerio de hacienda?",
+                    isPresented: $viewModel.showConfirmSyncSheet,
+                    titleVisibility: .visible
+                ) {
+                    
+                    Button{
+                        viewModel.isBusy = true
+                        Task{
+                            let validation = await viewModel.validateCredentialsAsync()
+                            
+                            if(!validation){
+                                return
+                            }
+                            
+                           _ =  await viewModel.SyncInvoice(invoice)
+                            _ =  await viewModel.backupPDF(invoice)
+                            
+                            viewModel.isBusy = false
+                          try? modelContext.save()
+                        }
+                    }
+                    label: {
+                        Text("Sincronizar")
+                    }
+                    
+                    
+                    Button("Cancelar", role: .cancel) {}
+                }
+                .frame(maxWidth: .infinity)
+                .foregroundColor(.black)
+                .padding()
+                .background(.darkCyan)
+                .cornerRadius(10)
+                .alert(isPresented: $viewModel.showErrorAlert) {
+                           Alert(
+                               title: Text("Error"),
+                               message: Text(viewModel.errorMessage),
+                               dismissButton: .default(Text("OK"))
+                           )
+                       }
+            }
+            else{
+                HStack {
+                    Text("\(invoice.invoiceType)")
+                    Spacer()
+                    Circle()
+                        .fill(invoice.statusColor)
+                        .frame(width: 8, height: 8)
+                    Text("\(invoice.status)")
+                        .font(.subheadline)
+                        .foregroundColor(invoice.statusColor)
+                        .padding(7)
+                        .background(invoice.statusColor.opacity(0.09))
+                        .cornerRadius(8)
+                 }
+                    .confirmationDialog(
+                        "¿Desea enviar nuevamente esta factura via email : \(invoice.customer.email)?",
+                        isPresented: $viewModel.showingConfirmAutoEmail,
+                        titleVisibility: .visible
+                    ) {
+                        
+                        Button{
+                            viewModel.sendingAutomaticEmail = true
+                            Task{
+                                _ =   await viewModel.backupPDF(invoice)
+                            }
+                        }
+                        label: {
+                            Text("Enviar")
+                        }
+                        
+                        
+                        Button("Cancelar", role: .cancel) {}
+                    }
+                if viewModel.sendingAutomaticEmail {
+                    Label("Enviando...",systemImage: "progress.indicator")
+                        .foregroundColor(.darkCyan)
+                        .symbolEffect(.variableColor.iterative.dimInactiveLayers.nonReversing, options: .repeat(.continuous))
+                }
+                 
             }
         }
     }

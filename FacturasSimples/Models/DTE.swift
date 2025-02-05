@@ -194,6 +194,7 @@ struct Resumen: Codable {
     var condicionOperacion: Int
     var pagos: [Pago]?? = nil
     var numPagoElectronico: PagoElectronico?? = nil
+    var ivaPerci1 : Decimal? = nil
 }
 
 struct Tributo: Codable {

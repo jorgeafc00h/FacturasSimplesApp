@@ -5,8 +5,8 @@ struct DTEResponseWrapper: Codable {
 
     
     struct Response: Codable {
-        let version: Int
-        let ambiente: String
+        let version: Int?
+        let ambiente: String?
         let versionApp: Int
         let estado: String
         let codigoGeneracion: String
@@ -23,37 +23,39 @@ struct DTEResponseWrapper: Codable {
         let identificacion: Identificacion
         let documentoRelacionado: String?
         let emisor: Emisor
-        let otrosDocumentos: String?
+       let otrosDocumentos: String?
         let ventaTercero: String?
-        let cuerpoDocumento: [CuerpoDocumento]
-        let resumen: Resumen
-        let extensionField: String?
+       let cuerpoDocumento: [CuerpoDocumento]
+//       let resumen: Resumen
+        //let extensionField: String?
         let apendice: String?
         
-        enum CodingKeys: String, CodingKey {
-            case identificacion
-            case documentoRelacionado
-            case emisor
-            case receptor
-            case otrosDocumentos
-            case ventaTercero
-            case cuerpoDocumento
-            case resumen
-            case extensionField = "extension"
-            case apendice
-        }
+//        enum CodingKeys: String, CodingKey {
+//            case identificacion
+//            case documentoRelacionado
+//            case emisor
+//            case receptor
+//            case otrosDocumentos
+//            case ventaTercero
+//            case cuerpoDocumento
+//            case resumen
+//            //case extensionField = "extension"
+//            case apendice
+//        }
     }
     
     struct Receptor: Codable {
         let descActividad: String?
-        let tipoDocumento: String
+        let tipoDocumento: String??
         let telefono: String
-        let numDocumento: String
+        let numDocumento: String??
         let codActividad: String?
         let nombre: String
         let direccion: Direccion
         let nrc: String?
         let correo: String
+        let nombreComercial: String?
+        let nit: String? // Added missing field
     }
     
     struct Direccion: Codable {
@@ -63,7 +65,7 @@ struct DTEResponseWrapper: Codable {
     }
     
     struct Identificacion: Codable {
-        let version: Int
+        let version: Int?
         let ambiente: String
         let tipoDte: String
         let numeroControl: String
@@ -97,12 +99,12 @@ struct DTEResponseWrapper: Codable {
     struct CuerpoDocumento: Codable {
         let psv: Double
         let noGravado: Double
-        let ivaItem: Double
+        let ivaItem: Double??
         let numItem: Int
         let tipoItem: Int
         let numeroDocumento: String?
         let cantidad: Int
-        let codigo: String
+        let codigo: String??
         let codTributo: String?
         let uniMedida: Int
         let descripcion: String
@@ -112,6 +114,7 @@ struct DTEResponseWrapper: Codable {
         let ventaExenta: Double
         let ventaGravada: Double
         let tributos: [String]?
+         
     }
     
     struct Resumen: Codable {
@@ -124,7 +127,7 @@ struct DTEResponseWrapper: Codable {
         let descuGravada: Double
         let porcentajeDescuento: Double
         let totalDescu: Double
-        let tributos: [String]?
+        let tributos: [String]??
         let subTotal: Double
         let ivaRete1: Double
         let reteRenta: Double
@@ -137,5 +140,6 @@ struct DTEResponseWrapper: Codable {
         let condicionOperacion: Int
         let pagos: [String]?
         let numPagoElectronico: String?
+        let ivaPerci1: Double??
     }
 }

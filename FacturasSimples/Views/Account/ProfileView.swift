@@ -78,12 +78,12 @@ struct ProfileView: View {
             }
             NavigationLink {EditProfileView(selection: $selection)}
             label: {
-                NavigationLabel(title:"Usuario y contraseña",imagename: "person.badge.key.fill")
+                NavigationLabel(title:"Usuario y contraseña MH",imagename: "person.badge.key.fill")
             }
             
             NavigationLink {CertificateUpdate(selection: $selection)}
             label: {
-                NavigationLabel(title:"Contraseña Certificado",imagename:  "lock.fill")
+                NavigationLabel(title:"Contraseña Certificado MH",imagename:  "lock.fill")
             }
             
             Button(action: {}, label: {

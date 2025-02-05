@@ -155,9 +155,9 @@ struct CertificateUpdate: View {
         VStack{
             if viewModel.isBusy{
                 HStack {
-                    Image(systemName: "circle.hexagonpath")
-                        .symbolEffect(.rotate, options: .repeat(.continuous))
-                    Text(" Actualizando.....")
+                    Label("Actualiando...",systemImage: "progress.indicator")
+                  
+                        .symbolEffect(.variableColor.iterative.dimInactiveLayers.nonReversing, options: .repeat(.continuous))
                 }
             }
             else{
@@ -175,9 +175,9 @@ struct CertificateUpdate: View {
         VStack{
             if viewModel.isValidatingCertificateCredentials{
                 HStack {
-                    Image(systemName: "circle.hexagonpath")
-                        .symbolEffect(.rotate, options: .repeat(.continuous))
-                    Text(" Verificando Certificado.....")
+                    Label("Verificando Certificado...",systemImage: "progress.indicator")
+                  
+                        .symbolEffect(.variableColor.iterative.dimInactiveLayers.nonReversing, options: .repeat(.continuous))
                 }
             }
             else{

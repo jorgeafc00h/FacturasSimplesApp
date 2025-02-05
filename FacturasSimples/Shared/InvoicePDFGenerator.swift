@@ -4,10 +4,10 @@ import SwiftUI
 
 class InvoicePDFGenerator {
     static func generatePDF(from invoice: Invoice, company: Company) -> (Data) {
-        let fileName = "Factura-\(invoice.invoiceNumber).pdf"
+        let fileName = "\(invoice.invoiceType.stringValue())-\(invoice.invoiceNumber).pdf"
         let pdfMetaData = [
             kCGPDFContextCreator: "Facturas Simples",
-            kCGPDFContextAuthor: "Generated Kandanga Labs Inc.",
+            kCGPDFContextAuthor: "Kandanga Labs Inc.",
             kCGPDFContextTitle: fileName
         ]
         let format = UIGraphicsPDFRendererFormat()
@@ -46,8 +46,10 @@ class InvoicePDFGenerator {
             // Add invoice number and date
             let dateFormatter = DateFormatter()
             dateFormatter.dateStyle = .medium
+            dateFormatter.locale = Locale(identifier: "es_ES")
+            
             let formattedDate = dateFormatter.string(from: invoice.date)
-            "Factura #: \(invoice.invoiceNumber)        - Fecha: \(formattedDate)".draw(at: CGPoint(x: 30, y: 50), withAttributes: subtitleAttributes)
+            "\(invoice.invoiceType.stringValue()) #: \(invoice.invoiceNumber)  \nFecha: \(formattedDate) \n".draw(at: CGPoint(x: 30, y: 50), withAttributes: subtitleAttributes)
              
             
             // Logo placeholder
@@ -75,7 +77,7 @@ class InvoicePDFGenerator {
             Número Control: \(invoice.controlNumber ?? "")
             Sello de recepción: \(invoice.receptionSeal ?? "")
             """
-            documentDetails.draw(at: CGPoint(x: 30, y: 80), withAttributes: regularAttributes)
+            documentDetails.draw(at: CGPoint(x: 30, y: 87), withAttributes: regularAttributes)
             
             // Draw separator line
             let path = UIBezierPath()
@@ -92,7 +94,8 @@ class InvoicePDFGenerator {
             Nombre: \(company.nombre)
             NIT: \(company.nit)
             NRC: \(company.nrc)
-            Dirección: \(SplitText(company.complemento,35))
+            Dirección: 
+            \(SplitText(company.complemento,45))
             \(company.departamento) \(company.municipio)
             Número de teléfono: \(company.telefono)
             Correo electrónico: \(company.correo)
@@ -105,10 +108,12 @@ class InvoicePDFGenerator {
             let customerInfo = """
             CLIENTE
             
-            Nombre o razón social: \(invoice.customer.company)
+            Nombre o razón social: 
+            \(invoice.customer.company)
             DUI: \(invoice.customer.nationalId)
             Correo electrónico: \(invoice.customer.email)
-            Nombre Comercial: \(invoice.customer.fullName)
+            Nombre Comercial: 
+            \(invoice.customer.fullName)
             Dirección: 
             \(SplitText(invoice.customer.address,40))
             \(invoice.customer.departamento) \(invoice.customer.municipio)
@@ -116,7 +121,7 @@ class InvoicePDFGenerator {
             customerInfo.draw(at: CGPoint(x: pageWidth/2 + 30, y: 160), withAttributes: regularAttributes)
             
             // Products table header
-            let tableY: CGFloat = 350
+            let tableY: CGFloat = 360
             let _: [CGFloat] = [80, 250, 100, 100]
             let colX: [CGFloat] = [30, 110, 360, 460]
             

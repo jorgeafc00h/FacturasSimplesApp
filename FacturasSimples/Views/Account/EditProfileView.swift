@@ -83,7 +83,17 @@ struct EditProfileView: View {
                     .background(Color("Dark-Cyan")).padding(.bottom,32)
                 
            Button(action:{ viewModel.showConfirmDialog.toggle() }) {
-                    Text("Actualizar Datos")
+               VStack{
+                   if viewModel.isBusy{
+                       HStack {
+                           Label("Actualiando...",systemImage: "progress.indicator")
+                               .symbolEffect(.variableColor.iterative.dimInactiveLayers.nonReversing, options: .repeat(.continuous))
+                       }
+                   }
+                   else{
+                       Text("Actualiza contraseña")
+                   }
+               }
                         .fontWeight(.bold)
                         .foregroundColor(.white)
                         .frame( maxWidth: .infinity, alignment: .center)
@@ -91,11 +101,6 @@ struct EditProfileView: View {
                         .overlay(RoundedRectangle(cornerRadius: 6)
                                     .stroke(Color("Dark-Cyan"), lineWidth: 3).shadow(color: .white, radius: 6))
                 }.padding(.bottom)
-                
-
-                
-                
-           
                 
             }
        .padding(.horizontal, 42.0)
@@ -105,8 +110,13 @@ struct EditProfileView: View {
            titleVisibility: .visible
        ) {
            Button{
-               SaveProfileChanges()
+               Task{
+                   
+                await SaveProfileChanges()
+                   
+               }
            }
+           
            label: {
                Text("Guardar Cambios").foregroundColor(.darkBlue)
            }

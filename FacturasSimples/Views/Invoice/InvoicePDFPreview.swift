@@ -51,8 +51,11 @@ struct SharePDFSheet: UIViewControllerRepresentable {
     let invoice: Invoice
     
     func makeUIViewController(context: Context) -> UIActivityViewController {
+        
+        let fileName = "\(invoice.controlNumber != nil && invoice.controlNumber != "" ? invoice.controlNumber!: invoice.invoiceNumber).pdf"
+        
         let tempURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("Factura-\(invoice.invoiceNumber).pdf")
+            .appendingPathComponent(fileName)
         try? (activityItems.first as? Data)?.write(to: tempURL)
         
         let controller = UIActivityViewController(
@@ -60,8 +63,7 @@ struct SharePDFSheet: UIViewControllerRepresentable {
             applicationActivities: nil
         )
         
-        controller.title = "Factura \(invoice.invoiceNumber)"
-        
+        controller.title = fileName
         controller.completionWithItemsHandler = { _, _, _, _ in
             try? FileManager.default.removeItem(at: tempURL)
         }

@@ -7,17 +7,16 @@ struct OnboardingView: View {
         
       
         TabView(selection: $selectedTab){
-                
             OnboardingView1.tag(0)
             OnboardingView2.tag(1)
             }
         .interactiveDismissDisabled(true)
+        
         .onAppear(){
             UIPageControl.appearance().currentPageIndicatorTintColor = .darkCyan
             UIPageControl.appearance().pageIndicatorTintColor = .gray
             
         }
-//       EmptyView()
     }
     
     private var OnboardingView1: some View {
@@ -31,8 +30,10 @@ struct OnboardingView: View {
                 
                 
                 Text("Facturas de manera sencilla y sin complicaciones.")
+                    .padding()
                     .font(.system(size: 33))
                     .fontWeight(.semibold)
+                    .foregroundColor(.black)
                 
                 VStack{
                     Text("Podra gestionar multiples Empresas, clientes y facturas.\n Seleccione el boton Continuar para empezar")
@@ -40,6 +41,7 @@ struct OnboardingView: View {
                         .padding()
                         .fontWeight(.semibold)
                         .padding(.bottom)
+                        .foregroundColor(.black)
                     
                     Button{
                         selectedTab = 1
@@ -59,44 +61,101 @@ struct OnboardingView: View {
     }
     private var OnboardingView2: some View {
         ZStack{
-            Color(.onboarding1).edgesIgnoringSafeArea(.all)
+            Color(.amarello).edgesIgnoringSafeArea(.all)
+            ScrollView{
             VStack{
-                ContentUnavailableView {
-                    Label("Empresas", systemImage: "books.vertical.circle.fill")
-                        .symbolEffect(.breathe)
-                }description: {
-                    Text("El primer paso de configuracion es agregar una empresa luego crear clientes.")
-                }actions: {
-                     
-                }
-                .offset(y: -60)
                 
-                
+                Label("Empresas", systemImage: "books.vertical.circle.fill")
+                                        .symbolEffect(.wiggle.byLayer, options: .repeat(.periodic(delay: 1.5)))
+                                        .font(.system(size: 33))
+                                        .fontWeight(.semibold)
+                                        .padding()
+                                        .foregroundColor(.black)
                 Text("Primeros Pasos")
-                    .font(.system(size: 33))
+                    .font(.system(size: 20))
                     .fontWeight(.semibold)
+                    .foregroundColor(.black)
                 
-                VStack{
-                    Text("Seleccione continuar , para comenzar a crear empresas seleccione Administrar Empresas \n\n Luego podra configurar su informacion proporcionada por el ministerio de hacienda como el certificado para firmar DTE y la imagen de logo de sus facturas")
-                        .font(.subheadline)
-                        .padding()
-                        .fontWeight(.semibold)
-                        .padding(.bottom)
-                    
-                    Button{
-                        requiresOnboarding = false
-                    } label: {
-                        Text("Continuar")
+               
+               
+                    VStack(alignment: .leading) {
+                        
+                        HStack{
+                            Image(systemName: "1.circle")
+                                .foregroundColor(.marine)
+                                .symbolEffect(.breathe)
+                                .padding()
+                            Text("Seleccione continuar,")
+                                .multilineTextAlignment(.leading)
+                                .font(.system(size: 20))
+                                .fontWeight(.semibold)
+                                .padding(.trailing)
+                        }
+                        HStack{
+                            Image(systemName: "2.circle")
+                                .foregroundColor(.marine)
+                                .symbolEffect(.breathe)
+                                .padding()
+                            Text("Seleccione Administrar Empresas")
+                                .multilineTextAlignment(.leading)
+                                .font(.system(size: 20))
+                                .fontWeight(.semibold)
+                                .padding(.trailing)
+                        }
+                        HStack{
+                            Image(systemName: "plus")
+                                .foregroundColor(.marine)
+                                .symbolEffect(.breathe)
+                                .padding()
+                            Text("Seleccione Crear en el boton +")
+                                .multilineTextAlignment(.leading)
+                                .font(.system(size: 20))
+                                .fontWeight(.semibold)
+                                .padding(.trailing)
+                        }
+                        
+                        HStack{
+                            Image(systemName: "4.circle")
+                                .foregroundColor(.marine)
+                                .symbolEffect(.breathe)
+                                .padding()
+                            Text("Configure Sus datos, y certificado")
+                                .multilineTextAlignment(.leading)
+                                .font(.system(size: 20))
+                                .fontWeight(.semibold)
+                                .padding(.trailing)
+                        }
+                       
+                        HStack{
+                            Image(systemName: "lock.fill")
+                                .foregroundColor(.marine)
+                                .symbolEffect(.breathe)
+                                .padding()
+                            Text("Configure las credenciales de Hacienda y Certificado")
+                                .multilineTextAlignment(.leading)
+                                .font(.system(size: 20))
+                                .fontWeight(.semibold)
+                                .padding(.trailing)
+                        }
+                        
+                        Button{
+                            requiresOnboarding = false
+                        } label: {
+                            Text("Continuar")
+                        }
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 60)
+                        
+                        .background(.black)
+                        .clipShape(Capsule())
+                        .padding(.top)
+                        .padding(.horizontal)
                     }
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 60)
-                    .background(.black)
-                    .clipShape(Capsule())
-                    
-                    .padding(.horizontal)
+                    .foregroundColor(.black)
+                    .frame(maxHeight: .infinity, alignment: .bottom)
                 }
-            }
+            }.ignoresSafeArea(.all)
         }
     }
 }
@@ -110,8 +169,5 @@ struct OnboardingView: View {
     OnboardingView(requiresOnboarding: .constant(true))
         .preferredColorScheme(.dark)
 }
+ 
 
-#Preview("Onboarding iPad") {
-    OnboardingView(requiresOnboarding: .constant(true))
-        .previewDevice("iPad Pro (12.9-inch) (6th generation)")
-}

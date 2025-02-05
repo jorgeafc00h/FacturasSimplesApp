@@ -6,7 +6,14 @@ import CryptoKit
 
 class InvoiceServiceClient
 {
-    
+    func GetDefaultSesssion() -> URLSession
+    {
+        let configuration = URLSessionConfiguration.default
+        configuration.timeoutIntervalForRequest = TimeInterval(Constants.HttpDefaultTimeOut)
+        configuration.timeoutIntervalForResource = TimeInterval(Constants.HttpDefaultTimeOut)
+
+        return URLSession(configuration: configuration)
+    }
     
     func getCatalogs()async throws -> [Catalog]
     {
@@ -16,8 +23,8 @@ class InvoiceServiceClient
         guard let url = URL(string: endpoint) else {
             throw ApiErrors.invalidURL
         }
-        
-        let (data ,response) = try await URLSession.shared.data(from: url)
+         
+        let (data ,response) = try await GetDefaultSesssion().data(from: url)
         
         guard let response = response as? HTTPURLResponse, response.statusCode == 200 else {
             throw ApiErrors.invalidResponse
@@ -57,7 +64,7 @@ class InvoiceServiceClient
                
         request.httpBody = data
         
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await GetDefaultSesssion().data(for: request)
         guard let httpResponse = response as? HTTPURLResponse,
               httpResponse.statusCode == 200 else {
             //throw URLError(.badServerResponse)
@@ -80,7 +87,7 @@ class InvoiceServiceClient
         request.setValue(key, forHTTPHeaderField: Constants.CertificateKey)
         request.setValue(nit, forHTTPHeaderField: Constants.MH_USER)
         
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await GetDefaultSesssion().data(for: request)
         guard let httpResponse = response as? HTTPURLResponse,
               httpResponse.statusCode == 200 else {
             let message = String(data: data, encoding: .utf8)!
@@ -112,7 +119,7 @@ class InvoiceServiceClient
         }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        request.setValue(Constants.Apikey, forHTTPHeaderField: "apiKey")
+        request.setValue(Constants.Apikey, forHTTPHeaderField: Constants.ApiKeyHeaderName)
         request.setValue(credentials.key, forHTTPHeaderField: Constants.CertificateKey)
         
         request.setValue(credentials.user, forHTTPHeaderField: Constants.MH_USER)
@@ -123,7 +130,8 @@ class InvoiceServiceClient
                
         request.httpBody = jsonData
         
-        let (data, response) = try await URLSession.shared.data(for: request)
+       
+        let (data, response) = try await GetDefaultSesssion().data(for: request)
         guard let httpResponse = response as? HTTPURLResponse,
               httpResponse.statusCode == 200 else {
             let message = String(data: data, encoding: .utf8)!
@@ -138,7 +146,81 @@ class InvoiceServiceClient
         }
     }
     
+    func uploadPDF(data : Data, controlNum: String, nit: String) async throws -> Bool {
+        let endpoint = Constants.InvoiceServiceUrl + "/document/pdf/upload"
+        guard let url = URL(string: endpoint) else {
+            throw ApiErrors.invalidURL
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue(Constants.Apikey, forHTTPHeaderField: Constants.ApiKeyHeaderName)
+        request.setValue(nit, forHTTPHeaderField: Constants.MH_USER)
+        request.setValue(controlNum, forHTTPHeaderField: Constants.InvoiceNumber)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        request.httpBody = data.base64EncodedString(options: .lineLength64Characters).data(using: .utf8)
+       
+        let (data, response) = try await GetDefaultSesssion().data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.statusCode == 200 else {
+            let message = String(data: data, encoding: .utf8)!
+            throw ApiErrors.custom(message: message)
+        }
+        return true
+    }
+ 
+    func getDocumentFromStorage(path: String)async throws -> DTEResponseWrapper {
+        guard let url = URL(string: path) else {
+            throw ApiErrors.invalidURL
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        
+        
+        let (data, response) = try await GetDefaultSesssion().data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.statusCode == 200 else {
+            let message = String(data: data, encoding: .utf8)!
+            throw ApiErrors.custom(message: message)
+        }
+        do{
+            return try JSONDecoder().decode(DTEResponseWrapper.self, from: data)
+        }
+        catch(let error){
+            print("\(error.localizedDescription)")
+            let message = String(data: data, encoding: .utf8)!
+            throw ApiErrors.custom(message: message)
+        }
+        
+    }
+    
+    func validateCredentials(nit: String, password: String)async throws -> Bool {
+        let endpoint = Constants.InvoiceServiceUrl + "/account/validate"
+        guard let url = URL(string: endpoint) else {
+            throw ApiErrors.invalidURL
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue(Constants.Apikey, forHTTPHeaderField: Constants.ApiKeyHeaderName)
+        request.setValue(nit, forHTTPHeaderField: Constants.MH_USER)
+        request.setValue(password, forHTTPHeaderField: Constants.MH_KEY)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        
+       
+        let (data, response) = try await GetDefaultSesssion().data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.statusCode == 200 else {
+            let message = String(data: data, encoding: .utf8)!
+            throw ApiErrors.custom(message: message)
+        }
+        return true
+    }
 }
+ 
 //        let token = try await generateToken(teamId: "62V6DQB2H6",
 //                                  clientId: "com.kandangalabs.App",
 //                                  keyId: "XQX4HH9KMP",
