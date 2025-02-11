@@ -25,6 +25,11 @@ import SwiftData
     
     var companyId: String
     
+    
+    var priceWithoutTax: Decimal {
+        return   unitPrice / Constants.includedTax
+    }
+    
     init(productName:String,unitPrice:Decimal, productDescription:String = "",companyId:String = "")
     {
         self.productName = productName

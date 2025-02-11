@@ -35,7 +35,7 @@ struct Home: View {
     
     
     init(){
-        UITabBar.appearance().barTintColor = UIColor(Color("TabBar-Color"))
+       
         UITabBar.appearance().isTranslucent = true
         
     }
@@ -60,7 +60,7 @@ struct mainView : View{
         if viewModel.isAuthenticated{
             
             if viewModel.requiresOnboarding{
-                OnboardingView(requiresOnboarding: $viewModel.requiresOnboarding)
+                OnboardingView(requiresOnboarding: $viewModel.requiresOnboarding, selectedCompanyId: $viewModel.selectedCompanyId)
             }
             else{
                 HomeTab
@@ -97,6 +97,7 @@ struct mainView : View{
                     Text("Productos")
                 }.tag(3)
         }
+        .toolbarColorScheme(.dark, for: .tabBar)
         .accentColor(.darkCyan)
         .task {
             RefreshRequiresOnboardingPage()

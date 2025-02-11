@@ -1,6 +1,7 @@
 import Foundation
 import PDFKit
 import SwiftUI
+import CoreImage.CIFilterBuiltins
 
 class InvoicePDFGenerator {
     static func generatePDF(from invoice: Invoice, company: Company) -> (Data) {
@@ -23,25 +24,28 @@ class InvoicePDFGenerator {
             context.beginPage()
             
             // Define fonts
-            let titleFont = UIFont.boldSystemFont(ofSize: 16.0)
-            let subtitleFont = UIFont.boldSystemFont(ofSize: 14.0)
-            let regularFont = UIFont.systemFont(ofSize: 12.0)
-            let smallFont = UIFont.systemFont(ofSize: 10.0)
+            _ = UIFont.boldSystemFont(ofSize: 15.5)
+            let subtitleFont = UIFont.boldSystemFont(ofSize: 12.0)
+            let regularFont = UIFont.systemFont(ofSize: 10.0)
+            let smallFont = UIFont.systemFont(ofSize: 8.0)
             
             // Define colors
             let wineRed = UIColor(red: 0.5, green: 0.0, blue: 0.1, alpha: 1.0)
             
             // Define common attributes
             let titleAttributes: [NSAttributedString.Key: Any] = [
-                .font: titleFont,
+                .font: UIFont.boldSystemFont(ofSize: 12),
                 .foregroundColor: wineRed
             ]
             let subtitleAttributes = [NSAttributedString.Key.font: subtitleFont]
             let regularAttributes = [NSAttributedString.Key.font: regularFont]
-            _ = [NSAttributedString.Key.font: smallFont]
+            let smallerAttributes = [NSAttributedString.Key.font: smallFont]
             
+          
             // Header section
-            "DOCUMENTO TRIBUTARIO ELECTRÓNICO".draw(at: CGPoint(x: 30, y: 30), withAttributes: titleAttributes)
+            "DOCUMENTO TRIBUTARIO ELECTRÓNICO".draw(at: CGPoint(x: 30, y: 10), withAttributes: titleAttributes)
+            company.nombreComercial.uppercased().draw(at: CGPoint(x: 30, y: 25), withAttributes: titleAttributes)
+            company.descActividad.uppercased().draw(at: CGPoint(x: 30, y: 40), withAttributes: smallerAttributes)
             
             // Add invoice number and date
             let dateFormatter = DateFormatter()
@@ -49,20 +53,19 @@ class InvoicePDFGenerator {
             dateFormatter.locale = Locale(identifier: "es_ES")
             
             let formattedDate = dateFormatter.string(from: invoice.date)
-            "\(invoice.invoiceType.stringValue()) #: \(invoice.invoiceNumber)  \nFecha: \(formattedDate) \n".draw(at: CGPoint(x: 30, y: 50), withAttributes: subtitleAttributes)
-             
+            "\(invoice.invoiceType.stringValue()) #: \(invoice.invoiceNumber)  \nFecha: \(formattedDate) \n".draw(at: CGPoint(x: 30, y: 55), withAttributes: subtitleAttributes)
             
+          
             // Logo placeholder
             let logoRect = CGRect(x: pageWidth - 150, y: 7, width: company.logoWidht, height: company.logoHeight)
-            context.cgContext.stroke(logoRect)
-            "".draw(at: CGPoint(x: pageWidth - 130, y: 50), withAttributes: regularAttributes)
+            context.cgContext.stroke(logoRect,width: 0)
             
             
              //Draw the logo from base64 string
             if !company.invoiceLogo.isEmpty {
                 let imageData = Data(base64Encoded: company.invoiceLogo)!
                     let image = UIImage(data: imageData)!
-                        image.draw(in: logoRect)
+                    image.draw(in: logoRect)
             }
             else {
                 if  let logoImage = UIImage(named: "AppIcon"){
@@ -70,14 +73,26 @@ class InvoicePDFGenerator {
                 }
             }
             
-             
+            
+            let qrRect = CGRect(x: pageWidth - 250, y: 25, width: 60, height: 60)
+            context.cgContext.stroke(qrRect,width: 0)
+            
+            dateFormatter.dateStyle = .short
+            let _date = dateFormatter.string(from: invoice.date).replacingOccurrences(of: "/", with: "-")
+            let qrUrlFormat = invoice.generationCode != "" ?
+            "\(Constants.qrUrlBase)?ambiente=\(Constants.EnvironmentCode)&codGen=\(invoice.generationCode ?? "")&fechaEmi=\(_date)" :
+            ""
+            
+            let QR = generateQRCode(from: qrUrlFormat)
+            QR.draw(in: qrRect)
+            
             // Document details
             let documentDetails = """
-            Código Generación: \(invoice.generationCode ?? "")
-            Número Control: \(invoice.controlNumber ?? "")
-            Sello de recepción: \(invoice.receptionSeal ?? "")
+            Código Generación:  \(invoice.generationCode ?? "")
+            Número Control:      \(invoice.controlNumber ?? "")
+            Sello de recepción:  \(invoice.receptionSeal ?? "")
             """
-            documentDetails.draw(at: CGPoint(x: 30, y: 87), withAttributes: regularAttributes)
+            documentDetails.draw(at: CGPoint(x: 30, y: 100), withAttributes: regularAttributes)
             
             // Draw separator line
             let path = UIBezierPath()
@@ -110,7 +125,8 @@ class InvoicePDFGenerator {
             
             Nombre o razón social: 
             \(invoice.customer.company)
-            DUI: \(invoice.customer.nationalId)
+            \(invoice.isCCF ? "NRC: \(invoice.customer.nrc ?? "")": "") 
+            \(invoice.isCCF ? "NIT": "DUI"): \(invoice.customer.nationalId)
             Correo electrónico: \(invoice.customer.email)
             Nombre Comercial: 
             \(invoice.customer.fullName)
@@ -121,12 +137,12 @@ class InvoicePDFGenerator {
             customerInfo.draw(at: CGPoint(x: pageWidth/2 + 30, y: 160), withAttributes: regularAttributes)
             
             // Products table header
-            let tableY: CGFloat = 360
+            let tableY: CGFloat = 340
             let _: [CGFloat] = [80, 250, 100, 100]
-            let colX: [CGFloat] = [30, 110, 360, 460]
+            let colX: [CGFloat] = [30, 110, 380, 515]
             
             // Draw table header background
-            let headerHeight: CGFloat = 25
+            let headerHeight: CGFloat = invoice.isCCF ? 45 : 25
             let headerRect = CGRect(x: 30, y: tableY - 5, width: pageWidth - 60, height: headerHeight)
             context.cgContext.setFillColor(wineRed.cgColor)
             context.cgContext.fill(headerRect)
@@ -137,47 +153,100 @@ class InvoicePDFGenerator {
                 .foregroundColor: UIColor.white
             ]
             
-            ["Cantidad", "Descripción", "Precio Unit.", "Total"].enumerated().forEach { index, title in
+            let totalColumnName = invoice.isCCF ? "Ventas\nGravadas" : "Total"
+            let priceColumnName = invoice.isCCF ? "Precio\nUnitario" : "Precio"
+            ["Cantidad", "Descripción",priceColumnName, totalColumnName].enumerated().forEach { index, title in
                 title.draw(at: CGPoint(x: colX[index], y: tableY), withAttributes: whiteAttributes)
             }
             
             // Draw separator line
             let tablePath = UIBezierPath()
             tablePath.move(to: CGPoint(x: 30, y: tableY + headerHeight))
-            tablePath.addLine(to: CGPoint(x: pageWidth - 30, y: tableY + headerHeight))
+            tablePath.addLine(to: CGPoint(x: pageWidth - 25, y: tableY + headerHeight))
             tablePath.lineWidth = 0.5
             UIColor.gray.setStroke()
             tablePath.stroke()
             
             // Draw products
+            
+            let lineBreakRatio =  CGFloat(10)
+            
             var currentY = tableY + headerHeight + 10
             for item in invoice.items {
                 let quantity = "\(item.quantity)"
                 let description = item.product.productName
-                let unitPrice = item.product.unitPrice.formatted(.currency(code: "USD"))
-                let total = item.productTotal.formatted(.currency(code: "USD"))
+                
+                let unitPrice = invoice.isCCF ?
+                item.product.priceWithoutTax.formatted(.currency(code: "USD")) :
+                                item.product.unitPrice.formatted(.currency(code: "USD"))
+                
+                let total = invoice.isCCF ?
+                item.productTotalWithoutTax.formatted(.currency(code: "USD")):
+                item.productTotal.formatted(.currency(code: "USD"))
                 
                 quantity.draw(at: CGPoint(x: colX[0], y: currentY), withAttributes: regularAttributes)
                 description.draw(at: CGPoint(x: colX[1], y: currentY), withAttributes: regularAttributes)
                 unitPrice.draw(at: CGPoint(x: colX[2], y: currentY), withAttributes: regularAttributes)
                 total.draw(at: CGPoint(x: colX[3], y: currentY), withAttributes: regularAttributes)
                 
-                currentY += 20
+                currentY += lineBreakRatio
             }
             
             // Draw totals
-            currentY += 20
-            let totalsX = pageWidth - 200
-            "Subtotal: \(invoice.subTotal.formatted(.currency(code: "USD")))".draw(
-                at: CGPoint(x: totalsX, y: currentY),
-                withAttributes: subtitleAttributes
-            )
+            _ = pageWidth - 200
+            currentY += lineBreakRatio
             
-            currentY += 20
-            "Total: \(invoice.totalAmount.formatted(.currency(code: "USD")))".draw(
-                at: CGPoint(x: totalsX, y: currentY),
-                withAttributes: titleAttributes
-            )
+            if invoice.isCCF {
+                "Suma Total de Operaciones:".draw(at: CGPoint(x: colX[2], y: currentY), withAttributes: smallerAttributes)
+                "\(invoice.subTotal.formatted(.currency(code: "USD")))"
+                    .draw(at: CGPoint(x: colX[3], y: currentY), withAttributes: smallerAttributes)
+                
+                currentY += lineBreakRatio
+                "Total IVA 13%:".draw(at: CGPoint(x: colX[2], y: currentY), withAttributes: smallerAttributes)
+                "\(invoice.tax.formatted(.currency(code: "USD")))"
+                    .draw(at: CGPoint(x: colX[3], y: currentY), withAttributes: smallerAttributes)
+                
+                currentY += lineBreakRatio
+                "Sub-total:".draw(at: CGPoint(x: colX[2], y: currentY), withAttributes: smallerAttributes)
+                "\(invoice.subTotal.formatted(.currency(code: "USD")))"
+                    .draw(at: CGPoint(x: colX[3], y: currentY), withAttributes: smallerAttributes)
+                
+                currentY += lineBreakRatio
+                "IVA Percibido:".draw(at: CGPoint(x: colX[2], y: currentY), withAttributes: smallerAttributes)
+                "$0.00".draw(at: CGPoint(x: colX[3], y: currentY), withAttributes: smallerAttributes)
+                
+                currentY += lineBreakRatio
+                "IVA Retenido:".draw(at: CGPoint(x: colX[2], y: currentY), withAttributes: smallerAttributes)
+                "$0.00".draw(at: CGPoint(x: colX[3], y: currentY), withAttributes: smallerAttributes)
+                
+                currentY += lineBreakRatio
+                "Retencion Renta:".draw(at: CGPoint(x: colX[2], y: currentY), withAttributes: smallerAttributes)
+                "$0.00".draw(at: CGPoint(x: colX[3], y: currentY), withAttributes: smallerAttributes)
+                
+                currentY += lineBreakRatio
+                "Monto Total Operacion:".draw(at: CGPoint(x: colX[2], y: currentY), withAttributes: smallerAttributes)
+                
+                "\(invoice.totalAmount.formatted(.currency(code: "USD")))"
+                    .draw(at: CGPoint(x: colX[3], y: currentY), withAttributes: smallerAttributes)
+                
+                currentY += lineBreakRatio
+                "Total Otros Montos no afectos:".draw(at: CGPoint(x: colX[2], y: currentY), withAttributes: smallerAttributes)
+                "$0.00".draw(at: CGPoint(x: colX[3], y: currentY), withAttributes: smallerAttributes)
+            }
+            
+            if !invoice.isCCF {
+                currentY += lineBreakRatio
+                
+                "Subtotal:".draw(at: CGPoint(x: colX[2], y: currentY), withAttributes: subtitleAttributes)
+                "\(invoice.subTotal.formatted(.currency(code: "USD")))"
+                    .draw(at: CGPoint(x: colX[3], y: currentY), withAttributes: subtitleAttributes)
+                
+            }
+            currentY += lineBreakRatio
+            "Total:".draw(at: CGPoint(x: colX[2], y: currentY), withAttributes: subtitleAttributes)
+            "\(invoice.totalAmount.formatted(.currency(code: "USD")))"
+                .draw(at: CGPoint(x: colX[3], y: currentY), withAttributes: subtitleAttributes)
+            
         }
         
         return data
@@ -227,6 +296,20 @@ class InvoicePDFGenerator {
         }
     }
     
+    static func generateQRCode(from string: String) -> UIImage {
+        
+        let context = CIContext()
+        let filter = CIFilter.qrCodeGenerator()
+        filter.message = Data(string.utf8)
+
+        if let outputImage = filter.outputImage {
+            if let cgImage = context.createCGImage(outputImage, from: outputImage.extent) {
+                return UIImage(cgImage: cgImage)
+            }
+        }
+
+        return UIImage(systemName: "xmark.circle") ?? UIImage()
+    }
     static func cleanupTemporaryPDF(at url: URL) {
         try? FileManager.default.removeItem(at: url)
     }

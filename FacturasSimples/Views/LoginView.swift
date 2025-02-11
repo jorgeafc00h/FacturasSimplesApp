@@ -24,53 +24,62 @@ struct LoginView: View {
     var body: some View {
         ZStack{
             Color(red: 18/255, green: 31/255, blue: 61/255, opacity: 100).ignoresSafeArea()
-            
+           
             VStack{
-                Spacer()
-                Image("AppLogo").resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 400)
-                    .padding(.bottom, 1.0)
-                Text("Facturas Simples")
-                    .font(.title)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                    .padding(.bottom,10)
-                Spacer()
-                VStack{
-                    
-                    HStack{
-                        
-                        Spacer()
-                        
-                        Button("INICIAR SESIÓN"){
-                            tipoInicioSesion = true
-                        }
-                        .foregroundColor(tipoInicioSesion ? .white : .gray)
-                        Spacer()
-                        
-                        Button("REGÍSTRATE"){
-                            tipoInicioSesion = false
-                        }
-                        .foregroundColor(tipoInicioSesion ? .gray : .white)
-                        Spacer()
-                    }
-                    
-                    
-                    Spacer(minLength: 42)
-                    
-                    
-                    if(tipoInicioSesion){
-                        LoginSectionView(isAuthenticated: $isAuthenticated)
-                    }else{
-                        RegistroView()
-                    }
-                    
-                }
                 
+                VStack{
+                    Spacer(minLength: 130)
+                    
+                    Image("AppLogo").resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 400)
+                        .padding(.bottom, 1.0)
+                    Text("Facturas Simples")
+                        //.font(.title)
+                        .font(.custom("Bradley Hand", size: 37))
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                        .padding(.bottom,10)
+                    
+                    VStack{
+                        
+                        LoginViews
+                        
+                        
+                        Spacer(minLength: 42)
+                         
+                        if(tipoInicioSesion){
+                            LoginSectionView(isAuthenticated: $isAuthenticated)
+                        }else{
+                            RegistroView()
+                        }
+                        
+                    }
+                    Spacer()
+                }
+                 
             }
-            
         }
+    }
+    
+    private var LoginViews: some View {
+        HStack{
+            
+            Spacer()
+            
+            Button("INICIAR SESIÓN"){
+                tipoInicioSesion = true
+            }
+            .foregroundColor(tipoInicioSesion ? .white : .gray)
+            Spacer()
+            
+            Button("REGÍSTRATE"){
+                tipoInicioSesion = false
+            }
+            .foregroundColor(tipoInicioSesion ? .gray : .white)
+            Spacer()
+        }
+        
     }
 }
 
@@ -88,7 +97,7 @@ struct LoginSectionView: View {
     init(isAuthenticated:Binding<Bool>){
         _isAuthenticated = isAuthenticated
     }
-     
+    
     var body: some View {
         
         
@@ -96,55 +105,15 @@ struct LoginSectionView: View {
             
             VStack(alignment: .leading){
                 
-                Text("Correo electrónico")
-                    .foregroundColor(Color("Marine"))
-                
-                ZStack(alignment: .leading){
-                    if userEmail.isEmpty { Text("ejemplo@gmail.com").font(.caption).foregroundColor(Color(red: 174/255, green: 177/255, blue: 185/255, opacity: 1.0)) }
-                    
-                    TextField("", text: $userEmail).foregroundColor(.white)
-                }
-                
-                Divider()
-                    .frame(height: 2)
-                    .background(Color("Dark-Cyan")).padding(.bottom)
-                
-                
-                Text("Contraseña").foregroundColor(.white)
-                
-                
-                ZStack(alignment: .leading){
-                    if contraseña.isEmpty { Text("Escribe tu contraseña").font(.caption).foregroundColor(Color(red: 174/255, green: 177/255, blue: 185/255, opacity: 1.0)) }
-                    
-                    SecureField("", text: $contraseña).foregroundColor(.white)
-                    
-                }
-                
-                Divider()
-                    .frame(height: 1)
-                    .background(Color("Dark-Cyan"))
-                
-                Text("¿Olvidaste tu contraseña?")
-                    .font(.footnote)
-                    .frame(width: 300,  alignment: .trailing)
-                    .foregroundColor(Color("Dark-Cyan"))
-                    .padding(.bottom)
-                
-                Button(action: iniciarSesion) {
-                    Text("Iniciar Sesión")
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                        .frame( maxWidth: .infinity, alignment: .center)
-                        .padding(EdgeInsets(top: 11, leading: 18, bottom: 11, trailing: 18))
-                        .overlay(RoundedRectangle(cornerRadius: 6)
-                            .stroke(Color("Dark-Cyan"), lineWidth: 3).shadow(color: .white, radius: 6))
-                }.padding(.bottom)
+                LoginForm
                 
                 SignInWithAppleButton(.signIn,
                                       onRequest: onRequest,
                                       onCompletion: onCompletion)
-                                    .signInWithAppleButtonStyle(.black)
-                //                    .frame( maxWidth: .infinity,minHeight: 50, alignment: .center)
+                .signInWithAppleButtonStyle(.black)
+                
+                                   .frame( maxWidth: .infinity,minHeight: 60, alignment: .center)
+                                   .clipShape(Capsule())
                 
             }
             .padding(.horizontal, 42.0)
@@ -155,7 +124,7 @@ struct LoginSectionView: View {
             
         }
     }
-     
+    
     @AppStorage("storedName")   var storedName : String = ""{
         didSet{
             userName = storedName
@@ -177,6 +146,27 @@ struct LoginSectionView: View {
             token = identityToken
         }
     }
+    
+    private var LoginForm: some View {
+        VStack(alignment: .leading){
+            Text("Inicia Sesión con tu cuenta apple para acceder a la app")
+                .foregroundStyle(.secondary)
+                .foregroundColor(.white)
+                .padding(.vertical)
+            Spacer()
+//            Button(action: iniciarSesion) {
+//                Text("Iniciar Sesión")
+//                    .fontWeight(.bold)
+//                    .clipShape(Capsule())
+//                    .foregroundColor(.white)
+//                    .frame( maxWidth: .infinity, alignment: .center)
+//                    .padding(EdgeInsets(top: 11, leading: 18, bottom: 11, trailing: 18))
+//                    .overlay(Capsule()
+//                        .stroke(Color("Dark-Cyan"), lineWidth: 3).shadow(color: .white, radius: 6))
+//            }.padding(.bottom)
+        }
+    }
+    
 }
 
 struct RegistroView: View {

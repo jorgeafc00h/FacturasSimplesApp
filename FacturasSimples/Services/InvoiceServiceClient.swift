@@ -196,8 +196,8 @@ class InvoiceServiceClient
         
     }
     
-    func validateCredentials(nit: String, password: String)async throws -> Bool {
-        let endpoint = Constants.InvoiceServiceUrl + "/account/validate"
+    func validateCredentials(nit: String, password: String, forceRefresh: Bool = false)async throws -> Bool {
+        let endpoint = Constants.InvoiceServiceUrl + "/account/validate?forceRefresh=\(forceRefresh)"
         guard let url = URL(string: endpoint) else {
             throw ApiErrors.invalidURL
         }

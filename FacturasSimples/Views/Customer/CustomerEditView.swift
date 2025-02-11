@@ -42,7 +42,7 @@ struct CustomerEditView: View {
                 
                 
                 CustomerGroupBox {
-                    Toggle("Configuracion de Facturacion", isOn: $customer.hasInvoiceSettings)
+                    Toggle("Configuracion de Facturación", isOn: $customer.hasInvoiceSettings)
                     if customer.hasInvoiceSettings {
                         
                         TextField("Empresa" , text: $customer.company)

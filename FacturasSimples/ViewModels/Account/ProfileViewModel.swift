@@ -13,6 +13,9 @@ extension ProfileView{
         var showSelectCompanySheet: Bool = false
         
         var showOnboardingSheet : Bool = false
+        
+        var showEditCredentialsSheet : Bool = false
+        
     }
     
     func returnUiImage(named: String) -> UIImage? {
@@ -32,23 +35,17 @@ extension ProfileView{
             
         }
         print("check user defaults..")
+       
         
-        if UserDefaults.standard.object(forKey: "datosUsuario") != nil {
-            
-            userName = UserDefaults.standard.stringArray(forKey: "datosUsuario")![2]
-            print("UserName-> \(userName)")
-        }else{
-            
-            print("user not found")
-            
-        }
+        let id = companyId.isEmpty ? selectedCompanyId : companyId
         
-        
-        let descriptor = FetchDescriptor<Company>(predicate: #Predicate { $0.id == companyId  })
+        let descriptor = FetchDescriptor<Company>(predicate: #Predicate { $0.id == id  })
         
         
         if let selectedCompany = try? modelContext.fetch(descriptor).first {
             selection = selectedCompany
+            
+            viewModel.showEditCredentialsSheet = selectedCompany.credentials.isEmpty
             print("selected Company -> \(selectedCompany.nombre)")
         } else {
             print("no selected company identifier: \(selectedCompanyId)")
@@ -56,4 +53,5 @@ extension ProfileView{
         
          
     }
+     
 }

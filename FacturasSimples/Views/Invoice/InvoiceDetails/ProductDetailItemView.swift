@@ -29,7 +29,7 @@ struct ProductDetailItemView: View {
                     
                 }
             HStack{
-                Text(detail.productTotal.formatted(.currency(code: "USD")))
+                Text(detail.product.unitPrice.formatted(.currency(code: "USD")))
                     .contentTransition(.numericText(value: Double( 0.00  )))
                     .font(.footnote)
                 Spacer()

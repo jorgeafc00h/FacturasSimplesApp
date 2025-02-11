@@ -26,7 +26,7 @@ struct ProductDetailView: View {
                     }
                     
                     NavigationLink {
-                        EditProductView(product: product)
+                        EditProductView(product: product,disableEditPrice: $viewModel.isDisbledDeleteProduct)
                     } label: {
                         HStack{
                             Image(systemName: "pencil.line")
@@ -57,7 +57,7 @@ struct ProductDetailView: View {
                     }
                 }
                 Section{
-                    if viewModel.usageCount > 0 {
+                    if viewModel.isDisbledDeleteProduct {
                         
                         Label("este producto se esta usando en \(viewModel.usageCount) facturas", systemImage: "exclamationmark.triangle.fill")
                     }

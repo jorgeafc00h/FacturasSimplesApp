@@ -14,13 +14,16 @@ struct Constants {
     static let ApiKeyHeaderName = "apiKey"
     
     static let CertificateKey  = "key";
-
+    
     static let InvoiceNumber = "reference";
     static let ApiKeyName = "apiKey";
-
+    
     static let MH_USER = "MH_USER";
-
+    
     static let MH_KEY = "MH_KEY";
     
     static let HttpDefaultTimeOut : Int = 60 // seconds
+    
+    //static let qrUrlBase = "https://admin.factura.gob.sv/consultaPublica/"
+    static let qrUrlBase = "https://test7.mh.gob.sv/ssc/consulta/fe/"
 }

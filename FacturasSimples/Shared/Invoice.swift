@@ -150,6 +150,12 @@ enum InvoiceType:Int, Codable {
             return  Decimal(quantity) * product.unitPrice
         }
         
+        var productTotalWithoutTax: Decimal{
+            
+            return productTotal /  Constants.includedTax
+            
+        }
+         
         init(quantity: Int,
              product: Product
             ) {

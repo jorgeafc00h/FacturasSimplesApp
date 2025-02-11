@@ -39,6 +39,8 @@ extension AddInvoiceView {
         var isDisabledAddProduct: Bool {
             return productName.isEmpty && unitPrice.isZero
         }
+        
+       
        
     }
     
@@ -51,6 +53,8 @@ extension AddInvoiceView {
                                   customer: viewModel.customer!,
                                   invoiceType: viewModel.invoiceType)
             invoice.items = viewModel.details
+ 
+            
             
             modelContext.insert(invoice)
             try? modelContext.save()
@@ -82,6 +86,7 @@ extension AddInvoiceView {
     func AddNewProduct(){
         withAnimation(.easeInOut(duration: 2.34)) {
             let product = Product(productName: viewModel.productName, unitPrice: viewModel.unitPrice)
+            product.companyId = companyIdentifier
             viewModel.productName="";
             viewModel.unitPrice=0.0;
             let detail = InvoiceDetail(quantity: 1, product: product)
@@ -162,6 +167,16 @@ extension InvoiceEditView {
     
     func saveInvoice() {
         do {
+            
+            invoice.items = invoice.items.map { detail -> InvoiceDetail in
+                
+                if(detail.product.companyId.isEmpty){
+                    detail.product.companyId = companyIdentifier
+                }
+                
+                return detail
+            }
+             
             try modelContext.save()
             dismiss()
             

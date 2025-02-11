@@ -4,7 +4,7 @@ struct SplashView :  View{
     var body: some View {
          
         ZStack{
-            Color(.marine).ignoresSafeArea()
+            Color(.blueGray).ignoresSafeArea()
             
             VStack{
                 Image("AppLogo")
@@ -13,9 +13,9 @@ struct SplashView :  View{
                     .frame(width: 450, height: 450)
                 Text("Facturas Simples")
                     .font(.title)
-                    .font(.system(size: 37, weight: .bold, design: .serif))
-                    .foregroundColor(.white)
-                Text("Crea y Administra tus Facturas Facil y Rapido...")
+                    .font(.custom("Bradley Hand", size: 32)).foregroundColor(.white)
+                Text("Crea y Administre tus Facturas Facil y Rapido...")
+                    .padding()
                     .font(.footnote)
                     .font(.system(size: 27, weight: .bold, design: .serif))
                     .foregroundColor(.white)

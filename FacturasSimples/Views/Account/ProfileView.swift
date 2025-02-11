@@ -59,7 +59,14 @@ struct ProfileView: View {
                 }
             }
             .navigationTitle("configuración")
-            .onAppear{loadUserProfileImage()}
+            .onChange(of: selectedCompanyId){
+                if selection == nil{
+                    loadUserProfileImage()
+                }
+            }
+            .onAppear{
+                loadUserProfileImage()
+            }
         }
         detail:{
             CompaniesView(selection: $selection, selectedCompanyId: $selectedCompanyId)
@@ -99,16 +106,18 @@ struct ProfileView: View {
                 }.padding()
             }) .background(Color("Blue-Gray"))
                 .clipShape(RoundedRectangle(cornerRadius: 1.0)).padding(.horizontal, 8.0)
-            Button(action: {viewModel.showOnboardingSheet = true}, label: {
-                NavigationLabel(title:"info y ayuda",imagename: "info.circle.fill")
-                                   .foregroundColor(.darkCyan)
-                                    .symbolEffect(.breathe)
-            }) .background(Color("Blue-Gray"))
-                .clipShape(RoundedRectangle(cornerRadius: 1.0)).padding(.horizontal, 8.0)
+//            Button(action: {viewModel.showOnboardingSheet = true}, label: {
+//                NavigationLabel(title:"info y ayuda",imagename: "info.circle.fill")
+//                                   .foregroundColor(.darkCyan)
+//                                    .symbolEffect(.breathe)
+//            }) .background(Color("Blue-Gray"))
+//                .clipShape(RoundedRectangle(cornerRadius: 1.0)).padding(.horizontal, 8.0)
         }.sheet(isPresented: $viewModel.showOnboardingSheet) {
              
-            OnboardingView(requiresOnboarding: $viewModel.showOnboardingSheet)
+            OnboardingView(requiresOnboarding: $viewModel.showOnboardingSheet,selectedCompanyId:  $selectedCompanyId)
             
+        }.sheet(isPresented: $viewModel.showEditCredentialsSheet){
+            EditProfileView(selection:$selection,required: true)
         }
     }
 }

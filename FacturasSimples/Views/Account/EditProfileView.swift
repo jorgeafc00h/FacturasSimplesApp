@@ -9,12 +9,15 @@ import SwiftUI
 
 struct EditProfileView: View {
     
-    @State var imagenPerfil: Image? = Image("perfilEjemplo")
+    @State var imagenPerfil: Image? = Image("AppLogo")
     @State var isCameraActive = false
     
     @Binding var selection : Company?
+    var required: Bool = false
     @Environment(\.modelContext)   var modelContext
     @Environment(\.dismiss) var dismiss
+    
+    
     
     @State var viewModel =  EditProfileViewModel()
     var body: some View {
@@ -28,7 +31,7 @@ struct EditProfileView: View {
                                 
                                 imagenPerfil!.resizable().aspectRatio(contentMode: .fill)
                                     .frame(width: 118.0, height: 118.0)
-                                    .clipShape(Circle())
+                                     
                                     .sheet(isPresented: $isCameraActive, content: {
 //                                    SUImagePickerView(sourceType: .camera , image: self.$imagenPerfil, isPresented: $isCameraActive)
                                 })
@@ -39,8 +42,9 @@ struct EditProfileView: View {
                             }
                         })
                         
-                        Text("Elije una foto de perfíl")
+                        Text(required ? "Aun no estan configuradas sus credenciales de Hacienda es importante para poder enviar DTE y poder emitir facturas" : "Configurar credenciales")
                             .fontWeight(.bold)
+                            .padding(35)
                             .foregroundColor(Color.white)
 
                     }.padding(.bottom,18)

@@ -17,7 +17,7 @@ extension EditProfileView {
         func validateCredentialsAsync(nit: String,password: String) async throws -> Bool {
             let serviceClient  = InvoiceServiceClient()
                 
-            return try await serviceClient.validateCredentials(nit: nit, password: password)
+            return try await serviceClient.validateCredentials(nit: nit, password: password,forceRefresh: true)
         }
         
         var areEquals: Bool {
@@ -56,7 +56,7 @@ extension EditProfileView {
                 print("\(errorMessage.localizedDescription)")
                 viewModel.showAlertMessage = true
                 viewModel.isBusy = false
-                viewModel.message = "Error al actualizar las credenciales no coinciden"
+                viewModel.message = "Error al actualizar las credenciales no coinciden con las registradas en Hacienda"
                 return false
             }
                 

@@ -62,7 +62,7 @@ struct AddInvoiceView: View {
             }.accentColor(.darkCyan)
         }
         .onAppear(perform: getNextInoviceNumber)
-        .presentationDetents([.medium, .large])
+        .presentationDetents([.large])
     }
     
     

@@ -10,6 +10,8 @@ struct EditProductView: View {
     @State var product: Product
     @Environment(\.modelContext) var modelContext
 
+    @Binding var disableEditPrice: Bool
+    
     var body: some View {
         Form {
             Section("Producto") {
@@ -23,6 +25,7 @@ struct EditProductView: View {
                     TextField("Precio", value: $product.unitPrice, format: .currency(code: "USD"))
                         .multilineTextAlignment(.trailing)
                         .keyboardType(.decimalPad)
+                        .disabled(disableEditPrice)
                 }
             }
             
@@ -50,5 +53,6 @@ struct EditProductView: View {
 #Preview(traits: .sampleProducts)  {
     @Previewable @Query var products: [Product]
     
-    EditProductView(product: products.first!)
+    EditProductView(product: products.first!, disableEditPrice: .constant(false))
 }
+ 

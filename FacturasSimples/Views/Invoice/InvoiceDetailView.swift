@@ -39,7 +39,7 @@ struct InvoiceDetailView: View {
                             _ = await viewModel.testDeserialize(invoice)
                         }
                     } label: {
-                        Text("Open cache directory")
+                        Text("Generar Nota de crédito")
                     }
                     .help("Clears all content from the cache")
                     EditButon()
@@ -366,7 +366,7 @@ struct InvoiceDetailView: View {
                         Button("Cancelar", role: .cancel) {}
                     }
                 if viewModel.sendingAutomaticEmail {
-                    Label("Enviando...",systemImage: "progress.indicator")
+                    Label("Enviando correo con documento adjunto...",systemImage: "progress.indicator")
                         .foregroundColor(.darkCyan)
                         .symbolEffect(.variableColor.iterative.dimInactiveLayers.nonReversing, options: .repeat(.continuous))
                 }

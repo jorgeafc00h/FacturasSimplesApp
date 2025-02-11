@@ -8,6 +8,8 @@ struct InvoiceEditView: View {
     
     let accentColor = Color(.darkCyan)// Color(red: 0.5, green: 0.0, blue: 0.1) // Wine red
     
+    @AppStorage("selectedCompanyIdentifier")  var companyIdentifier : String = ""
+    
     @State var viewModel = InvoiceEditViewModel()
     
     var body: some View {
@@ -34,7 +36,7 @@ struct InvoiceEditView: View {
             .sheet(isPresented: $viewModel.showingProductPicker) {
                 ProductPicker(details: $invoice.items)
             }
-            .navigationTitle("Editar Factura")
+            .navigationTitle(invoice.invoiceType.stringValue())
             .navigationBarTitleDisplayMode(.inline)
             
         }
