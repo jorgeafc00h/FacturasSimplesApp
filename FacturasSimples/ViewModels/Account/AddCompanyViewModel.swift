@@ -3,7 +3,46 @@ import SwiftData
 import Foundation
 import UniformTypeIdentifiers
 
-extension AddCompanyView2 {
+extension AddCompanyView2{
+    
+    
+    @Observable
+    class AddcompnayStep2ViewModel{
+        var showSelectDepartamentoSheet: Bool = false
+        
+        var showSelectMunicipioSheet: Bool = false
+        
+        
+    }
+  
+    func onDepartamentoChange() {
+        print("dep: \(company.departamentoCode)")
+        company.departamento =
+        !company.departamentoCode.isEmpty ?
+        departamentos.first(where: { $0.code == company.departamentoCode })!.details
+        : ""
+        print("dep: \(company.departamento) \(company.departamentoCode)")
+    }
+    func onMunicipioChange() {
+        print("mun \(company.municipioCode)")
+        
+        if !company.municipioCode.isEmpty &&
+           !company.departamentoCode.isEmpty{
+            
+            let m =  municipios.first(where:{
+                $0.departamento == company.departamentoCode && $0.code == company.municipioCode
+            })
+            
+            if m != nil{
+                company.municipio = m!.details
+            }
+            
+        }
+         
+    }
+}
+
+extension AddCompanyView3 {
 
     @Observable
     class AddCompanyViewModel {

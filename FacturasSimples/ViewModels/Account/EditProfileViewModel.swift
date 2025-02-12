@@ -23,6 +23,10 @@ extension EditProfileView {
         var areEquals: Bool {
             return password == confirmPassword
         }
+        
+        var disableUpdateCredentialsButton: Bool{
+            return password.isEmpty && confirmPassword.isEmpty
+        }
     }
     
     func SaveProfileChanges() async -> Bool{

@@ -107,6 +107,92 @@ private struct SearchPickerItem: View {
     }
 }
 
+struct SearchPickerFromCatalogView :View {
+    @Environment(\.dismiss) private var dismiss
+    
+    var catalogId: String
+     
+    
+    //@Query(filter: #Predicate<CatalogOption> { $0.catalog.id == ""})
+     var options : [CatalogOption]
+    
+    @Binding var selection : String
+    
+    @Binding var selectedDescription : String
+    
+    @Binding var showSearch: Bool
+    
+    var title: String
+     
+    @State private var searchText: String = ""
+    
+    var filteredOptions: [CatalogOption] {
+        if searchText.isEmpty {
+           options
+        } else {
+            options.filter { $0.details.localizedStandardContains(searchText) }
+        }
+    }
+    init(catalogId: String ,
+         options : [CatalogOption],
+         selection : Binding<String>,
+         selectedDescription: Binding<String>,
+         showSearch: Binding<Bool>,
+         title: String
+         ){
+        
+        self.catalogId = catalogId
+        _selection = selection
+        _showSearch = showSearch
+        self.title = title
+        _selectedDescription = selectedDescription
+        
+//        let predicate = #Predicate<CatalogOption> {
+//            searchText.isEmpty ?
+//            $0.catalog.id == catalogId :
+//            $0.catalog.id == catalogId &&
+//            $0.details.localizedStandardContains(searchText)
+//            
+//        }
+        self.options = options
+    }
+    
+    var body: some View {
+        NavigationView {
+            List{
+                ForEach(filteredOptions){ option in
+                    SearchPickerItem(option: option)
+                        .onTapGesture {
+                            withAnimation {
+                                showSearch = false
+                                selection = option.code
+                                selectedDescription = option.details
+                                searchText = ""
+                                
+                            }
+                        }
+                }
+            }
+            
+            .listStyle(.plain)
+           
+            .frame(idealWidth: LayoutConstants.sheetIdealWidth,
+                   idealHeight: LayoutConstants.sheetIdealHeight)
+            .navigationTitle(title)
+            .navigationBarTitleDisplayMode(.automatic)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancelar") {
+                        dismiss()
+                    }
+                }
+                
+            }.accentColor(.darkCyan)
+        }
+        .searchable(text: $searchText, prompt: "Buscar")
+    }
+}
+
 #Preview(traits: .sampleOptions) {
     @Previewable @Query var samples: [CatalogOption]
     

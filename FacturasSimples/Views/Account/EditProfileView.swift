@@ -104,7 +104,9 @@ struct EditProfileView: View {
                         .padding(EdgeInsets(top: 11, leading: 18, bottom: 11, trailing: 18))
                         .overlay(RoundedRectangle(cornerRadius: 6)
                                     .stroke(Color("Dark-Cyan"), lineWidth: 3).shadow(color: .white, radius: 6))
-                }.padding(.bottom)
+                }
+           .disabled(viewModel.disableUpdateCredentialsButton)
+           .padding(.bottom)
                 
             }
        .padding(.horizontal, 42.0)

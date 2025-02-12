@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 struct OnboardingView: View{
     
@@ -25,6 +26,10 @@ struct OnboardingView: View{
                         }
                         if activeIntro.companyStep2{
                             AddCompanyView2(company:$company,
+                                            intro: $activeIntro)
+                        }
+                        if activeIntro.companyStep3{
+                            AddCompanyView3(company: $company,
                                             intro: $activeIntro,
                                             requiresOnboarding: $requiresOnboarding,
                                             size: size,
@@ -49,9 +54,11 @@ struct OnboardingView: View{
                 keyboardHeight = 0
             }
             .animation(.spring(response: 0.5, dampingFraction: 0.8, blendDuration: 0),value: keyboardHeight)
+            //.task { await syncCatalogsAsync()}
         }
         
     }
+    
 }
 
 struct Home_Prewiews: PreviewProvider {
@@ -107,7 +114,7 @@ private struct introView<ActionView:View>: View {
                     .font(.system(size:40))
                     .fontWeight(.black)
                     .padding(.top,15)
-//                    .lineLimit(5)
+                //                    .lineLimit(5)
                     .foregroundColor(.black)
                     .minimumScaleFactor(0.01)
                     .multilineTextAlignment(.leading)
@@ -132,13 +139,13 @@ private struct introView<ActionView:View>: View {
                 }
                 else{
                     actionView
-                        // moving down
+                    // moving down
                         .offset(y: showView ? 0 : size.height / 2)
                         .opacity(showView ? 1 : 0)
                     
-                    if intro.companyStep1 {
+                    if intro.companyStep1 || intro.companyStep2 {
                         continueButon
-                             
+                        
                     }
                 }
             }
@@ -173,7 +180,6 @@ private struct introView<ActionView:View>: View {
                 showView = true
             }
         }
-        
         
     }
     private var continueButon : some View {
@@ -220,9 +226,10 @@ private struct introView<ActionView:View>: View {
             }
         })
         
-       
-       
+        
+        
     }
+ 
 }
 
 #Preview("Onboarding") {
