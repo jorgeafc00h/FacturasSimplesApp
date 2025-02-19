@@ -132,6 +132,7 @@ extension AddCustomerView{
         var nrc: String = ""
         var displayPickerSheet: Bool = false
         
+        var showConfirmCancel: Bool = false
         
         var ActividadLabel : String {
             descActividad ?? "Seleccione Acvitdad Economica"

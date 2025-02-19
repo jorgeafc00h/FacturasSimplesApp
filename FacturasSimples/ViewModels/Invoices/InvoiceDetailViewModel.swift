@@ -14,7 +14,7 @@ extension InvoiceDetailView {
         var sendingAutomaticEmail : Bool = false
         var emailSent : Bool = false
         
-        var showAlert: Bool = false
+         
         var alertTitle: String = ""
         var alertMessage: String = ""
         
@@ -28,80 +28,121 @@ extension InvoiceDetailView {
         var isBusy : Bool = false
         
         func showConfirmSync(){
+            if company.credentials.isEmpty {
+                isBusy = false
+                showErrorAlert = true
+                errorMessage = "La contraseña de hacienda aun no se ha configurado correctamente, seleccione perfil y configure la contraseña"
+                return
+            }
+            
+            if company.certificatePassword.isEmpty {
+                isBusy = false
+                showErrorAlert = true
+                errorMessage = "La contraseña de su certificado firmador aun no se ha configurado correctamente, seleccione perfil y luego contraseña de certificado"
+                return
+            }
+            
+            
             showConfirmSyncSheet.toggle()
         }
         
-        func SyncInvoice(_ invoice: Invoice) async -> DTE_Base?{
-            do{
-                
-                let dte = try dteService.mapInvoice(invoice: invoice, company: company)
-                let invoiceService = InvoiceServiceClient()
-                
-                let credentials = ServiceCredentials(user: dte.emisor.nit,
-                                                     credential: company.credentials,
-                                                     key: company.certificatePassword,
-                                                     invoiceNumber: invoice.invoiceNumber)
-                
-                let result = try await invoiceService.Sync(dte: dte,credentials:credentials)
-                
-                if(result.response.estado == "PROCESADO"){
-                    invoice.generationCode = result.response.codigoGeneracion
-                    invoice.receptionSeal = result.response.selloRecibido
-                    invoice.controlNumber = result.numeroControl
-                    invoice.status = .Completada
-                    
-                   
-                    
-                    let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-                    let docs = documentsURL.appendingPathComponent("DTE_DOCUMENTOS")
-                    
-                    do {
-                        try FileManager.default.createDirectory(at: docs, withIntermediateDirectories: true, attributes: nil)
-                        let dteJsonUrl = docs.appendingPathComponent("\(result.numeroControl).json")
-                        
-                        let encoder = JSONEncoder()
-                        encoder.outputFormatting = .prettyPrinted
-                        encoder.dateEncodingStrategy = .iso8601
-                        
-                        let jsonData =  try encoder.encode(result.dte)
-                        
-                        do {
-                            try jsonData.write(to: dteJsonUrl)
-                            print("Successfully wrote to file!")
-                        } catch {
-                            print("Error writing to file: \(error)")
-                        }
-                        
-                    } catch {
-                        print("Error creating directory: \(error)")
-                    }
-                }
-                
-                return dte
-                
-            }
-            catch (let error){
-                print(" error al firmar: \(error)")
-                errorMessage = error.localizedDescription
-                showErrorAlert = true
-                return nil
+        
+        func SyncDocumentAsync(_ invoice: Invoice) async -> Bool {
+            
+            isBusy = true
+            
+            let validation = await validateCredentialsAsync()
+            
+            if !validation {
+                isBusy = false
+                return false
             }
             
+            let dte = await SyncInvoice(invoice)
+            
+            if dte == nil {
+                isBusy = false
+                return false
+            }
+            else{
+                _ =   await backupPDF(invoice)
+            }
+            
+            isBusy = false
+            return true
         }
         
-        func backupPDF(_ invoice: Invoice)async -> Void{
+       private func SyncInvoice(_ invoice: Invoice) async -> DTE_Base?{
+        do{
             
-            sendingAutomaticEmail = true
+            let dte = try dteService.mapInvoice(invoice: invoice, company: company)
+            let invoiceService = InvoiceServiceClient()
             
-            let _data = InvoicePDFGenerator.generatePDF(from: invoice, company:  company)
-             
-            let  invoiceService = InvoiceServiceClient()
+            let credentials = ServiceCredentials(user: dte.emisor.nit,
+                                                    credential: company.credentials,
+                                                    key: company.certificatePassword,
+                                                    invoiceNumber: invoice.invoiceNumber)
             
-            _ = try? await invoiceService.uploadPDF(data: _data, controlNum: invoice.controlNumber!, nit: company.nit)
+            let result = try await invoiceService.Sync(dte: dte,credentials:credentials)
             
-            sendingAutomaticEmail = false
-            emailSent = true
+            if(result.response.estado == "PROCESADO"){
+                invoice.generationCode = result.response.codigoGeneracion
+                invoice.receptionSeal = result.response.selloRecibido
+                invoice.controlNumber = result.numeroControl
+                invoice.status = .Completada
+                
+                
+                
+                let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+                let docs = documentsURL.appendingPathComponent("DTE_DOCUMENTOS")
+                
+                do {
+                    try FileManager.default.createDirectory(at: docs, withIntermediateDirectories: true, attributes: nil)
+                    let dteJsonUrl = docs.appendingPathComponent("\(result.numeroControl).json")
+                    
+                    let encoder = JSONEncoder()
+                    encoder.outputFormatting = .prettyPrinted
+                    encoder.dateEncodingStrategy = .iso8601
+                    
+                    let jsonData =  try encoder.encode(result.dte)
+                    
+                    do {
+                        try jsonData.write(to: dteJsonUrl)
+                        print("Successfully wrote to file!")
+                    } catch {
+                        print("Error writing to file: \(error)")
+                    }
+                    
+                } catch {
+                    print("Error creating directory: \(error)")
+                }
+            }
+            
+            return dte
+            
         }
+        catch (let error){
+            print(" error al firmar: \(error)")
+            errorMessage = error.localizedDescription
+            showErrorAlert = true
+            return nil
+        }
+        
+    }
+        
+        func backupPDF(_ invoice: Invoice)async -> Void{
+        
+        sendingAutomaticEmail = true
+        
+        let _data = InvoicePDFGenerator.generatePDF(from: invoice, company:  company)
+        
+        let  invoiceService = InvoiceServiceClient()
+        
+        _ = try? await invoiceService.uploadPDF(data: _data, controlNum: invoice.controlNumber!, nit: company.nit)
+        
+        sendingAutomaticEmail = false
+        emailSent = true
+    }
         
         func testDeserialize(_ invoice: Invoice) async -> DTEResponseWrapper? {
             let path = "https://kinvoicestdev.blob.core.windows.net/06141404941342/DTE-03-4V841VOJ-281168646418339.json?sv=2021-10-04&st=2025-02-05T13%3A23%3A43Z&se=2025-02-07T13%3A23%3A00Z&sr=b&sp=r&sig=lIG8kOvr0aFualetkFaDDzcKcd9Wz%2B0CB1%2BhsThRCUM%3D"
@@ -115,19 +156,33 @@ extension InvoiceDetailView {
             let dte_invoice = try? await invoiceService.getDocumentFromStorage(path: path2)
             
             print("\(dte_invoice?.numeroControl ?? "No hay control")")
-             
+            
             return dte
         }
         func validateCredentialsAsync() async  -> Bool {
             let serviceClient  = InvoiceServiceClient()
-                
+            
+            if company.credentials.isEmpty {
+                isBusy = false
+                showErrorAlert = true
+                errorMessage = "La contraseña de hacienda aun no se ha configurado correctamente, seleccione perfil y configure la contraseña"
+                return false
+            }
+            
+            if company.certificatePassword.isEmpty {
+                isBusy = false
+                showErrorAlert = true
+                errorMessage = "La contraseña de su certificado firmador aun no se ha configurado correctamente, seleccione perfil y luego contraseña de certificado"
+                return false
+            }
+            
             do{
                 return try await serviceClient.validateCredentials(nit: company.nit, password: company.credentials)
             }
             catch(let message){
                 print("\(message)")
                 isBusy = false
-                showAlert = true
+                showErrorAlert = true
                 errorMessage = "Usuario o contraseña incorrectos"
                 
                 return false
@@ -135,13 +190,12 @@ extension InvoiceDetailView {
         }
     }
     
-  
     
     func deleteInvoice (){
         if invoice.status == .Completada {
             viewModel.alertTitle = "Error"
             viewModel.alertMessage = "No se puede eliminar una factura Completada"
-            viewModel.showAlert = true
+            viewModel.showErrorAlert = true
             return
         }
         withAnimation{
@@ -173,10 +227,7 @@ extension InvoiceDetailView {
         viewModel.pdfData = InvoicePDFGenerator.generatePDF(from: invoice, company: viewModel.company)
     }
     
-    func SyncInvoice() async{
-        
-        _ = await viewModel.SyncInvoice(invoice)
-    }
+     
     
 }
 

@@ -143,3 +143,21 @@ struct DTEResponseWrapper: Codable {
         let ivaPerci1: Double??
     }
 }
+
+struct DTEErrorResponseWrapper: Codable {
+    let response: Response
+    
+    struct Response: Codable {
+//        let version: Int?
+//        let ambiente: String?
+//        //let versionApp: Int
+//        let estado: String
+//        let codigoGeneracion: String
+//        let selloRecibido: String
+        //let fhProcesamiento: String
+        //let clasificaMsg: String
+        //let codigoMsg: String
+        let descripcionMsg: String
+        let observaciones: [String]
+    }
+}

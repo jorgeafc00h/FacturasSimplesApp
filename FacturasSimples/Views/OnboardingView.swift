@@ -28,12 +28,20 @@ struct OnboardingView: View{
                             AddCompanyView2(company:$company,
                                             intro: $activeIntro)
                         }
+                        
                         if activeIntro.companyStep3{
                             AddCompanyView3(company: $company,
+                                            intro: $activeIntro
+                                            )
+                        }
+                        
+                        if activeIntro.companyStep4{
+                            AddCompanyView4(company: $company,
                                             intro: $activeIntro,
                                             requiresOnboarding: $requiresOnboarding,
                                             size: size,
-                                            selectedCompanyId: $selectedCompanyId)
+                                            selectedCompanyId: $selectedCompanyId
+                                            )
                         }
 
                 }
@@ -107,7 +115,7 @@ private struct introView<ActionView:View>: View {
             .offset(y: showView ? 0 : -size.height/2)
             .opacity(showView ? 1 : 0)
             
-            VStack(alignment: .leading, spacing: 10){
+            VStack(alignment: .center, spacing: 10){
                 Spacer(minLength: 0)
                 
                 Text(intro.title)
@@ -143,7 +151,8 @@ private struct introView<ActionView:View>: View {
                         .offset(y: showView ? 0 : size.height / 2)
                         .opacity(showView ? 1 : 0)
                     
-                    if intro.companyStep1 || intro.companyStep2 {
+                    if intro.companyStep1 || intro.companyStep2 ||
+                        intro.companyStep3{
                         continueButon
                         
                     }

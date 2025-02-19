@@ -42,7 +42,7 @@ extension AddCompanyView2{
     }
 }
 
-extension AddCompanyView3 {
+extension AddCompanyView4 {
 
     @Observable
     class AddCompanyViewModel {
@@ -53,36 +53,24 @@ extension AddCompanyView3 {
         var isFileImporterPresented : Bool = false
         
         var isCertificateImporterPresented : Bool = false
-         
-        var codActividad: String?
-        var desActividad: String?
         
+        var isValidatingCertificateCredentials: Bool = false
+        
+        var showConfirmUpdatePassword : Bool = false
+         
         var showAlertMessage :Bool = false
+        var showValidationMessage :Bool = false
         var showConfirmSyncSheet: Bool = false
         var message: String = ""
         
         var selectedUrl : URL?
-        var nit: String = ""
         
-        var step1: Bool = true
-        var step2: Bool = false
-        var step3: Bool = false
-        
-        func ShowStep2() {
-            step1 = false
-            step2 = true
-            step3 = false
-        }
-        
-        func ShowStep3() {
-            step1 = false
-            step2 = false
-            step3 = true
-        }
+        var password :String = ""
+        var confirmPassword :String = ""
        
     }
     
- 
+    
     func saveChanges() {
         
         let id = company.id
@@ -100,40 +88,40 @@ extension AddCompanyView3 {
         selectedCompanyId = id
     }
     
-    func importImageLogo(_ result : Result<[URL], Error>) {
-        
-        switch result {
-        case .success(let urls):
-            if let url = urls.first{
-                // get image as Base64
-                print("url \(url)")
-                
-                 
-                    let access = url.startAccessingSecurityScopedResource()
-                    do {
-                       if access {
-                           
-                           let imageData = try Data(contentsOf: url)
-                           let base64String = imageData.base64EncodedString()
-                           print("base64String \(base64String)")
-                           
-                           company.invoiceLogo = base64String
-                           
-                           url.stopAccessingSecurityScopedResource()
-                       }
-                    }
-                    
-                
-                
-                catch {
-                    print("error \(error)")
-                }
-            }
-        case .failure(let error):
-            print("Error selecting file: \(error.localizedDescription)")
+    func updateMHCertificateCredentialValidation(){
+        if(viewModel.confirmPassword != viewModel.password ||
+           viewModel.confirmPassword.isEmpty || viewModel.password.isEmpty){
+            viewModel.showValidationMessage = true
+            viewModel.message="Passwords no coinciden"
+            return
+        }
+        else{
+            viewModel.showConfirmUpdatePassword = true
         }
     }
     
+    func updateMHCertificateCredentials() async  {
+        viewModel.isValidatingCertificateCredentials = true
+        
+        let encryptedPassword = try! Cryptographic.encrypt(viewModel.password)
+        
+        let service = InvoiceServiceClient()
+        let result = try? await service.validateCertificate(nit: company.nit, key: encryptedPassword)
+        
+        if(result != nil && result!){
+            company.certificatePassword = encryptedPassword
+            viewModel.showAlertMessage = true
+            viewModel.message = "Contraseña del certificado actualizada"
+            try? modelContext.save()
+        }
+        else{
+            viewModel.showValidationMessage = true
+            viewModel.message = "Error al actualizar Contraseña, actualize y verifique la contraseña del certificado en el portal de Hacienda"
+        }
+        
+        viewModel.isValidatingCertificateCredentials = false
+    }
+        
     func importFile(_ result : Result<[URL], Error>) {
         switch result {
             
@@ -142,7 +130,7 @@ extension AddCompanyView3 {
                 
                 print("url \(url)")
                      
-                    viewModel.nit = company.nit
+                    //viewModel.nit = company.nit
                     
                     viewModel.selectedUrl = url
                 
@@ -169,7 +157,7 @@ extension AddCompanyView3 {
                 
                 if let certificate = fileData {
                     
-                    let result = try await service.uploadCertificate(data: certificate, nit: viewModel.nit)
+                    let result = try await service.uploadCertificate(data: certificate, nit: company.nit)
                     
                     // now check certificate crecentials if credentials are empty , lets display a warning.
                     viewModel.showAlertMessage = true

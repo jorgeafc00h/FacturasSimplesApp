@@ -135,6 +135,22 @@ class InvoiceServiceClient
         guard let httpResponse = response as? HTTPURLResponse,
               httpResponse.statusCode == 200 else {
             let message = String(data: data, encoding: .utf8)!
+            
+            // try decode into DTE With Error and observations.
+            let errorDte = try? JSONDecoder().decode(DTEErrorResponseWrapper.self, from: data)
+            
+            if let errorModel = errorDte {
+                
+                var errors = errorModel.response.observaciones
+                
+                if !errorModel.response.descripcionMsg.isEmpty {
+                    errors.append(errorModel.response.descripcionMsg)
+                }
+                
+                let _customErrorMessage = errors.joined(separator: "\n")
+               throw ApiErrors.custom(message: _customErrorMessage)
+            
+            }
             throw ApiErrors.custom(message: message)
         }
         do{

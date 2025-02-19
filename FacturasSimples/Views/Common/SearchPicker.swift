@@ -113,7 +113,7 @@ struct SearchPickerFromCatalogView :View {
     var catalogId: String
      
     
-    //@Query(filter: #Predicate<CatalogOption> { $0.catalog.id == ""})
+    @Query(filter: #Predicate<CatalogOption> { $0.catalog.id == ""})
      var options : [CatalogOption]
     
     @Binding var selection : String
@@ -125,6 +125,7 @@ struct SearchPickerFromCatalogView :View {
     var title: String
      
     @State private var searchText: String = ""
+     
     
     var filteredOptions: [CatalogOption] {
         if searchText.isEmpty {
@@ -133,12 +134,16 @@ struct SearchPickerFromCatalogView :View {
             options.filter { $0.details.localizedStandardContains(searchText) }
         }
     }
+    
+    
+    
     init(catalogId: String ,
-         options : [CatalogOption],
          selection : Binding<String>,
          selectedDescription: Binding<String>,
          showSearch: Binding<Bool>,
-         title: String
+         title: String,
+         useSelectedCode: Bool = false,
+         selectedCode : String = ""
          ){
         
         self.catalogId = catalogId
@@ -147,20 +152,103 @@ struct SearchPickerFromCatalogView :View {
         self.title = title
         _selectedDescription = selectedDescription
         
-//        let predicate = #Predicate<CatalogOption> {
-//            searchText.isEmpty ?
-//            $0.catalog.id == catalogId :
-//            $0.catalog.id == catalogId &&
-//            $0.details.localizedStandardContains(searchText)
-//            
-//        }
-        self.options = options
+        let predicate = #Predicate<CatalogOption> {
+            searchText.isEmpty ?
+            $0.catalog.id == catalogId :
+            $0.catalog.id == catalogId &&
+            $0.details.localizedStandardContains(searchText)
+            
+        }
+         
+        _options = Query(filter: predicate, sort: \CatalogOption.details)
+         
     }
     
     var body: some View {
         NavigationView {
             List{
                 ForEach(filteredOptions){ option in
+                    SearchPickerItem(option: option)
+                        .onTapGesture {
+                            withAnimation {
+                                showSearch = false
+                                selection = option.code
+                                selectedDescription = option.details
+                                searchText = ""
+                                
+                            }
+                        }
+                }
+            }
+            
+            .listStyle(.plain)
+           
+            .frame(idealWidth: LayoutConstants.sheetIdealWidth,
+                   idealHeight: LayoutConstants.sheetIdealHeight)
+            .navigationTitle(title)
+            .navigationBarTitleDisplayMode(.automatic)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancelar") {
+                        dismiss()
+                    }
+                }
+                
+            }.accentColor(.darkCyan)
+        }
+        .searchable(text: $searchText, prompt: "Buscar")
+    }
+}
+
+
+struct SearchPickerFromCascadeFilterView :View {
+    @Environment(\.dismiss) private var dismiss
+    
+ 
+    @State var options : [CatalogOption]
+    
+    @Binding var selection : String
+    
+    @Binding var selectedDescription : String
+    
+    @Binding var showSearch: Bool
+    
+    var title: String
+     
+    @State private var searchText: String = ""
+     
+   
+    var filteredOptions: [CatalogOption] {
+        if searchText.isEmpty {
+           options
+        } else {
+            options.filter { $0.details.localizedStandardContains(searchText) }
+        }
+    }
+    
+  
+    
+    init(options : [CatalogOption],
+         selection : Binding<String>,
+         selectedDescription: Binding<String>,
+         showSearch: Binding<Bool>,
+         title: String
+         ){
+         
+        _selection = selection
+        _showSearch = showSearch
+        self.title = title
+        _selectedDescription = selectedDescription
+         
+        
+        self.options = options
+         
+    }
+    
+    var body: some View {
+        NavigationView {
+            List{
+                ForEach(options){ option in
                     SearchPickerItem(option: option)
                         .onTapGesture {
                             withAnimation {

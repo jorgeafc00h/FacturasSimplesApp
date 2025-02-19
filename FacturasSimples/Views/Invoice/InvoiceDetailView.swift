@@ -297,19 +297,11 @@ struct InvoiceDetailView: View {
                 ) {
                     
                     Button{
-                        viewModel.isBusy = true
+                       
                         Task{
-                            let validation = await viewModel.validateCredentialsAsync()
+                            _ = await viewModel.SyncDocumentAsync(invoice)
                             
-                            if(!validation){
-                                return
-                            }
-                            
-                           _ =  await viewModel.SyncInvoice(invoice)
-                            _ =  await viewModel.backupPDF(invoice)
-                            
-                            viewModel.isBusy = false
-                          try? modelContext.save()
+                            try? modelContext.save()
                         }
                     }
                     label: {

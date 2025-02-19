@@ -76,6 +76,9 @@ struct InvoicesListView: View {
             Button("Crear Factura", systemImage: "plus"){
                 viewModel.isShowingAddInvoiceSheet.toggle()
             }
+            if Constants.EnvironmentCode == "00" {
+                
+            }
         }
         .offset(y: -60)
     }

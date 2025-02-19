@@ -82,9 +82,7 @@ struct AddCustomerView: View {
         }
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
-                Button("Cancelar") {
-                    dismiss()
-                }
+                Button("Cancelar",action:{viewModel.showConfirmCancel.toggle()})
             }
             ToolbarItem(placement: .primaryAction) {
                 Button("Guardar") {
@@ -94,6 +92,15 @@ struct AddCustomerView: View {
                 }
                 .disabled(viewModel.isSaveCustomerDisabled)
             }
+        }
+        .confirmationDialog(
+            "¿Esta seguro , todos los cambios no guardados se perderan?",
+            isPresented: $viewModel.showConfirmCancel,
+            titleVisibility: .visible
+        ) {
+            Button("Ok Cerrar!",action: {dismiss()})
+            
+            Button("Cancelar", role: .cancel) {}
         }.accentColor(.darkCyan)
     }
 }

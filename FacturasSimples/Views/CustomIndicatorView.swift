@@ -13,6 +13,7 @@ struct CustomIndicatorView: View {
     var currentPage: Int
     var activeTint: Color = .black
     var inactiveTint: Color = .gray.opacity(0.5)
+     
     var body: some View {
         HStack(spacing:8){
             ForEach(0..<totalPages, id: \.self){
@@ -32,6 +33,9 @@ struct CustomTextField: View{
     
     var hintColor :Color = .tabBar
     
+    var keyboardType: UIKeyboardType = UIKeyboardType.default
+    
+    
     var body: some View{
         HStack(spacing:8){
             Image(systemName: leadingIcon)
@@ -40,7 +44,7 @@ struct CustomTextField: View{
                 .frame(width: 40,alignment: .leading)
             
             if isPassword{
-                SecureField("",text: $text)
+                SecureField("",text: $text,prompt: Text(hint).foregroundColor(hintColor))
                    
                     
             }
@@ -53,6 +57,7 @@ struct CustomTextField: View{
         .padding(.vertical,15)
         .foregroundColor(.black)
         .accentColor(.black)
+        .keyboardType(keyboardType)
         .background{
             RoundedRectangle(cornerRadius: 12,style: .continuous)
                 .fill(.gray.opacity(0.1))
