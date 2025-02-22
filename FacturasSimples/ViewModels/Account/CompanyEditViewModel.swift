@@ -65,6 +65,13 @@ extension EmisorEditView {
         }
          
     }
+    func onTipoEstablecimientoChange() {
+        print("tipo: \(company.tipoEstablecimiento)")
+        company.establecimiento =
+        !company.tipoEstablecimiento.isEmpty ?
+        tipo_establecimientos.first(where: { $0.code == company.tipoEstablecimiento })!.details
+        : ""
+    }
     
     
     func loadData() {

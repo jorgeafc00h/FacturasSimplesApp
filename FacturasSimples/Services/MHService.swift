@@ -38,12 +38,24 @@ class MhClient {
         
         let resumen = mapResumen(invoice: invoice, items: items)
         
+         
+        
+        if invoice.controlNumber == nil || invoice.controlNumber == "" {
+            invoice.controlNumber =  invoice.isCCF ?
+            try? Extensions.generateString(baseString: "DTE-03",pattern: nil) :
+            try? Extensions.generateString(baseString: "DTE",pattern: "^DTE-01-[A-Z0-9]{8}-[0-9]{15}$")
+        }
+        
+//        if invoice.generationCode == nil || invoice.generationCode == "" {
+//            invoice.generationCode = try? Extensions.getGenerationCode()
+//        }
+        
         let identificacion = Identificacion(
-            version: invoice.isCCF ? 3 : 1,
+            version: invoice.version,
             ambiente: Constants.EnvironmentCode,
             tipoDte: invoice.isCCF ? "03" : "01",
-            numeroControl: nil,
-            codigoGeneracion: nil,
+            numeroControl: invoice.controlNumber,
+            codigoGeneracion: invoice.generationCode,
             tipoModelo: 1,
             tipoOperacion: 1,
             tipoContingencia: nil,
@@ -66,8 +78,11 @@ class MhClient {
     
     func formatFromProductDetail(detail: InvoiceDetail, isCCF: Bool) -> CuerpoDocumento {
         
-        let productTotal = Decimal( detail.quantity) * detail.product.unitPrice
-        let tax = productTotal - (productTotal / Decimal(1.13))
+        let productTotal = (Decimal( detail.quantity) * detail.product.unitPrice)
+            .rounded(scale: Constants.roundingScale)
+        
+        let tax = (productTotal - (productTotal / Decimal(1.13)))
+            .rounded(scale: Constants.roundingScale)
         
         return CuerpoDocumento(
             ivaItem: isCCF ? nil : tax,
@@ -76,7 +91,9 @@ class MhClient {
             codigo: isCCF ? nil : "1", // ???
             codTributo: nil,
             descripcion: detail.product.productName,
-            precioUni: isCCF ? (detail.product.unitPrice / Decimal(1.13)) : detail.product.unitPrice,
+            precioUni: isCCF ?
+                    (detail.product.unitPrice / Decimal(1.13)).rounded(scale: Constants.roundingScale) :
+                    detail.product.unitPrice,
             ventaGravada: isCCF ? (productTotal - tax) : productTotal,
             psv: 0,
             noGravado: 0,
@@ -117,40 +134,7 @@ class MhClient {
             nit: invoice.isCCF ? customer.nit : nil
         )
         return receptor
-        //            if !invoice.isCCF {
-        //                return Receptor(
-        //                    nrc: nil,
-        //                    numDocumento: extensions.formatNationalId(customer.nationalId),
-        //                    tipoDocumento: "13", // customer.documentType ?? "13",
-        //                    nombre: customer.fullName,
-        //                    correo: customer.email,
-        //                    codActividad: customer.codActividad?.isEmpty == false ? customer.codActividad : nil,
-        //                    descActividad: customer.descActividad?.isEmpty == false ? customer.descActividad : nil,
-        //                    direccion: Direccion(
-        //                        departamento: customer.direccion.departamento,
-        //                        municipio: customer.direccion.municipio,
-        //                        complemento: customer.direccion.complemento
-        //                    ),
-        //                    telefono: customer.phone
-        //                )
-        //            } else {
-        //                // CCF
-        //                return Receptor(
-        //                    nrc: customer.nrc ?? customer.contributorId ?? "", // Required
-        //                    nombre: customer.fullName,
-        //                    correo: customer.email,
-        //                    codActividad: customer.codActividad?.isEmpty == false ? customer.codActividad : nil,
-        //                    descActividad: customer.descActividad?.isEmpty == false ? customer.descActividad : nil,
-        //                    nombreComercial: customer.company,
-        //                    direccion: Direccion(
-        //                        departamento: customer.direccion.departamento,
-        //                        municipio: customer.direccion.municipio,
-        //                        complemento: customer.direccion.complemento
-        //                    ),
-        //                    telefono: customer.phone,
-        //                    nit: invoice.isCCF ? customer.nit : nil // Required CCF
-        //                )
-        //            }
+       
     }
     
     func mapResumen(invoice: Invoice, items: [CuerpoDocumento]) -> Resumen {

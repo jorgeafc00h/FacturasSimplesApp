@@ -33,12 +33,7 @@ struct EditProfileView: View {
                                     .frame(width: 118.0, height: 118.0)
                                      
                                     .sheet(isPresented: $isCameraActive, content: {
-//                                    SUImagePickerView(sourceType: .camera , image: self.$imagenPerfil, isPresented: $isCameraActive)
                                 })
-                                
-                                Image(systemName: "camera").foregroundColor(.white)
-               
-                                
                             }
                         })
                         
@@ -48,9 +43,17 @@ struct EditProfileView: View {
                             .foregroundColor(Color.white)
 
                     }.padding(.bottom,18)
-                    
-                  EditUserCredentials
+                 
+                if viewModel.showCredentialsCheckerView {
+                    CredentialsCheckerView
+                }
+                else{
+                    EditUserCredentials
+                }
             }
+        }
+        .onAppear(){
+            EvaluateDisplayCredentialsCheckerView()
         }
     }
     
@@ -139,7 +142,59 @@ struct EditProfileView: View {
                   }
               }
     }
-
+    
+    
+    private var CredentialsCheckerView: some View {
+        VStack(alignment: .leading) {
+            if viewModel.isBusy{
+                HStack {
+                    Label("Verificando...",systemImage: "progress.indicator")
+                        .symbolEffect(.variableColor.iterative.dimInactiveLayers.nonReversing, options: .repeat(.continuous))
+                }
+            }
+            else{
+                if viewModel.isValidCredentials{
+                    HStack {
+                        Text("Las Credenciales De La Hacienda Son Validas!")
+                        Spacer()
+                        Circle()
+                            .fill(.darkCyan)
+                            .frame(width: 8, height: 8)
+                        Text("OK")
+                            .font(.subheadline)
+                            .foregroundColor(.green)
+                            .padding(7)
+                            .background(.green.opacity(0.09))
+                            .cornerRadius(8)
+                    }.padding()
+                }
+                Button(action:{
+                    Task{
+                        await CheckCredentials()
+                    }
+                }) {
+                    VStack{
+                        if viewModel.isBusy{
+                            HStack {
+                                Label("Actualiando...",systemImage: "progress.indicator")
+                                    .symbolEffect(.variableColor.iterative.dimInactiveLayers.nonReversing, options: .repeat(.continuous))
+                            }
+                        }
+                        else{
+                            Text("Verificar contraseña de Hacienda")
+                        }
+                    }
+                             .fontWeight(.bold)
+                             .foregroundColor(.white)
+                             .frame( maxWidth: .infinity, alignment: .center)
+                             .padding(EdgeInsets(top: 11, leading: 18, bottom: 11, trailing: 18))
+                             .overlay(RoundedRectangle(cornerRadius: 6)
+                                         .stroke(Color("Dark-Cyan"), lineWidth: 3).shadow(color: .white, radius: 6))
+                     }
+            }
+        }
+        .padding(.horizontal, 42.0)
+    }
 }
 
 

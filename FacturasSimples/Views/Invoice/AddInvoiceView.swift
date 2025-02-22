@@ -18,6 +18,9 @@ struct AddInvoiceView: View {
     
     @State var viewModel = AddInvoiceViewModel()
     
+    // just to set as selected when the invoice is created.!!
+    @Binding var selectedInvoice : Invoice?
+    
     var body: some View {
         
         NavigationStack { 
@@ -180,5 +183,13 @@ struct AddInvoiceView: View {
 
 
 #Preview(traits: .sampleCustomers) {
-    AddInvoiceView()
+    AddInoviceViewWrapper()
+}
+
+
+private struct AddInoviceViewWrapper: View {
+    @State var selectedInovice: Invoice?
+    var body: some View {
+        AddInvoiceView(selectedInvoice: $selectedInovice)
+    }
 }

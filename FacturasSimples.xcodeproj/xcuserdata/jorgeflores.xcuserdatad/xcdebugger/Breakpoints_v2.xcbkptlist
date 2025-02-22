@@ -71,22 +71,6 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "A4D9D66A-A191-4977-A81E-543465C8AC1F"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FacturasSimples/ViewModels/Invoices/InvoiceDetailViewModel.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "100"
-            endingLineNumber = "100"
-            landmarkName = "SyncInvoice(_:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
             uuid = "B7D9E42E-3480-4696-9D3C-3743544DFC16"
             shouldBeEnabled = "No"
             ignoreCount = "0"
@@ -174,26 +158,10 @@
             filePath = "FacturasSimples/Views/Account/EditProfileView.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "119"
-            endingLineNumber = "119"
+            startingLineNumber = "122"
+            endingLineNumber = "122"
             landmarkName = "EditUserCredentials"
             landmarkType = "24">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "2020111D-4E02-45E0-8E5C-A90406940904"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FacturasSimples/Shared/InvoicePDFGenerator.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "99"
-            endingLineNumber = "99"
-            landmarkName = "generatePDF(from:company:)"
-            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -206,8 +174,8 @@
             filePath = "FacturasSimples/ViewModels/Invoices/IInvoicesViewModel.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "89"
-            endingLineNumber = "89"
+            startingLineNumber = "94"
+            endingLineNumber = "94"
             landmarkName = "AddNewProduct()"
             landmarkType = "7">
          </BreakpointContent>
@@ -279,52 +247,6 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "A50A8C0C-4BE8-4440-838F-2564F029F90C"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FacturasSimples/Services/InvoiceServiceClient.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "136"
-            endingLineNumber = "136"
-            landmarkName = "Sync(dte:credentials:)"
-            landmarkType = "7">
-            <Locations>
-               <Location
-                  uuid = "A50A8C0C-4BE8-4440-838F-2564F029F90C - d28359c27f51cfb7"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(3) suspend resume partial function for FacturasSimples.InvoiceServiceClient.Sync(dte: FacturasSimples.DTE_Base, credentials: FacturasSimples.ServiceCredentials) async throws -&gt; FacturasSimples.DTEResponseWrapper"
-                  moduleName = "FacturasSimples.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/Services/InvoiceServiceClient.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "136"
-                  endingLineNumber = "136">
-               </Location>
-               <Location
-                  uuid = "A50A8C0C-4BE8-4440-838F-2564F029F90C - d28359c27f51cfb7"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(3) suspend resume partial function for FacturasSimples.InvoiceServiceClient.Sync(dte: FacturasSimples.DTE_Base, credentials: FacturasSimples.ServiceCredentials) async throws -&gt; FacturasSimples.DTEResponseWrapper"
-                  moduleName = "FacturasSimples.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/Services/InvoiceServiceClient.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "136"
-                  endingLineNumber = "136">
-               </Location>
-            </Locations>
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
             uuid = "DCA9232F-26A3-4A80-A0D0-9EF28EF38E28"
             shouldBeEnabled = "No"
             ignoreCount = "0"
@@ -357,59 +279,45 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "AC8DF0C1-D242-4D6F-9235-C4B1315BA400"
+            uuid = "DFE98E91-DB96-44F8-84CA-FD181EC7A6CC"
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "FacturasSimples/ViewModels/Invoices/InvoiceDetailViewModel.swift"
+            filePath = "FacturasSimples/ViewModels/Account/EditProfileViewModel.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "61"
-            endingLineNumber = "61"
-            landmarkName = "SyncDocumentAsync(_:)"
+            startingLineNumber = "39"
+            endingLineNumber = "39"
+            landmarkName = "SaveProfileChanges()"
             landmarkType = "7">
             <Locations>
                <Location
-                  uuid = "AC8DF0C1-D242-4D6F-9235-C4B1315BA400 - b2d580f1cc61082c"
+                  uuid = "DFE98E91-DB96-44F8-84CA-FD181EC7A6CC - 590f52efe746d846"
                   shouldBeEnabled = "Yes"
                   ignoreCount = "0"
                   continueAfterRunningActions = "No"
-                  symbolName = "(3) suspend resume partial function for FacturasSimples.InvoiceDetailView.InvoiceDetailViewModel.SyncDocumentAsync(FacturasSimples.Invoice) async -&gt; Swift.Bool"
+                  symbolName = "FacturasSimples.EditProfileView.SaveProfileChanges() async -&gt; Swift.Bool"
                   moduleName = "FacturasSimples.debug.dylib"
                   usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/ViewModels/Invoices/InvoiceDetailViewModel.swift"
+                  urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/ViewModels/Account/EditProfileViewModel.swift"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "61"
-                  endingLineNumber = "61">
+                  startingLineNumber = "39"
+                  endingLineNumber = "39">
                </Location>
                <Location
-                  uuid = "AC8DF0C1-D242-4D6F-9235-C4B1315BA400 - d5df47949bd88451"
+                  uuid = "DFE98E91-DB96-44F8-84CA-FD181EC7A6CC - ecedda1e9da92bea"
                   shouldBeEnabled = "Yes"
                   ignoreCount = "0"
                   continueAfterRunningActions = "No"
-                  symbolName = "(4) await resume partial function for FacturasSimples.InvoiceDetailView.InvoiceDetailViewModel.SyncDocumentAsync(FacturasSimples.Invoice) async -&gt; Swift.Bool"
+                  symbolName = "(1) suspend resume partial function for FacturasSimples.EditProfileView.SaveProfileChanges() async -&gt; Swift.Bool"
                   moduleName = "FacturasSimples.debug.dylib"
                   usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/ViewModels/Invoices/InvoiceDetailViewModel.swift"
+                  urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/ViewModels/Account/EditProfileViewModel.swift"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "61"
-                  endingLineNumber = "61">
-               </Location>
-               <Location
-                  uuid = "AC8DF0C1-D242-4D6F-9235-C4B1315BA400 - 9d895f14720a4c22"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(5) suspend resume partial function for FacturasSimples.InvoiceDetailView.InvoiceDetailViewModel.SyncDocumentAsync(FacturasSimples.Invoice) async -&gt; Swift.Bool"
-                  moduleName = "FacturasSimples.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/ViewModels/Invoices/InvoiceDetailViewModel.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "61"
-                  endingLineNumber = "61">
+                  startingLineNumber = "39"
+                  endingLineNumber = "39">
                </Location>
             </Locations>
          </BreakpointContent>
@@ -417,117 +325,33 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "34EB30B1-4EAD-4EE2-8A7C-0915755B8631"
+            uuid = "5C302156-D4F6-47ED-BE15-8C4D4236B5BF"
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "FacturasSimples/ViewModels/Invoices/InvoiceDetailViewModel.swift"
+            filePath = "FacturasSimples/Services/InvoiceServiceClient.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "86"
-            endingLineNumber = "86"
-            landmarkName = "SyncInvoice(_:)"
+            startingLineNumber = "140"
+            endingLineNumber = "140"
+            landmarkName = "Sync(dte:credentials:)"
             landmarkType = "7">
-            <Locations>
-               <Location
-                  uuid = "34EB30B1-4EAD-4EE2-8A7C-0915755B8631 - 25385cdbb3dfae2f"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(1) suspend resume partial function for FacturasSimples.InvoiceDetailView.InvoiceDetailViewModel.SyncInvoice(FacturasSimples.Invoice) async -&gt; Swift.Optional&lt;FacturasSimples.DTE_Base&gt;"
-                  moduleName = "FacturasSimples.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/ViewModels/Invoices/InvoiceDetailViewModel.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "86"
-                  endingLineNumber = "86">
-               </Location>
-               <Location
-                  uuid = "34EB30B1-4EAD-4EE2-8A7C-0915755B8631 - 8cd6f802d94bfa3e"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(2) await resume partial function for FacturasSimples.InvoiceDetailView.InvoiceDetailViewModel.SyncInvoice(FacturasSimples.Invoice) async -&gt; Swift.Optional&lt;FacturasSimples.DTE_Base&gt;"
-                  moduleName = "FacturasSimples.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/ViewModels/Invoices/InvoiceDetailViewModel.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "101"
-                  endingLineNumber = "101">
-               </Location>
-               <Location
-                  uuid = "34EB30B1-4EAD-4EE2-8A7C-0915755B8631 - 8cd6f802d94bf809"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(2) await resume partial function for FacturasSimples.InvoiceDetailView.InvoiceDetailViewModel.SyncInvoice(FacturasSimples.Invoice) async -&gt; Swift.Optional&lt;FacturasSimples.DTE_Base&gt;"
-                  moduleName = "FacturasSimples.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/ViewModels/Invoices/InvoiceDetailViewModel.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "86"
-                  endingLineNumber = "86">
-               </Location>
-               <Location
-                  uuid = "34EB30B1-4EAD-4EE2-8A7C-0915755B8631 - 6b366c5ad6f8681e"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(3) suspend resume partial function for FacturasSimples.InvoiceDetailView.InvoiceDetailViewModel.SyncInvoice(FacturasSimples.Invoice) async -&gt; Swift.Optional&lt;FacturasSimples.DTE_Base&gt;"
-                  moduleName = "FacturasSimples.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/ViewModels/Invoices/InvoiceDetailViewModel.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "101"
-                  endingLineNumber = "101">
-               </Location>
-               <Location
-                  uuid = "34EB30B1-4EAD-4EE2-8A7C-0915755B8631 - 6b366c5ad6f86a29"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(3) suspend resume partial function for FacturasSimples.InvoiceDetailView.InvoiceDetailViewModel.SyncInvoice(FacturasSimples.Invoice) async -&gt; Swift.Optional&lt;FacturasSimples.DTE_Base&gt;"
-                  moduleName = "FacturasSimples.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/ViewModels/Invoices/InvoiceDetailViewModel.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "86"
-                  endingLineNumber = "86">
-               </Location>
-               <Location
-                  uuid = "34EB30B1-4EAD-4EE2-8A7C-0915755B8631 - 8e49741dab15b61d"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(4) suspend resume partial function for FacturasSimples.InvoiceDetailView.InvoiceDetailViewModel.SyncInvoice(FacturasSimples.Invoice) async -&gt; Swift.Optional&lt;FacturasSimples.DTE_Base&gt;"
-                  moduleName = "FacturasSimples.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/ViewModels/Invoices/InvoiceDetailViewModel.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "101"
-                  endingLineNumber = "101">
-               </Location>
-               <Location
-                  uuid = "34EB30B1-4EAD-4EE2-8A7C-0915755B8631 - 8e49741dab15b42a"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(4) suspend resume partial function for FacturasSimples.InvoiceDetailView.InvoiceDetailViewModel.SyncInvoice(FacturasSimples.Invoice) async -&gt; Swift.Optional&lt;FacturasSimples.DTE_Base&gt;"
-                  moduleName = "FacturasSimples.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/ViewModels/Invoices/InvoiceDetailViewModel.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "86"
-                  endingLineNumber = "86">
-               </Location>
-            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "11A04B5C-52E5-4346-A67A-2279B2E2C145"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FacturasSimples/Services/MHService.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "177"
+            endingLineNumber = "177"
+            landmarkName = "mapResumen(invoice:items:)"
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

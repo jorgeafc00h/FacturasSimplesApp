@@ -204,7 +204,7 @@ struct AddCompanyView3:  View {
     
     @State var displayCategoryPicker : Bool = false
     @State var displayTypePicker : Bool = false
-    @State var selectedType : String = ""
+    
     var body: some View {
         VStack(spacing:10){
            
@@ -225,9 +225,24 @@ struct AddCompanyView3:  View {
         .sheet(isPresented: $displayTypePicker){
             SearchPickerFromCatalogView(catalogId: "CAT-008",
                          selection: $company.tipoEstablecimiento,
-                          selectedDescription: $selectedType,// empty
+                         selectedDescription: $company.establecimiento,
                          showSearch: $displayTypePicker,
                          title:"Tipo Establecimiento")
+        }
+        .onAppear(){
+//            if !company.tipoEstablecimiento.isEmpty {
+//                let typeCode = company.tipoEstablecimiento
+//                
+//                let descriptor = FetchDescriptor<CatalogOption>(predicate: #Predicate {
+//                    $0.catalog.id == "CAT-008" && $0.code == typeCode
+//                })
+//                
+//                if let _catalogOption = try? modelContext.fetch(descriptor).first {
+//                    selectedType = _catalogOption.details
+//                } else {
+//                    print("no selected tipoEstablecimiento identifier: ")
+//                }
+//            }
         }
     }
     
@@ -252,7 +267,7 @@ struct AddCompanyView3:  View {
     private var TypeSelect : some View {
         Button(action: { displayTypePicker.toggle()}) {
             
-            Text(selectedType.isEmpty ? "Seleccione tipo Establecimiento" : selectedType)
+            Text(company.establecimiento.isEmpty ? "Seleccione tipo Establecimiento" : company.establecimiento)
                 .fontWeight(.bold)
                 .foregroundColor(.gray)
                 .frame( maxWidth: .infinity, alignment: .center)

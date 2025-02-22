@@ -61,11 +61,11 @@ struct ProfileView: View {
             .navigationTitle("configuración")
             .onChange(of: selectedCompanyId){
                 if selection == nil{
-                    loadUserProfileImage()
+                    loadProfileAndSelectedCompany()
                 }
             }
             .onAppear{
-                loadUserProfileImage()
+                loadProfileAndSelectedCompany()
             }
         }
         detail:{
@@ -93,7 +93,7 @@ struct ProfileView: View {
                 NavigationLabel(title:"Contraseña Certificado MH",imagename:  "lock.fill")
             }
             
-            Button(action: {}, label: {
+            Button(action: { isToggleOn.toggle() }, label: {
                 HStack {
                     Image(systemName: "bell.fill").padding(.horizontal, 5.0)
                         .foregroundColor(Color.white)
@@ -106,16 +106,19 @@ struct ProfileView: View {
                 }.padding()
             }) .background(Color("Blue-Gray"))
                 .clipShape(RoundedRectangle(cornerRadius: 1.0)).padding(.horizontal, 8.0)
-//            Button(action: {viewModel.showOnboardingSheet = true}, label: {
-//                NavigationLabel(title:"info y ayuda",imagename: "info.circle.fill")
-//                                   .foregroundColor(.darkCyan)
-//                                    .symbolEffect(.breathe)
-//            }) .background(Color("Blue-Gray"))
-//                .clipShape(RoundedRectangle(cornerRadius: 1.0)).padding(.horizontal, 8.0)
+            Button(action: {viewModel.showOnboardingSheet = true}, label: {
+                NavigationLabel(title:"info y ayuda",imagename: "info.circle.fill")
+                                   .foregroundColor(.darkCyan)
+                                    .symbolEffect(.breathe)
+            }) .background(Color("Blue-Gray"))
+                .clipShape(RoundedRectangle(cornerRadius: 1.0)).padding(.horizontal, 8.0)
         }.sheet(isPresented: $viewModel.showOnboardingSheet) {
              
-            OnboardingView(requiresOnboarding: $viewModel.showOnboardingSheet,selectedCompanyId:  $selectedCompanyId)
-            
+            if let _ = selection {
+                OnboardingView(requiresOnboarding: $viewModel.showOnboardingSheet,selectedCompanyId:
+                                $selectedCompanyId,
+                               reloadCompany: true)
+            }
         }.sheet(isPresented: $viewModel.showEditCredentialsSheet){
             EditProfileView(selection:$selection,required: true)
         }

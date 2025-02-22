@@ -9,6 +9,9 @@ extension InvoicesView{
         var showAddInvoiceSheet: Bool = false
         var showAddCustomerSheet: Bool = false
         
+        var showAddTestInvoices: Bool = false
+        
+       
     }
 }
 
@@ -58,6 +61,8 @@ extension AddInvoiceView {
             
             modelContext.insert(invoice)
             try? modelContext.save()
+            
+            selectedInvoice = invoice
             dismiss()
         }
     }

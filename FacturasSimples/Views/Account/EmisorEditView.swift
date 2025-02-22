@@ -84,7 +84,10 @@ struct EmisorEditView: View {
                         dep in
                         Text(dep.details).tag(dep.code)
                     }
-                }.pickerStyle(.menu)
+                }.pickerStyle(.wheel)
+                    .onChange(of: company.tipoEstablecimiento){
+                        onDepartamentoChange()
+                }
             }.foregroundColor(.darkCyan)
             
             Section("Logo Facturas"){

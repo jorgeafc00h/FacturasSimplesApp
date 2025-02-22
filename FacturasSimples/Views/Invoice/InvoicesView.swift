@@ -42,19 +42,22 @@ struct InvoicesView: View {
                     Button("Crear Cliente", systemImage: "plus"){
                         viewModel.showAddCustomerSheet = true
                     }
+                    
                 }
                 .sheet(isPresented: $viewModel.showAddInvoiceSheet) {
-                    AddInvoiceView()
+                    AddInvoiceView(selectedInvoice: $selection).interactiveDismissDisabled()
                 }
                 .sheet(isPresented: $viewModel.showAddCustomerSheet) {
                     NavigationStack{
-                        AddCustomerView()
+                        AddCustomerView().interactiveDismissDisabled()
                     }
                 }
             }
         } 
         .searchable(text: $searchText, placement: .sidebar)
     }
+    
+  
    
 }
 

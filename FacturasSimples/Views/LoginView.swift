@@ -259,10 +259,6 @@ struct RegistroView: View {
     }
     
     
-    func tomarFoto()  {
-        print("Tomo foto")
-        //logica de tomar fotos.
-    }
     
     //Puede llamarse como gustes, ya sea registrate o registrarse, el punto es que sea una acción.
     func registrarse()  {
@@ -286,7 +282,4 @@ struct ContentView_Previews: PreviewProvider {
         }
     }
 }
-
-//#Preview {
-//    LoginView()
-//}
+ 

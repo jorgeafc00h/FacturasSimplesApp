@@ -45,7 +45,7 @@ struct InvoicesListView: View {
             }
         }
         .sheet(isPresented: $viewModel.isShowingAddInvoiceSheet) {
-            AddInvoiceView()
+            AddInvoiceView(selectedInvoice: $selection)
         }
         .toolbar{
             ToolbarItemGroup(placement: .topBarTrailing) {

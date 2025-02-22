@@ -297,7 +297,7 @@ struct InvoiceDetailView: View {
                 ) {
                     
                     Button{
-                       
+                        GenerateInvoiceReferences()
                         Task{
                             _ = await viewModel.SyncDocumentAsync(invoice)
                             

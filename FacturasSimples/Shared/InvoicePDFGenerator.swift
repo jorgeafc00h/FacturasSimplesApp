@@ -8,14 +8,15 @@ class InvoicePDFGenerator {
         let fileName = "\(invoice.invoiceType.stringValue())-\(invoice.invoiceNumber).pdf"
         let pdfMetaData = [
             kCGPDFContextCreator: "Facturas Simples",
-            kCGPDFContextAuthor: "K Labs Inc.",
+            kCGPDFContextAuthor: "K Labs.",
             kCGPDFContextTitle: fileName
         ]
         let format = UIGraphicsPDFRendererFormat()
         format.documentInfo = pdfMetaData as [String: Any]
         
-        let pageWidth = 8.5 * 72.0
-        let pageHeight = 11 * 72.0
+        // Letter size page dimensions (8.5" x 11" in points)
+        let pageWidth: CGFloat = 8.5 * 72.0  // 612 points
+        let pageHeight: CGFloat = 11.0 * 72.0 // 792 points
         let pageRect = CGRect(x: 0, y: 0, width: pageWidth, height: pageHeight)
         
         let renderer = UIGraphicsPDFRenderer(bounds: pageRect, format: format)
@@ -24,10 +25,12 @@ class InvoicePDFGenerator {
             context.beginPage()
             
             // Define fonts
-            let titleFont = UIFont.boldSystemFont(ofSize: 12.0)
-            let subtitleFont = UIFont.boldSystemFont(ofSize: 10.0)
-            let regularFont = UIFont.systemFont(ofSize: 9.0)
-            let smallFont = UIFont.systemFont(ofSize: 7.0)
+            let titleFont = UIFont.boldSystemFont(ofSize: 8.0)
+            let subtitleFont = UIFont.boldSystemFont(ofSize: 7.5)
+            let regularFont = UIFont.systemFont(ofSize: 7.0)
+            //let smallFont = UIFont.systemFont(ofSize: 6.0)
+            let footerFont = UIFont.systemFont(ofSize: 7.0)
+            let headerRegularFont = UIFont.systemFont(ofSize: 9.0)  // Original size for header
             
             // Define colors
             let darkGray = UIColor.darkGray
@@ -37,30 +40,38 @@ class InvoicePDFGenerator {
                 .font: titleFont,
                 .foregroundColor: darkGray
             ]
+            let headerRegularAttributes = [NSAttributedString.Key.font: headerRegularFont]  // Original attributes for header
             let subtitleAttributes = [NSAttributedString.Key.font: subtitleFont]
             let regularAttributes = [NSAttributedString.Key.font: regularFont]
-            let smallerAttributes = [NSAttributedString.Key.font: smallFont]
+            //let smallerAttributes = [NSAttributedString.Key.font: smallFont]
+            let footerAttributes = [NSAttributedString.Key.font: footerFont]
             
-            // Company Header
-            company.nombreComercial.uppercased().draw(at: CGPoint(x: 30, y: 15), withAttributes: titleAttributes)
-            "NIT: \(company.nit)  NRC: \(company.nrc)".draw(at: CGPoint(x: 30, y: 27), withAttributes: regularAttributes)
-            "Actividad Económica: \(company.descActividad)".draw(at: CGPoint(x: 30, y: 39), withAttributes: regularAttributes)
-            "Dirección: \(company.complemento)".draw(at: CGPoint(x: 30, y: 51), withAttributes: regularAttributes)
-            "Correo Electrónico: \(company.correo)".draw(at: CGPoint(x: 30, y: 63), withAttributes: regularAttributes)
-            "Teléfono: \(company.telefono)".draw(at: CGPoint(x: 30, y: 75), withAttributes: regularAttributes)
+            // Company Header - Restored original spacing
+            company.nombreComercial.uppercased().draw(at: CGPoint(x: 30, y: 10), withAttributes: titleAttributes)
+            "NIT: \(company.nit)  NRC: \(company.nrc)".draw(at: CGPoint(x: 30, y: 22), withAttributes: headerRegularAttributes)
+            "Actividad Económica: \(company.descActividad)".draw(at: CGPoint(x: 30, y: 34), withAttributes: headerRegularAttributes)
+            "Dirección: \(company.complemento)".draw(at: CGPoint(x: 30, y: 46), withAttributes: headerRegularAttributes)
+            "Correo Electrónico: \(company.correo)".draw(at: CGPoint(x: 30, y: 58), withAttributes: headerRegularAttributes)
+            "Teléfono: \(company.telefono)      Tipo de Establecimiento: \(company.establecimiento)".draw(at: CGPoint(x: 30, y: 70), withAttributes: headerRegularAttributes)
             
-            // Logo
-            let logoRect = CGRect(x: pageWidth - 120, y: 5, width: 80, height: 80)
+            // Logo - Restored original size
+            let logoRect = CGRect(x: pageWidth - 120, y: 5, width: 75, height: 75)
             if !company.invoiceLogo.isEmpty {
                 if let imageData = Data(base64Encoded: company.invoiceLogo),
                    let image = UIImage(data: imageData) {
                     image.draw(in: logoRect)
                 }
+                
+            }
+            else
+            {
+                let image = UIImage(named: "logo")
+                image?.draw(in:  CGRect(x: pageWidth - 80, y: 5, width: 40, height: 50))
             }
             
             // Document Title Section
-            let titleRect = CGRect(x: 0, y: 95, width: pageWidth, height: 35)
-            context.cgContext.setFillColor(UIColor.darkGray.cgColor)
+            let titleRect = CGRect(x: 0, y: 85, width: pageWidth, height: 30)
+            context.cgContext.setFillColor(darkGray.cgColor)
             context.cgContext.fill(titleRect)
             
             let whiteTitleAttributes: [NSAttributedString.Key: Any] = [
@@ -68,32 +79,32 @@ class InvoicePDFGenerator {
                 .foregroundColor: UIColor.white
             ]
             
-            "DOCUMENTO TRIBUTARIO ELECTRÓNICO".draw(at: CGPoint(x: pageWidth/2 - 120, y: 100), withAttributes: whiteTitleAttributes)
-            invoice.invoiceType.stringValue().draw(at: CGPoint(x: pageWidth/2 - (invoice.isCCF ? 110 : 30), y: 112), withAttributes: whiteTitleAttributes)
+            "DOCUMENTO TRIBUTARIO ELECTRÓNICO".draw(at: CGPoint(x: pageWidth/2 - 120, y: 90), withAttributes: whiteTitleAttributes)
+            invoice.invoiceType.stringValue().draw(at: CGPoint(x: pageWidth/2 - (invoice.isCCF ? 110 : 50), y: 102), withAttributes: whiteTitleAttributes)
             
             // Document Metadata Section with gray background
-            let metadataRect = CGRect(x: 0, y: 140, width: pageWidth, height: 110)
+            let metadataRect = CGRect(x: 0, y: 115, width: pageWidth, height: 90)
             context.cgContext.setFillColor(UIColor(white: 0.95, alpha: 1.0).cgColor)
             context.cgContext.fill(metadataRect)
             
             // Generate QR URL Format
             let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "dd/MM/yyyy"
+            dateFormatter.dateFormat = "dd-MM-yyyy"
             let _date = dateFormatter.string(from: invoice.date).replacingOccurrences(of: "/", with: "-")
             let qrUrlFormat = invoice.generationCode != "" ?
                         "\(Constants.qrUrlBase)?ambiente=\(Constants.EnvironmentCode)&codGen=\(invoice.generationCode ?? "")&fechaEmi=\(_date)" :
                         ""
             // QR Code
-            let qrRect = CGRect(x: 30, y: 150, width: 90, height: 90)
+            let qrRect = CGRect(x: 30, y: 120, width: 75, height: 75)
             let qrImage = generateQRCode(from: qrUrlFormat)
             qrImage.draw(in: qrRect)
             
             // Metadata Grid Layout
-            let metadataY: CGFloat = 150
+            let metadataY: CGFloat = 122
             let col1X: CGFloat = 130
             let col2X: CGFloat = pageWidth/2
             let col3X: CGFloat = pageWidth * 0.75
-            let labelSpacing: CGFloat = 22
+            let labelSpacing: CGFloat = 20
             
             let grayAttributes: [NSAttributedString.Key: Any] = [
                 .font: regularFont,
@@ -102,88 +113,87 @@ class InvoicePDFGenerator {
             
             // Column 1
             "Modelo de Facturación:".draw(at: CGPoint(x: col1X, y: metadataY), withAttributes: grayAttributes)
-            "MODELO FACTURACIÓN PREVIO".draw(at: CGPoint(x: col1X, y: metadataY + 12), withAttributes: regularAttributes)
+            "MODELO FACTURACIÓN PREVIO".draw(at: CGPoint(x: col1X, y: metadataY + 10), withAttributes: regularAttributes)
             
             "Código de Generación:".draw(at: CGPoint(x: col1X, y: metadataY + labelSpacing), withAttributes: grayAttributes)
-            invoice.generationCode?.draw(at: CGPoint(x: col1X, y: metadataY + labelSpacing + 12), withAttributes: regularAttributes)
+            invoice.generationCode?.draw(at: CGPoint(x: col1X, y: metadataY + labelSpacing + 10), withAttributes: regularAttributes)
             
             "Número de Control:".draw(at: CGPoint(x: col1X, y: metadataY + labelSpacing * 2), withAttributes: grayAttributes)
-            invoice.controlNumber?.draw(at: CGPoint(x: col1X, y: metadataY + labelSpacing * 2 + 12), withAttributes: regularAttributes)
+            invoice.controlNumber?.draw(at: CGPoint(x: col1X, y: metadataY + labelSpacing * 2 + 10), withAttributes: regularAttributes)
             
             "Sello de Recepción:".draw(at: CGPoint(x: col1X, y: metadataY + labelSpacing * 3), withAttributes: grayAttributes)
-            invoice.receptionSeal?.draw(at: CGPoint(x: col1X, y: metadataY + labelSpacing * 3 + 12), withAttributes: regularAttributes)
+            invoice.receptionSeal?.draw(at: CGPoint(x: col1X, y: metadataY + labelSpacing * 3 + 10), withAttributes: regularAttributes)
             
             // Column 2
             "Tipo de Transmisión:".draw(at: CGPoint(x: col2X, y: metadataY), withAttributes: grayAttributes)
-            "TRANSMISIÓN NORMAL".draw(at: CGPoint(x: col2X, y: metadataY + 12), withAttributes: regularAttributes)
+            "TRANSMISIÓN NORMAL".draw(at: CGPoint(x: col2X, y: metadataY + 10), withAttributes: regularAttributes)
             
             "Versión de JSON:".draw(at: CGPoint(x: col2X, y: metadataY + labelSpacing), withAttributes: grayAttributes)
-            "3".draw(at: CGPoint(x: col2X, y: metadataY + labelSpacing + 12), withAttributes: regularAttributes)
+            "\(invoice.version)".draw(at: CGPoint(x: col2X, y: metadataY + labelSpacing + 10), withAttributes: regularAttributes)
             
             // Column 3
             "Fecha y Hora de Generación:".draw(at: CGPoint(x: col3X, y: metadataY), withAttributes: grayAttributes)
-            //let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "dd/MM/yyyy HH:mm:ss"
             let formattedDate = dateFormatter.string(from: invoice.date)
-            formattedDate.draw(at: CGPoint(x: col3X, y: metadataY + 12), withAttributes: regularAttributes)
+            formattedDate.draw(at: CGPoint(x: col3X, y: metadataY + 10), withAttributes: regularAttributes)
             
             // Receptor Section Header with gray background
-            let receptorHeaderRect = CGRect(x: 0, y: 260, width: pageWidth, height: 25)
-            context.cgContext.setFillColor(UIColor.darkGray.cgColor)
+            let receptorHeaderRect = CGRect(x: 0, y: 210, width: pageWidth, height: 20)
+            context.cgContext.setFillColor(darkGray.cgColor)
             context.cgContext.fill(receptorHeaderRect)
             
-            "RECEPTOR".draw(at: CGPoint(x: pageWidth/2 - 30, y: 267), withAttributes: [
+            "RECEPTOR".draw(at: CGPoint(x: pageWidth/2 - 30, y: 217), withAttributes: [
                 .font: subtitleFont,
                 .foregroundColor: UIColor.white
             ])
             
             // Receptor Content Section with light gray background
-            let receptorContentRect = CGRect(x: 0, y: 285, width: pageWidth, height: 80)
+            let receptorContentRect = CGRect(x: 0, y: 230, width: pageWidth, height: 60)
             context.cgContext.setFillColor(UIColor(white: 0.95, alpha: 1.0).cgColor)
             context.cgContext.fill(receptorContentRect)
             
             // Receptor Info Grid
-            let receptorY: CGFloat = 290
+            let receptorY: CGFloat = 235
             let receptorCol1 = 30.0
             let receptorCol2 = pageWidth/3
             let receptorCol3 = pageWidth * 2/3
+            let receptorLabelSpacing: CGFloat = 25
             
             // Column 1
             "Nombre ó Razón Social:".draw(at: CGPoint(x: receptorCol1, y: receptorY), withAttributes: grayAttributes)
-            invoice.customer.company.draw(at: CGPoint(x: receptorCol1, y: receptorY + 12), withAttributes: regularAttributes)
+            invoice.customer.company.draw(at: CGPoint(x: receptorCol1, y: receptorY + 10), withAttributes: regularAttributes)
             
-            "NRC:".draw(at: CGPoint(x: receptorCol1, y: receptorY + labelSpacing), withAttributes: grayAttributes)
-            let _labelSpaceExtra: CGFloat = 12
-            (invoice.customer.nrc ?? "").draw(at: CGPoint(x: receptorCol1, y: receptorY + labelSpacing + _labelSpaceExtra), withAttributes: regularAttributes)
+            "NRC:".draw(at: CGPoint(x: receptorCol1, y: receptorY + receptorLabelSpacing), withAttributes: grayAttributes)
+            (invoice.customer.nrc ?? "").draw(at: CGPoint(x: receptorCol1, y: receptorY + receptorLabelSpacing +  CGFloat(10)), withAttributes: regularAttributes)
             
             // Column 2
             "Tipo de Documento:".draw(at: CGPoint(x: receptorCol2, y: receptorY), withAttributes: grayAttributes)
-            "DUI/NIT".draw(at: CGPoint(x: receptorCol2, y: receptorY + 12), withAttributes: regularAttributes)
+            "DUI/NIT".draw(at: CGPoint(x: receptorCol2, y: receptorY + 10), withAttributes: regularAttributes)
             
-            "Actividad Económica:".draw(at: CGPoint(x: receptorCol2, y: receptorY + labelSpacing), withAttributes: grayAttributes)
-            SplitText(invoice.customer.descActividad ?? "", 45).draw(at: CGPoint(x: receptorCol2, y: receptorY + labelSpacing + _labelSpaceExtra), withAttributes: regularAttributes)
+            "Actividad Económica:".draw(at: CGPoint(x: receptorCol2, y: receptorY + receptorLabelSpacing), withAttributes: grayAttributes)
+            SplitText(invoice.customer.descActividad ?? "", 35).draw(at: CGPoint(x: receptorCol2, y: receptorY + receptorLabelSpacing + 10), withAttributes: regularAttributes)
             
             // Column 3
             "N° Documento:".draw(at: CGPoint(x: receptorCol3, y: receptorY), withAttributes: grayAttributes)
-            invoice.customer.nationalId.draw(at: CGPoint(x: receptorCol3, y: receptorY + 12), withAttributes: regularAttributes)
+            invoice.customer.nationalId.draw(at: CGPoint(x: receptorCol3, y: receptorY + 10), withAttributes: regularAttributes)
             
-            "Dirección:".draw(at: CGPoint(x: receptorCol3, y: receptorY + labelSpacing), withAttributes: grayAttributes)
-            SplitText(invoice.customer.address, 45).draw(at: CGPoint(x: receptorCol3, y: receptorY + labelSpacing + _labelSpaceExtra), withAttributes: regularAttributes)
+            "Dirección:".draw(at: CGPoint(x: receptorCol3, y: receptorY + receptorLabelSpacing), withAttributes: grayAttributes)
+            SplitText(invoice.customer.address, 40).draw(at: CGPoint(x: receptorCol3, y: receptorY + receptorLabelSpacing + 10), withAttributes: regularAttributes)
             
             // Table Header with gray background
-            let tableHeaderRect = CGRect(x: 0, y: 370, width: pageWidth, height: 25)
-            context.cgContext.setFillColor(UIColor.darkGray.cgColor)
+            let tableHeaderRect = CGRect(x: 0, y: 295, width: pageWidth, height: 20)
+            context.cgContext.setFillColor(darkGray.cgColor)
             context.cgContext.fill(tableHeaderRect)
             
-            "CUERPO DEL DOCUMENTO".draw(at: CGPoint(x: pageWidth/2 - 70, y: 377), withAttributes: [
+            "CUERPO DEL DOCUMENTO".draw(at: CGPoint(x: pageWidth/2 - 70, y: 302), withAttributes: [
                 .font: subtitleFont,
                 .foregroundColor: UIColor.white
             ])
             
             // Table Grid
-            let tableY: CGFloat = 400
-            let columns = ["N°", "Cant.", "Unidad", "Descripción", "Precio\nUnitario", "Descuento por\nítem", "Ventas no\nsujetas", "Ventas\nexentas", "Ventas\ngravadas"]
-            let columnWidths: [CGFloat] = [25, 35, 40, 120, 60, 60, 60, 60, 60]
+            let tableY: CGFloat = 320
+            let columns = ["N°", "Cant.", "Unidad", "Descripción", "Precio\nUnitario", "Descuento\nítem", "Ventas no\nsujetas", "Ventas\nexentas", "Ventas\ngravadas"]
+            let columnWidths: [CGFloat] = [25, 35, 40, 180, 60, 60, 60, 60, 60]
             var currentX: CGFloat = 30
             var currentY: CGFloat = tableY
             
@@ -194,8 +204,14 @@ class InvoicePDFGenerator {
             }
             
             // Draw items
-            currentY = tableY + 25  // Increased spacing after header
+            currentY = tableY + 25
             for (index, item) in invoice.items.enumerated() {
+                if index % 2 == 0 {
+                    let rowRect = CGRect(x: 0, y: currentY - 3, width: pageWidth, height: 15)
+                    context.cgContext.setFillColor(UIColor(white: 0.95, alpha: 1.0).cgColor)
+                    context.cgContext.fill(rowRect)
+                }
+                
                 currentX = 30
                 
                 // Draw each column for the item
@@ -225,134 +241,105 @@ class InvoicePDFGenerator {
                 
                 item.productTotal.formatted(.currency(code: "USD")).draw(at: CGPoint(x: currentX + 2, y: currentY), withAttributes: regularAttributes)
                 
-                currentY += 20  // Increased row spacing from 15 to 20
+                currentY += 15
             }
             
-            // Draw Summary Section
-            if invoice.isCCF {
-                let summaryY = currentY + 30
-                
-                // Draw "Total en Letras" section with dark gray background
-                let totalLetrasRect = CGRect(x: 0, y: summaryY, width: pageWidth * 0.6, height: 25)
-                context.cgContext.setFillColor(UIColor.darkGray.cgColor)
-                context.cgContext.fill(totalLetrasRect)
-                
-                "Total en Letras:".draw(at: CGPoint(x: 30, y: summaryY + 5), withAttributes: [
-                    NSAttributedString.Key.font: subtitleFont,
-                    NSAttributedString.Key.foregroundColor: UIColor.white
-                ])
-                numberToWords((invoice.totalAmount as NSDecimalNumber).doubleValue).uppercased().draw(at: CGPoint(x: 30, y: summaryY + 25), withAttributes: regularAttributes)
-                
-                // Draw totals grid with dark gray background
-                let totalsGridRect = CGRect(x: pageWidth * 0.6, y: summaryY, width: pageWidth * 0.4, height: 25)
-                context.cgContext.setFillColor(UIColor.darkGray.cgColor)
-                context.cgContext.fill(totalsGridRect)
-                
-                let gridStartX = pageWidth * 0.6
-                let columnWidth = (pageWidth * 0.4) / 4
-                
-                // Headers
-                let headerY = summaryY + 5
-                "Total".draw(at: CGPoint(x: gridStartX + 10, y: headerY), withAttributes: [
-                    NSAttributedString.Key.font: subtitleFont,
-                    NSAttributedString.Key.foregroundColor: UIColor.white
-                ])
-                "No Sujetas".draw(at: CGPoint(x: gridStartX + columnWidth, y: headerY), withAttributes: [
-                    NSAttributedString.Key.font: subtitleFont,
-                    NSAttributedString.Key.foregroundColor: UIColor.white
-                ])
-                "Exentas".draw(at: CGPoint(x: gridStartX + columnWidth * 2, y: headerY), withAttributes: [
-                    NSAttributedString.Key.font: subtitleFont,
-                    NSAttributedString.Key.foregroundColor: UIColor.white
-                ])
-                "Gravadas".draw(at: CGPoint(x: gridStartX + columnWidth * 3, y: headerY), withAttributes: [
-                    NSAttributedString.Key.font: subtitleFont,
-                    NSAttributedString.Key.foregroundColor: UIColor.white
-                ])
-                
-                // Values with light gray background
-                let valuesRect = CGRect(x: pageWidth * 0.6, y: summaryY + 25, width: pageWidth * 0.4, height: 25)
-                context.cgContext.setFillColor(UIColor(white: 0.95, alpha: 1.0).cgColor)
-                context.cgContext.fill(valuesRect)
-                
-                let valuesY = summaryY + 30
-                "Operaciones".draw(at: CGPoint(x: gridStartX + 10, y: valuesY), withAttributes: regularAttributes)
-                "$0.00".draw(at: CGPoint(x: gridStartX + columnWidth, y: valuesY), withAttributes: regularAttributes)
-                "$0.00".draw(at: CGPoint(x: gridStartX + columnWidth * 2, y: valuesY), withAttributes: regularAttributes)
-                invoice.totalAmount.formatted(.currency(code: "USD")).draw(at: CGPoint(x: gridStartX + columnWidth * 3, y: valuesY), withAttributes: regularAttributes)
-                
-                // Draw summary rows with alternating backgrounds
-                currentY = summaryY + 60
-                let rowSpacing: CGFloat = 25
-                let amountX = pageWidth - 120
-                
-                let summaryRows = [
-                    ("Sumatoria de Ventas", invoice.totalAmount),
-                    ("Monto Global de Descuento, Bonificación, Rebajas y Otros a Ventas No Sujetas:", Decimal(0)),
-                    ("Monto Global de Descuento, Bonificación, Rebajas y Otros a Ventas Exentas:", Decimal(0)),
-                    ("Monto Global de Descuento, Bonificación, Rebajas y Otros a Ventas Gravadas:", Decimal(0)),
-                    ("20 - Impuesto al Valor Agregado 13%:", invoice.totalAmount * Decimal(0.13)),
-                    ("Sub Total:", invoice.totalAmount),
-                    ("(-) IVA Retenido:", Decimal(0)),
-                    ("(-) Retención Renta:", Decimal(0)),
-                    ("Monto Total de la Operación:", invoice.totalAmount * Decimal(1.13)),
-                    ("Total Otros Montos No Afectos:", Decimal(0)),
-                    ("Total a Pagar:", invoice.totalAmount * Decimal(1.13))
-                ]
-                
-                for (index, (label, amount)) in summaryRows.enumerated() {
-                    if index % 2 == 0 {
-                        let rowRect = CGRect(x: 0, y: currentY - 5, width: pageWidth, height: rowSpacing)
-                        context.cgContext.setFillColor(UIColor(white: 0.95, alpha: 1.0).cgColor)
-                        context.cgContext.fill(rowRect)
-                    }
-                    
-                    label.draw(at: CGPoint(x: 30, y: currentY), withAttributes: regularAttributes)
-                    amount.formatted(.currency(code: "USD")).draw(at: CGPoint(x: amountX, y: currentY), withAttributes: regularAttributes)
-                    currentY += rowSpacing
+            // Define smaller font for Resumen section
+            let smallerFooterFont = UIFont.systemFont(ofSize: 6.0)
+            let smallerFooterAttributes = [NSAttributedString.Key.font: smallerFooterFont]
+            
+            // Move the tables to the bottom of the page
+            let footerY = pageHeight - 165  // Adjusted to move to the bottom
+            
+            // Draw Extension and Total en Letras table (Left side)
+            let leftTableHeaderRect = CGRect(x: 0, y: footerY, width: pageWidth * 0.5, height: 20)
+            context.cgContext.setFillColor(darkGray.cgColor)
+            context.cgContext.fill(leftTableHeaderRect)
+            
+            "EXTENSIÓN / TOTAL EN LETRAS".draw(at: CGPoint(x: pageWidth * 0.25 - 60, y: footerY + 3), withAttributes: [
+                NSAttributedString.Key.font: subtitleFont,
+                NSAttributedString.Key.foregroundColor: UIColor.white
+            ])
+            
+            let leftTableContentRect = CGRect(x: 0, y: footerY + 20, width: pageWidth * 0.5, height: 120)
+            context.cgContext.setFillColor(UIColor(white: 0.95, alpha: 1.0).cgColor)
+            context.cgContext.fill(leftTableContentRect)
+            
+              currentY = footerY + 20
+            let labelX: CGFloat = 10
+            let valueX: CGFloat = pageWidth * 0.15
+            let rowSpacing: CGFloat = 12
+            
+            // Extension Rows
+            let extensionRows = [
+                ("Nombre Entrega:", "-"),
+                ("N° Documento:", "-"),
+                ("Nombre Recibe:", "-"),
+                ("N° Documento:", "-")
+            ]
+            
+            for (label, value) in extensionRows {
+                label.draw(at: CGPoint(x: labelX, y: currentY), withAttributes: footerAttributes)
+                value.draw(at: CGPoint(x: valueX, y: currentY), withAttributes: footerAttributes)
+                currentY += rowSpacing
+            }
+            
+            // Total en Letras
+            "Total en Letras:".draw(at: CGPoint(x: labelX, y: currentY), withAttributes: footerAttributes)
+            currentY += rowSpacing
+            numberToWords((invoice.totalAmount as NSDecimalNumber).doubleValue).uppercased().draw(at: CGPoint(x: labelX, y: currentY ), withAttributes: smallerFooterAttributes)
+            
+            // small logo
+            let smallLogoRect  = CGRect(x: 3, y: 770, width: 10, height: 13)
+            let logoSmall = UIImage(named: "logo")
+            logoSmall?.draw(in: smallLogoRect)
+            
+            "Facturas Simples".draw(at: CGPoint(x: 22, y: 773), withAttributes:  smallerFooterAttributes)
+            
+            // Draw Resumen table (Right side)
+            let rightTableHeaderRect = CGRect(x: pageWidth * 0.5, y: footerY, width: pageWidth * 0.5, height: 20)
+            context.cgContext.setFillColor(darkGray.cgColor)
+            context.cgContext.fill(rightTableHeaderRect)
+            
+            "RESUMEN".draw(at: CGPoint(x: pageWidth * 0.75 - 30, y: footerY + 3), withAttributes: [
+                NSAttributedString.Key.font: subtitleFont,
+                NSAttributedString.Key.foregroundColor: UIColor.white
+            ])
+            
+            let rightTableContentRect = CGRect(x: pageWidth * 0.5, y: footerY + 20, width: pageWidth * 0.5, height: 120)
+            context.cgContext.setFillColor(UIColor(white: 0.95, alpha: 1.0).cgColor)
+            context.cgContext.fill(rightTableContentRect)
+            
+            currentY = footerY + 25
+            let resumenLabelX: CGFloat = pageWidth * 0.5 + 1
+            let resumenValueX: CGFloat = pageWidth - 60
+            
+            // Resumen Rows
+            let summaryRows = [
+                ("Sumatoria de Ventas", invoice.totalAmount),
+                ("Monto Global de Descuento, Rebajas y Otros a Ventas No Sujetas:", Decimal(0)),
+                ("Monto Global de Descuento, Rebajas y Otros a Ventas Exentas:", Decimal(0)),
+                ("Monto Global de Descuento, Rebajas y Otros a Ventas Gravadas:", Decimal(0)),
+                ("20 - Impuesto al Valor Agregado 13%:",invoice.isCCF ?  invoice.totalAmount * Decimal(0.13) : 0),
+                ("Sub Total:", invoice.totalAmount),
+                ("(-) IVA Retenido:", Decimal(0)),
+                ("(-) Retención Renta:", Decimal(0)),
+                ("Monto Total de la Operación:", invoice.totalAmount),
+                ("Total Otros Montos No Afectos:", Decimal(0)),
+                ("Total a Pagar:", invoice.totalAmount)
+            ]
+            
+            for (index, (label, amount)) in summaryRows.enumerated() {
+                if index % 2 == 0 {
+                    let rowRect = CGRect(x: pageWidth * 0.5, y: currentY - 3, width: pageWidth * 0.5, height: rowSpacing)
+                     context.cgContext.setFillColor(UIColor(white: 0.98, alpha: 1.0).cgColor)
+                    context.cgContext.fill(rowRect)
                 }
                 
-                // Draw Observations section with light gray background
-                let observationsY = currentY + 10
-                let observationsRect = CGRect(x: 0, y: observationsY, width: pageWidth, height: 70)
-                context.cgContext.setFillColor(UIColor(white: 0.95, alpha: 1.0).cgColor)
-                context.cgContext.fill(observationsRect)
-                
-                "Observaciones:".draw(at: CGPoint(x: 30, y: observationsY + 5), withAttributes: regularAttributes)
-                "-".draw(at: CGPoint(x: 30, y: observationsY + 25), withAttributes: regularAttributes)
-                
-                "Condición de la Operación:".draw(at: CGPoint(x: 30, y: observationsY + 45), withAttributes: regularAttributes)
-                "CONTADO".draw(at: CGPoint(x: 150, y: observationsY + 45), withAttributes: regularAttributes)
-                
-                // Draw Extension section with dark gray header
-                let extensionY = observationsY + 80
-                let extensionHeaderRect = CGRect(x: 0, y: extensionY, width: pageWidth, height: 25)
-                context.cgContext.setFillColor(UIColor.darkGray.cgColor)
-                context.cgContext.fill(extensionHeaderRect)
-                
-                "EXTENSIÓN".draw(at: CGPoint(x: pageWidth/2 - 40, y: extensionY + 5), withAttributes: [
-                    NSAttributedString.Key.font: subtitleFont,
-                    NSAttributedString.Key.foregroundColor: UIColor.white
-                ])
-                
-                // Draw Extension Content with light gray background
-                let extensionContentRect = CGRect(x: 0, y: extensionY + 25, width: pageWidth, height: 100)
-                context.cgContext.setFillColor(UIColor(white: 0.95, alpha: 1.0).cgColor)
-                context.cgContext.fill(extensionContentRect)
-                
-                let extensionRows = [
-                    ("Nombre Entrega:", "-"),
-                    ("N° Documento:", "-"),
-                    ("Nombre Recibe:", "-"),
-                    ("N° Documento:", "-")
-                ]
-                
-                var extensionCurrentY = extensionY + 35
-                for (label, value) in extensionRows {
-                    label.draw(at: CGPoint(x: 30, y: extensionCurrentY), withAttributes: regularAttributes)
-                    value.draw(at: CGPoint(x: 30, y: extensionCurrentY + 12), withAttributes: regularAttributes)
-                    extensionCurrentY += 20
-                }
+                let _font = summaryRows.count == index - 1 ? footerAttributes : smallerFooterAttributes
+                label.draw(at: CGPoint(x: resumenLabelX, y: currentY), withAttributes:  _font)
+                amount.formatted(.currency(code: "USD")).draw(at: CGPoint(x: resumenValueX, y: currentY), withAttributes: _font)
+                currentY += rowSpacing
             }
         }
         
@@ -436,7 +423,7 @@ class InvoicePDFGenerator {
             result += " Y " + (formatter.string(from: NSNumber(value: decimalPart))?.uppercased() ?? "")
             result += " CENTAVOS"
         }
-        
-        return result
+        //return result.uppercased()
+        return SplitText(result.uppercased(),60)
     }
 } 

@@ -19,86 +19,81 @@ class Extensions
         return "\(firstPart)-\(secondPart)"
     }
     
-    func generateString(baseString: String) throws -> String {
-        guard !baseString.isEmpty else {
-            //fatalError("Base string cannot be null or empty")
-            //throw NSError(domain: "El prefijo no puede ser vacio", code: 0, userInfo: nil)
-            throw DTEValidationErrors.stringPrefixCantBeEmpty
-        }
-        
-        // Generate 8 random alphanumeric characters
-        let first = generateRandomAlphanumeric(length: 8)
-        
-        // Generate 15 random digits
-        let numericPart = try generateRandomDigits(length: 15)
-        
-        // Construct the final string
-        let result = "\(baseString)-\(first)-\(numericPart)"
-        
-        return result
-    }
+  
+ 
+//
+//    private    func generateRandomHex(length: Int) -> String {
+//        let characters = "ABCDEF0123456789"
+//        return String((0..<length).map { _ in characters.randomElement()! })
+//    }
     
-    func generateString(baseString: String, pattern: String) throws -> String {
-        guard !baseString.isEmpty else {
-            //fatalError("Base string cannot be null or empty")
-            throw DTEValidationErrors.stringPrefixCantBeEmpty
-        }
-        
-        // Generate 8 random alphanumeric characters
-        let alphanumericPart = generateRandomAlphanumeric(length: 8)
-        
-        // Generate 15 random digits
-        let numericPart = try generateRandomDigits(length: 15)
-        
-        // Construct the final string
-        let result = "\(baseString)-01-\(alphanumericPart)-\(numericPart)"
-        
-        // Validate the result against the regex
-        let regex = try! NSRegularExpression(pattern: pattern)
-        let range = NSRange(location: 0, length: result.utf16.count)
-        if regex.firstMatch(in: result, options: [], range: range) == nil {
-            throw DTEValidationErrors.stringGeneratedDoesntMatchExpectedPattern
-        }
-        
-        return result
-    }
+    private static let alphanumericChars = Array("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+       private static let numericChars = Array("0123456789")
+    private static let hexChars = Array("ABCDEF0123456789")
+       
+    static func generateString(baseString: String, pattern: String? = nil) throws -> String? {
+           guard !baseString.isEmpty else {
+               //throw GenerateStringError.invalidBaseString
+                return nil
+           }
+           
+           let alphanumericPart = String((0..<8).map { _ in
+               alphanumericChars[Int.random(in: 0..<alphanumericChars.count)]
+           })
+           
+           let numericPart = String((0..<15).map { _ in
+               numericChars[Int.random(in: 0..<numericChars.count)]
+           })
+           
+           let result: String
+           if pattern != nil {
+               result = "\(baseString)-01-\(alphanumericPart)-\(numericPart)"
+           } else {
+               result = "\(baseString)-\(alphanumericPart)-\(numericPart)"
+           }
+           
+           if let pattern = pattern {
+               let regex = try NSRegularExpression(pattern: pattern)
+               let range = NSRange(location: 0, length: result.utf16.count)
+               
+               guard regex.firstMatch(in: result, options: [], range: range) != nil else {
+                   //throw GenerateStringError.patternMismatch(result)
+                   return nil 
+               }
+           }
+           
+           return result
+       }
     
-    
-    private   func generateRandomAlphanumeric(length: Int) -> String {
-        let characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-        return String((0..<length).map { _ in characters.randomElement()! })
-    }
-    
-    private   func generateRandomDigits(length: Int) throws -> String {
-        let digits = "0123456789"
-        return String((0..<length).map { _ in digits.randomElement()! })
-    }
-    func getGenerationCode() throws -> String {
-        // Generate parts of the string according to the regex pattern
-        let part1 = generateRandomHex(length: 8)
-        let part2 = generateRandomHex(length: 4)
-        let part3 = generateRandomHex(length: 4)
-        let part4 = generateRandomHex(length: 4)
-        let part5 = generateRandomHex(length: 12)
-        
-        // Construct the final string
-        let result = "\(part1)-\(part2)-\(part3)-\(part4)-\(part5)"
-        
-        // Validate the result against the regex
-        let pattern = "^[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}$"
-        let regex = try! NSRegularExpression(pattern: pattern)
-        let range = NSRange(location: 0, length: result.utf16.count)
-        if regex.firstMatch(in: result, options: [], range: range) == nil {
-            throw DTEValidationErrors.stringGeneratedDoesntMatchExpectedPattern
-        }
-        
-        return result
-    }
-    
-    private    func generateRandomHex(length: Int) -> String {
-        let characters = "ABCDEF0123456789"
-        return String((0..<length).map { _ in characters.randomElement()! })
-    }
+   
+       
+       static func getGenerationCode() throws -> String {
+           // Generate parts of the string
+           let part1 = try generateRandomHex(length: 8)
+           let part2 = try generateRandomHex(length: 4)
+           let part3 = try generateRandomHex(length: 4)
+           let part4 = try generateRandomHex(length: 4)
+           let part5 = try generateRandomHex(length: 12)
+           
+           // Construct the result
+           let result = "\(part1)-\(part2)-\(part3)-\(part4)-\(part5)"
+           
+           // Validate against regex pattern
+           let pattern = "^[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}$"
+           guard let regex = try? NSRegularExpression(pattern: pattern),
+                 regex.firstMatch(in: result,
+                                range: NSRange(location: 0, length: result.utf16.count)) != nil else {
+               throw GenerationError.invalidFormat(result)
+           }
+           
+           return result
+       }
+       
+       private static func generateRandomHex(length: Int) throws -> String {
+           return String((0..<length).map { _ in
+               hexChars[Int.random(in: 0..<hexChars.count)]
+           })
+       }
     
     func formatNationalId(_ nationalId: String) throws -> String {
         // Ensure the input is numeric and has exactly 9 digits
@@ -200,4 +195,14 @@ class Extensions
            return words.trimmingCharacters(in: .whitespacesAndNewlines)
        }
     
+}
+
+// Extension for Decimal rounding
+extension Decimal {
+    func rounded(scale: Int = 2) -> Decimal {
+        var result = self
+        var rounded = Decimal()
+        NSDecimalRound(&rounded, &result, scale, .plain)
+        return rounded
+    }
 }

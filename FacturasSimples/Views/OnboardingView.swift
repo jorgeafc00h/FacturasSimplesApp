@@ -9,6 +9,11 @@ struct OnboardingView: View{
     @State private var keyboardHeight: CGFloat = 0
     
     @State var company : Company = Company(nit:"",nrc:"",nombre:"",descActividad: "")
+    var reloadCompany : Bool = false
+    
+    @AppStorage("selectedCompanyIdentifier")  var companyId : String = ""
+    
+    @Environment(\.modelContext) var modelContext
     
     var body: some View {
         ZStack{
@@ -49,7 +54,6 @@ struct OnboardingView: View{
             }
         }
             .padding(15)
-            //.ignoresSafeArea(.keyboard,edges: .all)
             .offset(y: -keyboardHeight)
             .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)){ output in
                 if let info = output.userInfo, let height =
@@ -62,6 +66,19 @@ struct OnboardingView: View{
                 keyboardHeight = 0
             }
             .animation(.spring(response: 0.5, dampingFraction: 0.8, blendDuration: 0),value: keyboardHeight)
+            .onAppear(){
+                if reloadCompany{
+                    let id = companyId.isEmpty ? selectedCompanyId : companyId
+                    
+                    let descriptor = FetchDescriptor<Company>(predicate: #Predicate { $0.id == id  })
+                    
+                    if let selectedCompany = try? modelContext.fetch(descriptor).first {
+                       company = selectedCompany
+                    } else {
+                        print("no selected company identifier: \(selectedCompanyId)")
+                    }
+                }
+            }
             //.task { await syncCatalogsAsync()}
         }
         
@@ -221,6 +238,7 @@ private struct introView<ActionView:View>: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: {
             if let index = pagesIntros.firstIndex(of: intro),
                ( isPrevious ? index != 0 :  index != pagesIntros.count - 1 ){
+                print("page index \(index)")
                 intro = isPrevious ? pagesIntros[index - 1] :  pagesIntros[index + 1]
             }
             else{

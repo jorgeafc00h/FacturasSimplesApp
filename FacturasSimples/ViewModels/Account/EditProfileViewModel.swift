@@ -27,6 +27,13 @@ extension EditProfileView {
         var disableUpdateCredentialsButton: Bool{
             return password.isEmpty && confirmPassword.isEmpty
         }
+        
+        var showCredentialsCheckerView : Bool = false
+         
+        
+        var isValidCredentials : Bool = false
+        
+        
     }
     
     func SaveProfileChanges() async -> Bool{
@@ -70,5 +77,45 @@ extension EditProfileView {
         viewModel.isBusy = false
         
         return true
+    }
+    
+    func EvaluateDisplayCredentialsCheckerView(){
+        
+        if selection != nil{
+            viewModel.showCredentialsCheckerView = !selection!.credentials.isEmpty
+            print("\(viewModel.showCredentialsCheckerView) Display Credentials checker")
+        }
+    }
+    
+    func CheckCredentials() async  {
+        viewModel.isBusy = true
+        if let company = selection{
+            
+            do{
+                let areValid = try await viewModel.validateCredentialsAsync(nit: company.nit, password: company.credentials)
+                
+                if !areValid{
+                    viewModel.showAlertMessage = true
+                    viewModel.message = "Contraseña incorrecta"
+                    viewModel.isBusy = false
+                    viewModel.isValidCredentials = false
+                    viewModel.showCredentialsCheckerView = false// display edit credentials form
+                }
+                else{
+                    viewModel.isValidCredentials = true
+                }
+                viewModel.isBusy = false
+            }
+            catch(let errorMessage)
+            {
+                print("\(errorMessage.localizedDescription)")
+                viewModel.showAlertMessage = true
+                viewModel.isBusy = false
+                viewModel.message = "Error  las credenciales no coinciden con las registradas en Hacienda"
+                 
+            }
+                
+        }
+        
     }
 }

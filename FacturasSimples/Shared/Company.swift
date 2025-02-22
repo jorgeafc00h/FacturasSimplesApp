@@ -12,6 +12,7 @@ import SwiftData
     var descActividad: String
     var nombreComercial: String
     var tipoEstablecimiento: String
+    var establecimiento: String = ""
     
     var telefono: String
     var correo: String
@@ -46,6 +47,7 @@ import SwiftData
         descActividad: String = "",
         nombreComercial: String = "",
         tipoEstablecimiento: String = "",
+        establecimiento: String = "",
         telefono: String = "",
         correo: String = "",
         codEstableMH: String = "",
@@ -70,6 +72,7 @@ import SwiftData
         self.descActividad = descActividad
         self.nombreComercial = nombreComercial
         self.tipoEstablecimiento = tipoEstablecimiento
+        self.establecimiento = establecimiento
         self.telefono = telefono
         self.correo = correo
         self.codEstableMH = codEstableMH

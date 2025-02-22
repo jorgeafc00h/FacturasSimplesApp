@@ -48,6 +48,17 @@ enum DTEValidationErrors: LocalizedError {
         }
     }
 }
+
+enum GenerateStringError: Error {
+    case invalidBaseString
+    case patternMismatch(String)
+}
+
+enum GenerationError: Error {
+    case invalidFormat(String)
+}
+
+
 //enum DTEValidationErrors: LocalizedError {
 //    case invalidInput(String)
 //    case certificateError

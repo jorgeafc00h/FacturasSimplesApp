@@ -24,7 +24,7 @@ extension ProfileView{
         }
         return nil
     }
-    func loadUserProfileImage() {
+    func loadProfileAndSelectedCompany() {
         // check saved user profile
         if returnUiImage(named: "fotoperfil") != nil {
             
@@ -55,3 +55,4 @@ extension ProfileView{
     }
      
 }
+

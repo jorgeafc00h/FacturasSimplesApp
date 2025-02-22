@@ -57,7 +57,7 @@ extension InvoiceDetailView {
                 isBusy = false
                 return false
             }
-            
+             
             let dte = await SyncInvoice(invoice)
             
             if dte == nil {
@@ -135,7 +135,9 @@ extension InvoiceDetailView {
         sendingAutomaticEmail = true
         
         let _data = InvoicePDFGenerator.generatePDF(from: invoice, company:  company)
-        
+        //refreshPDF()
+        pdfData = _data
+            
         let  invoiceService = InvoiceServiceClient()
         
         _ = try? await invoiceService.uploadPDF(data: _data, controlNum: invoice.controlNumber!, nit: company.nit)
@@ -215,6 +217,22 @@ extension InvoiceDetailView {
             
             if let company = try modelContext.fetch(descriptor).first {
                 viewModel.company = company
+                
+                //load tipo establecimiento
+                if company.establecimiento == ""{
+                    let typeCode = company.tipoEstablecimiento
+                    
+                    let _descriptor = FetchDescriptor<CatalogOption>(predicate: #Predicate {
+                        $0.catalog.id == "CAT-008" && $0.code == typeCode
+                    })
+                    
+                    if let _catalogOption = try? modelContext.fetch(_descriptor).first {
+                        viewModel.company.establecimiento = _catalogOption.details
+                    } else {
+                        print("no selected tipoEstablecimiento identifier: \(company.tipoEstablecimiento) ")
+                    }
+                }
+                
             }
         }
         catch{
@@ -227,7 +245,15 @@ extension InvoiceDetailView {
         viewModel.pdfData = InvoicePDFGenerator.generatePDF(from: invoice, company: viewModel.company)
     }
     
-     
+    
+    func GenerateInvoiceReferences(){
+        if invoice.controlNumber == nil || invoice.controlNumber == "" {
+            invoice.controlNumber =  invoice.isCCF ?
+            try? Extensions.generateString(baseString: "DTE-03",pattern: nil) :
+            try? Extensions.generateString(baseString: "DTE",pattern: "^DTE-01-[A-Z0-9]{8}-[0-9]{15}$")
+        }
+        try? modelContext.save()
+    }
     
 }
 
