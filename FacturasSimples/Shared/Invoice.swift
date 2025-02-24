@@ -34,38 +34,33 @@ import SwiftData
     @Relationship(deleteRule: .cascade, inverse: \ InvoiceDetail.invoice)
     var items: [InvoiceDetail] = []
     
-    var totalAmount: Decimal {
-        let sum = items.reduce(Decimal.zero) { $0 + $1.productTotal }
-        return sum.rounded(scale: Constants.roundingScale)
-    }
-    
-    var tax: Decimal {
-        if !isCCF {
-            return (totalAmount - (totalAmount / Constants.includedTax))
-                .rounded(scale: Constants.roundingScale)
-        }
-        return Decimal.zero
-    }
-    
-    var subTotal: Decimal {
-        if totalAmount > 0 {
-            return (totalAmount - tax).rounded(scale: Constants.roundingScale)
-        }
-        return Decimal.zero
-    }
-    
-    var totalWithoutTax: Decimal {
-        return (totalAmount / Constants.includedTax)
-            .rounded(scale: Constants.roundingScale)
-    }
-    
-    var isCCF: Bool {
-        return invoiceType == .CCF
-    }
-    
-    var totalItems: Int {
-        return items.count
-    }
+    /// review this logic
+       var totalAmount: Decimal {
+           return items.reduce(0){
+               ($0 + $1.productTotal).rounded(scale: Constants.roundingScale)
+           }
+       }
+       
+       var tax: Decimal {
+           return (totalAmount - (totalAmount / Constants.includedTax)).rounded(scale: Constants.roundingScale)
+       }
+       
+       var subTotal: Decimal {
+           return (totalAmount > 0 ? totalAmount - tax : 0).rounded(scale: Constants.roundingScale)
+       }
+       
+       var isCCF: Bool {
+           return invoiceType == .CCF
+       }
+       
+       var totalItems: Int {
+           return items.count
+       }
+       
+  
+       var totalWithoutTax: Decimal {
+           return (totalAmount / 1.13).rounded(scale: Constants.roundingScale)
+       }
     
     var version: Int {
         return isCCF ? 3 : 1

@@ -15,6 +15,8 @@ class InvoiceServiceClient
         return URLSession(configuration: configuration)
     }
     
+    private let encoder = JSONEncoder()
+    
     func getCatalogs()async throws -> [Catalog]
     {
         
@@ -103,9 +105,9 @@ class InvoiceServiceClient
     
     func Sync(dte: DTE_Base, credentials: ServiceCredentials)async throws -> DTEResponseWrapper
     {
-        let encoder = JSONEncoder()
+       // let encoder = JSONEncoder()
         //encoder.outputFormatting = .prettyPrinted
-        encoder.dateEncodingStrategy = .iso8601
+        encoder.dateEncodingStrategy = .iso8601 // to properly fornat Date as json instead of number.
         
         let jsonData =  try encoder.encode(dte)
         let jsonString = String(data: jsonData, encoding: .utf8)!
@@ -186,7 +188,7 @@ class InvoiceServiceClient
         return true
     }
  
-    func getDocumentFromStorage(path: String)async throws -> DTEResponseWrapper {
+    func getDocumentFromStorage(path: String)async throws -> DTE_Base {
         guard let url = URL(string: path) else {
             throw ApiErrors.invalidURL
         }
@@ -202,7 +204,7 @@ class InvoiceServiceClient
             throw ApiErrors.custom(message: message)
         }
         do{
-            return try JSONDecoder().decode(DTEResponseWrapper.self, from: data)
+            return try JSONDecoder().decode(DTE_Base.self, from: data)
         }
         catch(let error){
             print("\(error.localizedDescription)")

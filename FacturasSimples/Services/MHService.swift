@@ -2,9 +2,9 @@ import Foundation
 
 class MhClient {
     
-    let extensions = Extensions()
+   
     
-    func mapInvoice(invoice: Invoice, company: Company)throws -> DTE_Base {
+    static func mapInvoice(invoice: Invoice, company: Company)throws -> DTE_Base {
         var index = 1
         
         let items = invoice.items.map { detail -> CuerpoDocumento in
@@ -26,7 +26,7 @@ class MhClient {
             direccion: Direccion(departamento: company.departamentoCode,
                                  municipio: company.municipioCode,
                                  complemento: company.complemento),
-            telefono: extensions.formatPhoneNumber(telefono: company.telefono),
+            telefono: Extensions.formatPhoneNumber(telefono: company.telefono),
             correo: company.correo,
             codEstableMH: company.codEstableMH != "" ?
             company.codEstableMH : nil ,
@@ -38,30 +38,18 @@ class MhClient {
         
         let resumen = mapResumen(invoice: invoice, items: items)
         
-         
-        
-        if invoice.controlNumber == nil || invoice.controlNumber == "" {
-            invoice.controlNumber =  invoice.isCCF ?
-            try? Extensions.generateString(baseString: "DTE-03",pattern: nil) :
-            try? Extensions.generateString(baseString: "DTE",pattern: "^DTE-01-[A-Z0-9]{8}-[0-9]{15}$")
-        }
-        
-//        if invoice.generationCode == nil || invoice.generationCode == "" {
-//            invoice.generationCode = try? Extensions.getGenerationCode()
-//        }
-        
         let identificacion = Identificacion(
-            version: invoice.version,
+            version: invoice.isCCF ? 3 : 1,
             ambiente: Constants.EnvironmentCode,
             tipoDte: invoice.isCCF ? "03" : "01",
-            numeroControl: invoice.controlNumber,
-            codigoGeneracion: invoice.generationCode,
+            numeroControl: nil,
+            codigoGeneracion: nil,
             tipoModelo: 1,
             tipoOperacion: 1,
             tipoContingencia: nil,
             motivoContin: nil,
             fecEmi: Date(),
-            horEmi:try extensions.generateHourString(date: Date()),
+            horEmi:try Extensions.generateHourString(date: Date()),
             tipoMoneda: "USD"
         )
         
@@ -72,17 +60,14 @@ class MhClient {
             cuerpoDocumento: items,
             resumen: resumen
         )
-        
+         
         return dte
     }
     
-    func formatFromProductDetail(detail: InvoiceDetail, isCCF: Bool) -> CuerpoDocumento {
+    static  func formatFromProductDetail(detail: InvoiceDetail, isCCF: Bool) -> CuerpoDocumento {
         
-        let productTotal = (Decimal( detail.quantity) * detail.product.unitPrice)
-            .rounded(scale: Constants.roundingScale)
-        
-        let tax = (productTotal - (productTotal / Decimal(1.13)))
-            .rounded(scale: Constants.roundingScale)
+        let productTotal = (Decimal( detail.quantity) * detail.product.unitPrice).rounded(scale: Constants.roundingScale)
+        let tax = (productTotal - (productTotal / Decimal(1.13))).rounded(scale: Constants.roundingScale)
         
         return CuerpoDocumento(
             ivaItem: isCCF ? nil : tax,
@@ -92,8 +77,9 @@ class MhClient {
             codTributo: nil,
             descripcion: detail.product.productName,
             precioUni: isCCF ?
-                    (detail.product.unitPrice / Decimal(1.13)).rounded(scale: Constants.roundingScale) :
-                    detail.product.unitPrice,
+                        (detail.product.unitPrice / Decimal(1.13))
+                        .rounded(scale: Constants.roundingScale):
+                        detail.product.unitPrice,
             ventaGravada: isCCF ? (productTotal - tax) : productTotal,
             psv: 0,
             noGravado: 0,
@@ -107,7 +93,7 @@ class MhClient {
         )
     }
     
-    func mapReceptor(invoice: Invoice)throws -> Receptor {
+    static func mapReceptor(invoice: Invoice)throws -> Receptor {
         let customer = invoice.customer
         
         
@@ -117,11 +103,11 @@ class MhClient {
             nrc: nrc,
             nombre: customer.fullName,
             nombreComercial: invoice.isCCF ?
-                            customer.company :nil,
+            customer.company :nil,
             codActividad: invoice.isCCF ?
-                          customer.codActividad! : nil,
+            customer.codActividad! : nil,
             descActividad: invoice.isCCF ?
-                          customer.descActividad : nil,
+            customer.descActividad : nil,
             direccion: Direccion(
                 departamento: customer.departamentoCode,
                 municipio: customer.municipioCode,
@@ -130,18 +116,51 @@ class MhClient {
             correo : customer.email,
             tipoDocumento: !invoice.isCCF ? "13" : nil,
             numDocumento: invoice.isCCF ? nil :
-                try extensions.formatNationalId(customer.nationalId),
+                try Extensions.formatNationalId(customer.nationalId),
             nit: invoice.isCCF ? customer.nit : nil
         )
         return receptor
-       
+        //            if !invoice.isCCF {
+        //                return Receptor(
+        //                    nrc: nil,
+        //                    numDocumento: extensions.formatNationalId(customer.nationalId),
+        //                    tipoDocumento: "13", // customer.documentType ?? "13",
+        //                    nombre: customer.fullName,
+        //                    correo: customer.email,
+        //                    codActividad: customer.codActividad?.isEmpty == false ? customer.codActividad : nil,
+        //                    descActividad: customer.descActividad?.isEmpty == false ? customer.descActividad : nil,
+        //                    direccion: Direccion(
+        //                        departamento: customer.direccion.departamento,
+        //                        municipio: customer.direccion.municipio,
+        //                        complemento: customer.direccion.complemento
+        //                    ),
+        //                    telefono: customer.phone
+        //                )
+        //            } else {
+        //                // CCF
+        //                return Receptor(
+        //                    nrc: customer.nrc ?? customer.contributorId ?? "", // Required
+        //                    nombre: customer.fullName,
+        //                    correo: customer.email,
+        //                    codActividad: customer.codActividad?.isEmpty == false ? customer.codActividad : nil,
+        //                    descActividad: customer.descActividad?.isEmpty == false ? customer.descActividad : nil,
+        //                    nombreComercial: customer.company,
+        //                    direccion: Direccion(
+        //                        departamento: customer.direccion.departamento,
+        //                        municipio: customer.direccion.municipio,
+        //                        complemento: customer.direccion.complemento
+        //                    ),
+        //                    telefono: customer.phone,
+        //                    nit: invoice.isCCF ? customer.nit : nil // Required CCF
+        //                )
+        //            }
     }
     
-    func mapResumen(invoice: Invoice, items: [CuerpoDocumento]) -> Resumen {
+    static func mapResumen(invoice: Invoice, items: [CuerpoDocumento]) -> Resumen {
         
         let total = NSDecimalNumber(decimal: invoice.totalAmount).doubleValue
         
-        let totalLabel = extensions.numberToWords(total)
+        let totalLabel = Extensions.numberToWords(total)
         
         
         let totalIva = items.compactMap { $0.ivaItem ?? 0 }.reduce(0, +)
@@ -181,5 +200,3 @@ class MhClient {
     
     
 }
-
-

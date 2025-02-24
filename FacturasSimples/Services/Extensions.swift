@@ -3,7 +3,7 @@ import Foundation
 class Extensions
 {
     // extension methods
-    func formatPhoneNumber(telefono: String) -> String {
+    static func formatPhoneNumber(telefono: String) -> String {
         guard !telefono.isEmpty else {
             return telefono
         }
@@ -95,7 +95,7 @@ class Extensions
            })
        }
     
-    func formatNationalId(_ nationalId: String) throws -> String {
+    static func formatNationalId(_ nationalId: String) throws -> String {
         // Ensure the input is numeric and has exactly 9 digits
         guard !nationalId.isEmpty, nationalId.count == 9, let _ = Int(nationalId) else {
             //throw NSError(domain: "El DUI debe contener 9 digitos", code: 0, userInfo: nil)
@@ -111,7 +111,7 @@ class Extensions
     }
     
      
-    func generateHourString(date: Date)throws -> String {
+    static func generateHourString(date: Date)throws -> String {
         // Format the Date object to match the regex pattern
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm:ss"
@@ -129,72 +129,25 @@ class Extensions
         return hourString
     }
     
-    func numberToWords(_ number: Double) -> String {
-           if number == 0 {
-               return "cero"
-           }
-
-           let integerPart = Int(floor(number))
-           let decimalPart = Int((number - Double(integerPart)) * 100)
-
-           return "\(numberToWords(integerPart)) DÓLARES CON \(decimalPart)/100"
-       }
-
-       private  func numberToWords(_ number: Int) -> String {
-           if number == 0 {
-               return "cero"
-           }
-
-           if number < 0 {
-               return "menos " + numberToWords(abs(number))
-           }
-
-           var num = number
-           var words = ""
-
-           if (num / 1000000) > 0 {
-               words += numberToWords(num / 1000000) + " millón "
-               if (num / 1000000) > 1 {
-                   words += "es "
-               }
-               num %= 1000000
-           }
-
-           if (num / 1000) > 0 {
-               words += numberToWords(num / 1000) + " mil "
-               num %= 1000
-           }
-
-           if (num / 100) > 0 {
-               if num / 100 == 1 && num % 100 == 0 {
-                   words += "cien "
-               } else {
-                   words += numberToWords(num / 100) + "cientos "
-               }
-               num %= 100
-           }
-
-           if num > 0 {
-               if words != "" {
-                   words += "y "
-               }
-
-               let unitsMap = ["", "uno", "dos", "tres", "cuatro", "cinco", "seis", "siete", "ocho", "nueve", "diez", "once", "doce", "trece", "catorce", "quince", "dieciséis", "diecisiete", "dieciocho", "diecinueve"]
-               let tensMap = ["", "", "veinte", "treinta", "cuarenta", "cincuenta", "sesenta", "setenta", "ochenta", "noventa"]
-
-               if num < 20 {
-                   words += unitsMap[num]
-               } else {
-                   words += tensMap[num / 10]
-                   if (num % 10) > 0 {
-                       words += " y " + unitsMap[num % 10]
-                   }
-               }
-           }
-
-           return words.trimmingCharacters(in: .whitespacesAndNewlines)
-       }
-    
+    static func numberToWords(_ number: Double) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .spellOut
+        formatter.locale = Locale(identifier: "es_SV")
+        
+        let integerPart = Int(number)
+        let decimalPart = Int((number * 100).truncatingRemainder(dividingBy: 100))
+        
+        var result = formatter.string(from: NSNumber(value: integerPart))?.uppercased() ?? ""
+        result += " DÓLARES"
+        
+        if decimalPart > 0 {
+            result += " Y " + (formatter.string(from: NSNumber(value: decimalPart))?.uppercased() ?? "")
+            result += " CENTAVOS"
+        }
+        //return result.uppercased()
+        return result.uppercased()
+    }
+        
 }
 
 // Extension for Decimal rounding

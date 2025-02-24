@@ -57,11 +57,11 @@ struct InvoiceDetailView: View {
             }
         }
         .onAppear(){
-            refreshPDF()
+            refreshPDF() 
         }
-        .onChange(of: invoice) {
-            refreshPDF()
-        }
+//        .onChange(of: invoice) {
+//            refreshPDF()
+//        }
         .onChange(of: viewModel.company){
             refreshPDF()
         }
@@ -274,13 +274,22 @@ struct InvoiceDetailView: View {
     
     private var ButtonActions : some View {
         Section {
-            if invoice.status == .Nueva {
-                Button(action: viewModel.showConfirmSync,
-                       label: {
+            
+            if invoice.status == .Nueva{
+                
+                withAnimation(){
+                    
+                    Button(action: {
+                        
+                        Task{
+                            _ = await viewModel.validateCredentialsAsync(invoice)
+                            viewModel.showConfirmSync()
+                        }
+                    },label: {
                         HStack {
                             if viewModel.isBusy{
-                                Label("Enviando...",systemImage: "progress.indicator")
-                              
+                                Label(viewModel.syncLabel,systemImage: "progress.indicator")
+                                
                                     .symbolEffect(.variableColor.iterative.dimInactiveLayers.nonReversing, options: .repeat(.continuous))
                             }
                             else{
@@ -289,42 +298,36 @@ struct InvoiceDetailView: View {
                                 Text("Completar y Sincronizar")
                             }
                         }
-                }).disabled(viewModel.isBusy)
-                .confirmationDialog(
-                    "¿Desea completar y sincronizar esta factura con el ministerio de hacienda?",
-                    isPresented: $viewModel.showConfirmSyncSheet,
-                    titleVisibility: .visible
-                ) {
-                    
-                    Button{
-                        GenerateInvoiceReferences()
-                        Task{
-                            _ = await viewModel.SyncDocumentAsync(invoice)
-                            
-                            try? modelContext.save()
-                        }
+                    })
+                    .disabled(viewModel.isBusy ||
+                              invoice.status == .Completada)
+                    .confirmationDialog(
+                        "¿Desea completar y sincronizar esta factura con el ministerio de hacienda?",
+                        isPresented: $viewModel.showConfirmSyncSheet,
+                        titleVisibility: .visible
+                    ) {
+                        
+                        Button(action: SyncInvoice, label: { Text("Sincronizar") })
+                        
+                        
+                        Button("Cancelar", role: .cancel) {}
                     }
-                    label: {
-                        Text("Sincronizar")
+                    .frame(maxWidth: .infinity)
+                    .foregroundColor(.black)
+                    .padding()
+                    .background(.darkCyan)
+                    .cornerRadius(10)
+                    .alert(isPresented: $viewModel.showErrorAlert) {
+                        Alert(
+                            title: Text("Error"),
+                            message: Text(viewModel.errorMessage),
+                            dismissButton: .default(Text("OK"))
+                        )
                     }
-                    
-                    
-                    Button("Cancelar", role: .cancel) {}
                 }
-                .frame(maxWidth: .infinity)
-                .foregroundColor(.black)
-                .padding()
-                .background(.darkCyan)
-                .cornerRadius(10)
-                .alert(isPresented: $viewModel.showErrorAlert) {
-                           Alert(
-                               title: Text("Error"),
-                               message: Text(viewModel.errorMessage),
-                               dismissButton: .default(Text("OK"))
-                           )
-                       }
             }
-            else{
+            
+            if invoice.status == .Completada {
                 HStack {
                     Text("\(invoice.invoiceType)")
                     Spacer()
@@ -347,7 +350,7 @@ struct InvoiceDetailView: View {
                         Button{
                             viewModel.sendingAutomaticEmail = true
                             Task{
-                                _ =   await viewModel.backupPDF(invoice)
+                               await viewModel.backupPDF(invoice)
                             }
                         }
                         label: {
