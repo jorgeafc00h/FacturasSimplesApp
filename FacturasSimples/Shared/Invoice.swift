@@ -31,22 +31,24 @@ import SwiftData
     var controlNumber: String?
     var receptionSeal: String?
     
+    var environmentCode : String = "00"
+    
     @Relationship(deleteRule: .cascade, inverse: \ InvoiceDetail.invoice)
     var items: [InvoiceDetail] = []
     
     /// review this logic
        var totalAmount: Decimal {
            return items.reduce(0){
-               ($0 + $1.productTotal).rounded(scale: Constants.roundingScale)
+               ($0 + $1.productTotal).rounded()
            }
        }
        
        var tax: Decimal {
-           return (totalAmount - (totalAmount / Constants.includedTax)).rounded(scale: Constants.roundingScale)
+           return (totalAmount - (totalAmount / Constants.includedTax)).rounded()
        }
        
        var subTotal: Decimal {
-           return (totalAmount > 0 ? totalAmount - tax : 0).rounded(scale: Constants.roundingScale)
+           return (totalAmount > 0 ? totalAmount - tax : 0).rounded()
        }
        
        var isCCF: Bool {
@@ -59,7 +61,7 @@ import SwiftData
        
   
        var totalWithoutTax: Decimal {
-           return (totalAmount / 1.13).rounded(scale: Constants.roundingScale)
+           return (totalAmount / 1.13).rounded()
        }
     
     var version: Int {
@@ -74,7 +76,8 @@ import SwiftData
          invoiceType: InvoiceType = .Factura,
          generationCode: String = "",
          controlNumber: String = "",
-         receptionSeal: String = "") {
+         receptionSeal: String = "",
+         environmentCode: String = Constants.EnvironmentCode) {
         
         self.invoiceNumber = invoiceNumber
         self.date = date
@@ -110,6 +113,13 @@ enum InvoiceStatus:Int, Codable {
     }
 }
 
+//enum InvoicetSearchScope: String, Codable, CaseIterable, Identifiable, Hashable {
+//     
+//    case Factura
+//    case Credito
+//    case NonEditable
+//    var id: String { rawValue }
+//}
 
 enum InvoiceType:Int, Codable {
     case Factura

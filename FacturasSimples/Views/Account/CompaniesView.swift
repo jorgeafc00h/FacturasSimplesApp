@@ -1,4 +1,3 @@
-
 import SwiftUI
 import SwiftData
 
@@ -21,85 +20,109 @@ struct CompaniesView: View {
     }
     @AppStorage("selectedCompanyName")  var selectedCompanyName : String = ""
     
+    @AppStorage("showTestEnvironments") var testAccounts: Bool = true
+    //@State var testAccounts: Bool = true
+    
+    
     init(selection: Binding<Company?>, selectedCompanyId: Binding<String>) {
         
         _selection = selection
         _selectedCompanyId = selectedCompanyId
         
+        
         let predicate = #Predicate<Company> {
             searchText.isEmpty ? true :
             $0.nit.contains(searchText) ||
             $0.nrc.contains(searchText) ||
-            $0.nombre.contains(searchText)
+            $0.nombre.contains(searchText) &&
+            $0.isTestAccount == testAccounts
+            
+            
         }
         
         
         _companies = Query(filter: predicate, sort: \Company.nombre)
     }
     
+    
+    
+    var filteredCompanies: [Company] {
+        
+        if searchText.isEmpty {
+            companies.filter{$0.isTestAccount == testAccounts}
+        }
+        else {
+            companies.filter{
+                $0.nit.contains(searchText) ||
+                $0.nrc.contains(searchText) ||
+                $0.nombre.contains(searchText) &&
+                $0.isTestAccount == testAccounts
+            }
+        }
+    }
+    
     var body: some View {
-        List{
-            ForEach(companies){ c in
-                CompaniesListItem(company: c, isSelected: selection == c)
-                    .onTapGesture {
-                        withAnimation {
-                            selection = c
-                            searchText = ""
-                            companyId = c.id
-                            selectedCompanyName = c.nombreComercial
-                        }
+        
+        VStack {
+            
+            let id = companyId.isEmpty ? selectedCompanyId : companyId
+            
+            List(selection: $selection) {
+                ForEach(filteredCompanies, id:\.self){
+                    company in
+                    withAnimation{
+                        CompaniesListItem(company: company,
+                                          isSelected: company.id == id)
+                        //                        .onTapGesture {
+                        //                            withAnimation {
+                        //                                selection = company
+                        //                                searchText = ""
+                        //                                companyId = company.id
+                        //                                selectedCompanyName = company.nombreComercial
+                        //                            }
+                        //                        }
                     }
-//                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-//
-//                    }
+                }
             }
-        }
-        .searchable(text: $searchText)
-        .sheet(isPresented: $viewModel.isShowingAddCompany) {
-           EmisorEditView(company: Company(nit:"",nrc:"", nombre:""))
-        }
-        .sheet(isPresented: $viewModel.isShowingEditCompany){
-            if let selected = selection {
-                EmisorEditView(company: selected)
+            .searchable(text: $searchText)
+            .sheet(isPresented: $viewModel.isShowingAddCompany) {
+                EmisorEditView(company: Company(nit:"",nrc:"", nombre:""))
             }
+            .sheet(isPresented: $viewModel.isShowingEditCompany){
+                if let selected = selection {
+                    EmisorEditView(company: selected)
+                }
+            }
+            
+            .toolbar{
+                
+                ToolbarItemGroup(placement: .primaryAction){
+                    Button("Agregar Empresa",systemImage: "plus"){
+                        viewModel.isShowingAddCompany=true}
+                    .buttonStyle(BorderlessButtonStyle())
+                }
+                
+                ToolbarItem(placement: .automatic){
+                    Menu{
+                        
+                        Toggle("Entornos de prueba", isOn: $testAccounts)
+                        
+                    }label: {
+                        Image(systemName: "line.3.horizontal.decrease.circle")
+                    }
+                }
+            }
+            .overlay {
+                OverlaySection
+            }
+            .onAppear {
+                if selectedCompanyId.isEmpty {
+                    selectedCompanyId = companyId
+                }
+            }
+            .navigationTitle("Empresas")
         }
         
-        .toolbar{
-            
-            ToolbarItemGroup(placement: .topBarTrailing) {
-                NavigationLink {
-                     
-                    CertificateUpdate(selection: $selection) 
-                } label: {
-                    HStack{
-                        Image(systemName: "lock.fill")
-                            .symbolEffect(.breathe, options: .nonRepeating)
-                        
-                    }.foregroundColor(.darkCyan)
-                }
-                
-               if let selected = selection {
-                    
-                    Button(selected.nombreComercial,systemImage: "pencil"){
-                        viewModel.isShowingEditCompany=true
-                    }.buttonStyle(BorderlessButtonStyle())
-                }
-                Button("Agregar Empresa",systemImage: "plus"){
-                    viewModel.isShowingAddCompany=true}
-                    .buttonStyle(BorderlessButtonStyle())
-                
-            }
-             
-        }
-        .overlay {
-            OverlaySection
-        }
-        .onAppear {
-            if selectedCompanyId.isEmpty {
-                selectedCompanyId = companyId
-            }
-        }
-        .navigationTitle("Empresas")
     }
     
     

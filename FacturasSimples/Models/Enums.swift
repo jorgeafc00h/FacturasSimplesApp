@@ -1,4 +1,5 @@
 import Foundation
+//import UIKit
 
 enum ApiErrors : LocalizedError {
     case invalidResponse
@@ -58,7 +59,28 @@ enum GenerationError: Error {
     case invalidFormat(String)
 }
 
+//enum DeviceType {
+//    case iPhone, iPad
+//    
+//    static var current: DeviceType {
+//        UIDevice.current.userInterfaceIdiom == .pad ? .iPad : .iPhone
+//    }
+//}
 
+enum EnvironmentType{
+    case Pruebas
+    case Produccion
+    
+    func stringValue() -> String {
+        switch(self) {
+        case .Produccion:
+            return "Produccion"
+        case .Pruebas:
+            return "Pruebas"
+        }
+        
+    }
+}
 //enum DTEValidationErrors: LocalizedError {
 //    case invalidInput(String)
 //    case certificateError

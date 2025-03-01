@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct ProfileView: View {
     
@@ -8,11 +9,14 @@ struct ProfileView: View {
 //
     @Environment(\.modelContext) var modelContext
     
-    @State var imagenPerfil:UIImage = UIImage(named: "perfilEjemplo")!
+    //@State var imagenPerfil:UIImage = UIImage(named: "gearshape.2")!
     
     @State var isToggleOn = true
     
     @State var selection: Company?
+    
+    @State var defaultSectedCompany : Company?
+    
     @AppStorage("storedName")   var userName : String = ""
     @AppStorage("storedEmail")   var email : String = ""
     
@@ -23,22 +27,32 @@ struct ProfileView: View {
         }
     }
     
-
+    @AppStorage("showTestEnvironments") var testAccounts: Bool = true
+    
     @State var viewModel = ProfileViewModel()
     
     @Binding var selectedCompanyId: String 
     
+    @State private var columnVisibility = NavigationSplitViewVisibility.all
+    
+    var iPad : Bool {
+        return UIDevice.current.userInterfaceIdiom == .pad
+    }
+    
     var body: some View {
-        NavigationSplitView{
+        NavigationSplitView(columnVisibility: $columnVisibility){
             ZStack {
                 
-                Color("Marine").ignoresSafeArea().navigationBarHidden(true)
+                Color("Marine").ignoresSafeArea()
+                   .navigationBarHidden(true)
                     .navigationBarBackButtonHidden(true)
                 VStack{
                     VStack{ 
-                        Image(uiImage: imagenPerfil ).resizable().aspectRatio(contentMode: .fill)
-                            .frame(width: 120, height: 120)
-                            .clipShape(Circle())
+                        Image(systemName: "gear.badge.questionmark" )
+                            .resizable().aspectRatio(contentMode: .fill)
+                            .frame(width: 100, height: 100)
+                            .foregroundColor(.white)
+                            //.clipShape(Circle())
                         Text(userName)
                             .fontWeight(.bold)
                             .foregroundColor(Color.white)
@@ -52,7 +66,7 @@ struct ProfileView: View {
                             .fontWeight(.bold)
                             .foregroundColor(Color.white).frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity,  alignment: .leading).padding(.leading,18)
                         
-                        SelectedCompanyButton(selection: $selection)
+                        SelectedCompanyButton(selection: $defaultSectedCompany)
                         Settings
                          
                     }
@@ -68,8 +82,22 @@ struct ProfileView: View {
                 loadProfileAndSelectedCompany()
             }
         }
+        content:{
+            NavigationStack{
+                CompaniesView(selection: $selection, selectedCompanyId: $selectedCompanyId)
+                    .navigationSplitViewColumnWidth(500)
+            }
+        }
         detail:{
-            CompaniesView(selection: $selection, selectedCompanyId: $selectedCompanyId)
+            if let company = selection {
+                CompanyDetailsView(company: company,selectedCompanyId: $selectedCompanyId)
+            }
+        }
+        .navigationSplitViewStyle(.balanced)
+        .onAppear {
+            if UIDevice.current.userInterfaceIdiom == .phone {
+                columnVisibility = .all
+            }
         }
     }
     
@@ -81,18 +109,37 @@ struct ProfileView: View {
                               selectedCompanyId:  $selectedCompanyId)
             }
             label: {
-                NavigationLabel(title:"Aministracion Empresas",imagename: "widget.small")
+                NavigationLabel(title:"Configuración Empresas",imagename: "widget.small")
             }
-            NavigationLink {EditProfileView(selection: $selection)}
-            label: {
-                NavigationLabel(title:"Usuario y contraseña MH",imagename: "person.badge.key.fill")
-            }
-            
-            NavigationLink {CertificateUpdate(selection: $selection)}
-            label: {
-                NavigationLabel(title:"Contraseña Certificado MH",imagename:  "lock.fill")
-            }
-            
+//            NavigationLink {
+//                CompaniesView(selection: $selection,
+//                              selectedCompanyId:  $selectedCompanyId)
+//            }
+//            label: {
+//                NavigationLabel(title:"Empresas Entorno Producción",imagename: "widget.small")
+//            }
+//            NavigationLink {EditProfileView(selection: $selection)}
+//            label: {
+//                NavigationLabel(title:"Usuario y contraseña MH",imagename: "person.badge.key.fill")
+//            }
+//            
+//            NavigationLink {CertificateUpdate(selection: $selection)}
+//            label: {
+//                NavigationLabel(title:"Contraseña Certificado MH",imagename:  "lock.fill")
+//            }
+            Button(action: { testAccounts.toggle() }, label: {
+                HStack {
+                    Image(systemName: "testtube.2").padding(.horizontal, 5.0)
+                        .foregroundColor(Color.white)
+                    Text("Entorno Pruebas")
+                        .foregroundColor(Color.white)
+                    Spacer()
+                    
+                    Toggle("", isOn: $testAccounts)
+                    
+                }.padding()
+            }) .background(Color("Blue-Gray"))
+                .clipShape(RoundedRectangle(cornerRadius: 1.0)).padding(.horizontal, 8.0)
             Button(action: { isToggleOn.toggle() }, label: {
                 HStack {
                     Image(systemName: "bell.fill").padding(.horizontal, 5.0)
@@ -120,7 +167,7 @@ struct ProfileView: View {
                                reloadCompany: true)
             }
         }.sheet(isPresented: $viewModel.showEditCredentialsSheet){
-            EditProfileView(selection:$selection,required: true)
+            //EditProfileView(selection:$selection,required: true)
         }
     }
 }

@@ -42,8 +42,8 @@ class MhClient {
             version: invoice.isCCF ? 3 : 1,
             ambiente: Constants.EnvironmentCode,
             tipoDte: invoice.isCCF ? "03" : "01",
-            numeroControl: nil,
-            codigoGeneracion: nil,
+            numeroControl: invoice.controlNumber,
+            codigoGeneracion: invoice.generationCode,
             tipoModelo: 1,
             tipoOperacion: 1,
             tipoContingencia: nil,
@@ -66,8 +66,8 @@ class MhClient {
     
     static  func formatFromProductDetail(detail: InvoiceDetail, isCCF: Bool) -> CuerpoDocumento {
         
-        let productTotal = (Decimal( detail.quantity) * detail.product.unitPrice).rounded(scale: Constants.roundingScale)
-        let tax = (productTotal - (productTotal / Decimal(1.13))).rounded(scale: Constants.roundingScale)
+        let productTotal = (Decimal( detail.quantity) * detail.product.unitPrice).rounded()
+        let tax = (productTotal - (productTotal / Decimal(1.13))).rounded()
         
         return CuerpoDocumento(
             ivaItem: isCCF ? nil : tax,
@@ -78,7 +78,7 @@ class MhClient {
             descripcion: detail.product.productName,
             precioUni: isCCF ?
                         (detail.product.unitPrice / Decimal(1.13))
-                        .rounded(scale: Constants.roundingScale):
+                        .rounded():
                         detail.product.unitPrice,
             ventaGravada: isCCF ? (productTotal - tax) : productTotal,
             psv: 0,
@@ -158,13 +158,17 @@ class MhClient {
     
     static func mapResumen(invoice: Invoice, items: [CuerpoDocumento]) -> Resumen {
         
-        let total = NSDecimalNumber(decimal: invoice.totalAmount).doubleValue
+        let total = invoice.totalAmount.asDoubleRounded
+        
         
         let totalLabel = Extensions.numberToWords(total)
         
         
-        let totalIva = items.compactMap { $0.ivaItem ?? 0 }.reduce(0, +)
-        print("Total iva: \(totalIva)")
+        let totalIva =  items.compactMap { $0.ivaItem ?? 0 }.reduce(0, +)
+        
+        let iva = totalIva.rounded()
+           
+        print("Total iva: \(iva)")
         
         let resumen = Resumen(
             totalNoSuj: 0.0,
@@ -186,7 +190,7 @@ class MhClient {
             totalNoGravado: 0.0,
             totalPagar: invoice.totalAmount,
             totalLetras: totalLabel,
-            totalIva: totalIva,
+            totalIva: iva,
             saldoFavor: 0.0,
             condicionOperacion: 1,
             pagos: nil,

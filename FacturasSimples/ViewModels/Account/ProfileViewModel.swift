@@ -26,14 +26,14 @@ extension ProfileView{
     }
     func loadProfileAndSelectedCompany() {
         // check saved user profile
-        if returnUiImage(named: "fotoperfil") != nil {
-            
-            imagenPerfil = returnUiImage(named: "fotoperfil")!
-            
-        }else{
-            print("no profile picture available")
-            
-        }
+//        if returnUiImage(named: "fotoperfil") != nil {
+//            
+//            //imagenPerfil = returnUiImage(named: "fotoperfil")!
+//
+//        }else{
+//            print("no profile picture available")
+//            
+//        }
         print("check user defaults..")
        
         
@@ -43,7 +43,7 @@ extension ProfileView{
         
         
         if let selectedCompany = try? modelContext.fetch(descriptor).first {
-            selection = selectedCompany
+            defaultSectedCompany = selectedCompany
             
             viewModel.showEditCredentialsSheet = selectedCompany.credentials.isEmpty
             print("selected Company -> \(selectedCompany.nombre)")

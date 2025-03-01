@@ -109,9 +109,12 @@ extension InvoiceDetailView {
             let _data = InvoicePDFGenerator.generatePDF(from: invoice, company:  company)
             
             pdfData = _data
-            
-            _ = try? await invoiceService.uploadPDF(data: _data, controlNum: invoice.controlNumber!, nit: company.nit)
-            
+            do{
+                try await invoiceService.uploadPDF(data: _data, controlNum: invoice.controlNumber!, nit: company.nit)
+            }
+            catch(let e){
+                print("Error al subir el pdf \(e)")
+            }
             sendingAutomaticEmail = false
         }
         

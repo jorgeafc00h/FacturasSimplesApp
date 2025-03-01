@@ -75,9 +75,9 @@ struct mainView : View{
     private var HomeTab : some View{
         TabView(selection: $viewModel.selectedTab){
             ProfileView(selectedCompanyId: $viewModel.selectedCompanyId)
-                .navigationBarHidden(true).navigationBarBackButtonHidden(true)
+                //.navigationBarHidden(true).navigationBarBackButtonHidden(true)
                 .tabItem {
-                    Image(systemName: "person")
+                    Image(systemName: "gearshape")
                     Text("Perfil")
                 }.tag(0)
             CustomersView(selectedCompanyId: $viewModel.selectedCompanyId)

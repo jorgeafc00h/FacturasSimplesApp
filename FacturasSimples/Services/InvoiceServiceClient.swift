@@ -164,7 +164,7 @@ class InvoiceServiceClient
         }
     }
     
-    func uploadPDF(data : Data, controlNum: String, nit: String) async throws -> Bool {
+    func uploadPDF(data : Data, controlNum: String, nit: String) async throws  {
         let endpoint = Constants.InvoiceServiceUrl + "/document/pdf/upload"
         guard let url = URL(string: endpoint) else {
             throw ApiErrors.invalidURL
@@ -185,7 +185,6 @@ class InvoiceServiceClient
             let message = String(data: data, encoding: .utf8)!
             throw ApiErrors.custom(message: message)
         }
-        return true
     }
  
     func getDocumentFromStorage(path: String)async throws -> DTE_Base {
@@ -221,7 +220,7 @@ class InvoiceServiceClient
         }
         
         var request = URLRequest(url: url)
-        request.httpMethod = "POST"
+        request.httpMethod = "GET"
         request.setValue(Constants.Apikey, forHTTPHeaderField: Constants.ApiKeyHeaderName)
         request.setValue(nit, forHTTPHeaderField: Constants.MH_USER)
         request.setValue(password, forHTTPHeaderField: Constants.MH_KEY)

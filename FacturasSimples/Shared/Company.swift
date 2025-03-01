@@ -36,6 +36,8 @@ import SwiftData
     
     var credentials: String = ""
     
+    var isTestAccount : Bool = true
+    
     var actividadEconomicaLabel: String {
         descActividad == "" ? "Seleccione una actividad económica" : descActividad
     }
@@ -63,7 +65,8 @@ import SwiftData
         codActividad: String = "",
         certificatePath: String = "",
         certificatePassword: String = "",
-        credentials: String = ""
+        credentials: String = "",
+        isTestAccount:Bool = true
     ) {
         self.nit = nit
         self.nrc = nrc
@@ -88,6 +91,7 @@ import SwiftData
         self.certificatePath = certificatePath  
         self.certificatePassword = certificatePassword
         self.credentials = credentials
+        self.isTestAccount = isTestAccount 
     }
 }
 

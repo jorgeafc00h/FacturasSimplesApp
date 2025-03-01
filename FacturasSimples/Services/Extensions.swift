@@ -152,10 +152,27 @@ class Extensions
 
 // Extension for Decimal rounding
 extension Decimal {
-    func rounded(scale: Int = 2) -> Decimal {
-        var result = self
-        var rounded = Decimal()
-        NSDecimalRound(&rounded, &result, scale, .plain)
-        return rounded
-    }
+//    func rounded(scale: Int = 2) -> Decimal {
+//        var result = self
+//        var rounded = Decimal()
+//        NSDecimalRound(&rounded, &result, scale, .plain)
+//        return rounded
+//    }
+    func rounded(to scale: Int = 2, mode: NSDecimalNumber.RoundingMode = .plain) -> Decimal {
+           var result = self
+           var rounded = Decimal()
+           NSDecimalRound(&rounded, &result, scale, mode)
+           return rounded
+       }
+    func toDouble(roundingMode: NSDecimalNumber.RoundingMode = .plain) -> Double {
+            var result = self
+            var rounded = Decimal()
+            NSDecimalRound(&rounded, &result, 2, roundingMode)
+            return NSDecimalNumber(decimal: rounded).doubleValue
+        }
+        
+        // Convenience method for most common use case
+        var asDoubleRounded: Double {
+            toDouble(roundingMode: .plain)
+        }
 }
