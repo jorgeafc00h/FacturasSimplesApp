@@ -292,7 +292,9 @@ struct AddCompanyView4: View {
     var size: CGSize
     @Binding var selectedCompanyId : String
     
-   
+    @AppStorage("selectedCompanyIdentifier") var companyId: String = ""
+    @AppStorage("selectedCompanyName")  var selectedCompanyName : String = ""
+    
     @Query(filter: #Predicate<CatalogOption> { $0.catalog.id == "CAT-012"})
     var departamentos : [CatalogOption]
     
@@ -343,6 +345,8 @@ struct AddCompanyView4: View {
                 if intro.canContinue{
                     saveChanges()
                     requiresOnboarding = false
+                    companyId = company.id
+                    selectedCompanyName = company.nombreComercial
                 }
                 else{
                     intro.hintColor = .red
