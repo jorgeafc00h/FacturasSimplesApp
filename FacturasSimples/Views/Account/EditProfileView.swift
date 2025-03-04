@@ -1,18 +1,14 @@
-//
-//  EditProfileView.swift
-//  App
-//
-//  Created by Jorge Flores on 10/20/24.
-//
-
 import SwiftUI
+import SwiftData
 
 struct EditProfileView: View {
     
     @State var imagenPerfil: Image? = Image("AppLogo")
     @State var isCameraActive = false
     
-    @Binding var selection : Company?
+    @Bindable var selection : Company
+    @Binding var isPresented: Bool
+    @Binding var areInvalidCredentials: Bool
     var required: Bool = false
     @Environment(\.modelContext)   var modelContext
     @Environment(\.dismiss) var dismiss
@@ -207,10 +203,11 @@ struct EditProfileView: View {
 }
 
 private struct EditProfileViewWrapper: View {
-   @State private var selectedCompany: Company? = nil
-   @State private var selectedCompanyId: String = ""
-   
+    @Query var companies: [Company]
+    @State private var showSheet: Bool = false
+    @State private var arevalidCredentials: Bool = false
+    
    var body: some View {
-       EditProfileView(selection: $selectedCompany)
+       EditProfileView(selection: companies.first!, isPresented: $showSheet, areInvalidCredentials: $arevalidCredentials)
    }
 }

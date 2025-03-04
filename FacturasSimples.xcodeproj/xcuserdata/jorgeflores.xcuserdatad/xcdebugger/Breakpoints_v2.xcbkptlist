@@ -71,22 +71,6 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "D02B3519-6B2F-4470-AD45-E0BED9206BB3"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FacturasSimples/Services/InvoiceServiceClient.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "206"
-            endingLineNumber = "206"
-            landmarkName = "getDocumentFromStorage(path:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
             uuid = "BF97D2C7-9ED6-4F25-97FC-3510796E2DFF"
             shouldBeEnabled = "No"
             ignoreCount = "0"
@@ -94,8 +78,8 @@
             filePath = "FacturasSimples/Views/Account/EditProfileView.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "122"
-            endingLineNumber = "122"
+            startingLineNumber = "118"
+            endingLineNumber = "118"
             landmarkName = "EditUserCredentials"
             landmarkType = "24">
          </BreakpointContent>
@@ -210,52 +194,6 @@
             endingLineNumber = "162"
             landmarkName = "Sync(dte:credentials:)"
             landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "DFE98E91-DB96-44F8-84CA-FD181EC7A6CC"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FacturasSimples/ViewModels/Account/EditProfileViewModel.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "39"
-            endingLineNumber = "39"
-            landmarkName = "SaveProfileChanges()"
-            landmarkType = "7">
-            <Locations>
-               <Location
-                  uuid = "DFE98E91-DB96-44F8-84CA-FD181EC7A6CC - 590f52efe746d846"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "FacturasSimples.EditProfileView.SaveProfileChanges() async -&gt; Swift.Bool"
-                  moduleName = "FacturasSimples.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/ViewModels/Account/EditProfileViewModel.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "39"
-                  endingLineNumber = "39">
-               </Location>
-               <Location
-                  uuid = "DFE98E91-DB96-44F8-84CA-FD181EC7A6CC - ecedda1e9da92bea"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(1) suspend resume partial function for FacturasSimples.EditProfileView.SaveProfileChanges() async -&gt; Swift.Bool"
-                  moduleName = "FacturasSimples.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/ViewModels/Account/EditProfileViewModel.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "39"
-                  endingLineNumber = "39">
-               </Location>
-            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy

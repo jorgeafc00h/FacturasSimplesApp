@@ -45,15 +45,16 @@ extension EditProfileView {
         }
          
         viewModel.isBusy = true
-        if let company = selection{
             
             do{
-                let areValid = try await viewModel.validateCredentialsAsync(nit: company.nit, password: viewModel.password)
+                let areValid = try await viewModel.validateCredentialsAsync(nit: selection.nit, password: viewModel.password)
                 
                 if areValid{
-                    company.credentials = viewModel.password
+                    selection.credentials = viewModel.password
                     
                     try? modelContext.save()
+                    isPresented = false // close sheet
+                    areInvalidCredentials = false // close invalid credentials view
                 }
                 else{
                     viewModel.showAlertMessage = true
@@ -71,7 +72,7 @@ extension EditProfileView {
                 return false
             }
                 
-        }
+        
         viewModel.showAlertMessage = true
         viewModel.message = "Actualizado con éxito"
         viewModel.isBusy = false
@@ -81,18 +82,16 @@ extension EditProfileView {
     
     func EvaluateDisplayCredentialsCheckerView(){
         
-        if selection != nil{
-            viewModel.showCredentialsCheckerView = !selection!.credentials.isEmpty
-            print("\(viewModel.showCredentialsCheckerView) Display Credentials checker")
-        }
+        viewModel.showCredentialsCheckerView = !selection.credentials.isEmpty
+        print("\(viewModel.showCredentialsCheckerView) Display Credentials checker")
+        
     }
     
     func CheckCredentials() async  {
         viewModel.isBusy = true
-        if let company = selection{
-            
+       
             do{
-                let areValid = try await viewModel.validateCredentialsAsync(nit: company.nit, password: company.credentials)
+                let areValid = try await viewModel.validateCredentialsAsync(nit: selection.nit, password: selection.credentials)
                 
                 if !areValid{
                     viewModel.showAlertMessage = true
@@ -115,7 +114,7 @@ extension EditProfileView {
                  
             }
                 
-        }
+        
         
     }
 }

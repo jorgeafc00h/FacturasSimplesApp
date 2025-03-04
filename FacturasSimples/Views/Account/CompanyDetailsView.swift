@@ -38,11 +38,13 @@ struct CompanyDetailsView : View {
         }
         .sheet(isPresented: $viewModel.showRequestProductionAccessSheet) {
             NavigationStack {
-                RequestProductionAccessView().interactiveDismissDisabled()
+                RequestProductionAccessView()
             }
         }
         .sheet(isPresented: $viewModel.showEditCredentialsSheet) {
-            EditProfileView(selection: .constant(company))
+            EditProfileView(selection: company,
+                            isPresented: $viewModel.showEditCredentialsSheet,
+                            areInvalidCredentials: $viewModel.showCredentialsInvalidMessage)
         }
         .sheet(isPresented: $viewModel.showEditCompanySheet){
             EmisorEditView(company: company)
