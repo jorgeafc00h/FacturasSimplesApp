@@ -7,18 +7,12 @@ class LogoEditorViewModel {
     var isFileImporterPresented = false
     var showAlertMessage = false
     var message = ""
-    var isDirty = false
     
     var alertTitle: String {
-        isDirty ? "Cambios pendientes" : "Confirmación"
-    }
-    
-    func markDirty() {
-        isDirty = true
+        "Confirmación"
     }
     
     func reset() {
-        isDirty = false
         message = ""
         showAlertMessage = false
     }
@@ -58,7 +52,6 @@ struct LogoEditorView: View {
                     TextField("Ancho", value: $company.logoWidht, format: .number)
                         .keyboardType(.numberPad)
                         .multilineTextAlignment(.trailing)
-                        .onChange(of: company.logoWidht) { viewModel.markDirty() }
                 }
                 
                 HStack {
@@ -66,7 +59,6 @@ struct LogoEditorView: View {
                     TextField("Alto", value: $company.logoHeight, format: .number)
                         .keyboardType(.numberPad)
                         .multilineTextAlignment(.trailing)
-                        .onChange(of: company.logoHeight) { viewModel.markDirty() }
                 }
             }
             .listRowBackground(Color(uiColor: .systemBackground))
@@ -84,7 +76,6 @@ struct LogoEditorView: View {
                 .padding()
                 .background(.darkCyan)
                 .cornerRadius(10)
-                .disabled(!viewModel.isDirty)
             }
             .listRowBackground(Color(uiColor: .systemBackground))
         }
@@ -94,30 +85,17 @@ struct LogoEditorView: View {
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("Cancelar") {
-                    if viewModel.isDirty {
-                        viewModel.message = "¿Está seguro que desea descartar los cambios?"
-                        viewModel.showAlertMessage = true
-                    } else {
-                        dismiss()
-                    }
+                    dismiss()
                 }
             }
             ToolbarItem(placement: .confirmationAction) {
                 Button("Guardar") {
                     saveChanges()
                 }
-                .disabled(!viewModel.isDirty)
             }
         }
         .alert(viewModel.alertTitle, isPresented: $viewModel.showAlertMessage) {
-            if viewModel.isDirty {
-                Button("Descartar", role: .destructive) {
-                    dismiss()
-                }
-                Button("Cancelar", role: .cancel) { }
-            } else {
-                Button("Ok", role: .cancel) { }
-            }
+            Button("Ok", role: .cancel) { }
         } message: {
             Text(viewModel.message)
         }
@@ -147,7 +125,6 @@ struct LogoEditorView: View {
                         try modelContext.save()
                         viewModel.message = "Logo actualizado correctamente"
                         viewModel.showAlertMessage = true
-                        viewModel.markDirty()
                     }
                 } catch {
                     viewModel.message = "Error al cargar la imagen: \(error.localizedDescription)"

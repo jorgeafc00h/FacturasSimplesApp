@@ -15,7 +15,7 @@ struct CertificateUpdate: View {
     @State var viewModel = CertificateUpdateViewModel()
     @Environment(\.dismiss)   var dismiss
     
-    @Binding var selection : Company?
+    @Bindable var company : Company
     
 //    @Environment(\.horizontalSizeClass) var horizontalSizeClass
 //    @Environment(\.verticalSizeClass) var verticalSizeClass
@@ -37,10 +37,7 @@ struct CertificateUpdate: View {
                             .foregroundColor(.darkCyan)
                             .padding(.top, 10)
                         
-                  
-                            SelectedCompanyButton(selection: $selection)
-                                .padding(.top, 10)
-                        
+                    
                         EditUserCertificateCredentials
                             .fileImporter(isPresented: $viewModel.isCertificateImporterPresented,
                                           allowedContentTypes:  [.x509Certificate],
@@ -198,10 +195,9 @@ struct CertificateUpdate: View {
 }
 
 struct CertificateUpdateViewWrapper: View {
-    @State private var selectedCompany: Company? = nil
-    @State private var selectedCompanyId: String = ""
-    
+    @Query var companies: [Company]
+   
     var body: some View {
-        CertificateUpdate(selection: $selectedCompany)
+        CertificateUpdate(company: companies.first!)
     }
 }

@@ -3,14 +3,16 @@ import SwiftData
 
 struct CompanyDetailsView : View {
     @Bindable var company: Company
-    @Binding var selectedCompanyId: String 
+    @Binding var selection : Company?
+    
+    @Binding var selectedCompanyId: String
     @State var viewModel = CompanyDetailsViewModel()
     @AppStorage("selectedCompanyIdentifier") var companyId: String = "" {
         didSet {
             selectedCompanyId = companyId
         }
     }
-    
+    @AppStorage("selectedCompanyName")  var selectedCompanyName : String = ""
     var body: some View {
         ScrollView {
             VStack(spacing: 24) { // Increased from 20 for better section separation
@@ -20,6 +22,8 @@ struct CompanyDetailsView : View {
                     CompanyTabs
                 }
                 .padding(.horizontal)
+                
+                StatusSection
                 
                 CompanyDetailsSection(company: company)
             }
@@ -39,6 +43,12 @@ struct CompanyDetailsView : View {
         }
         .sheet(isPresented: $viewModel.showEditCredentialsSheet) {
             EditProfileView(selection: .constant(company))
+        }
+        .sheet(isPresented: $viewModel.showEditCompanySheet){
+            EmisorEditView(company: company)
+        }
+        .sheet(isPresented: $viewModel.showEditCertificateCredentials){
+            CertificateUpdate(company: company)
         }
     }
     
@@ -100,27 +110,67 @@ struct CompanyDetailsView : View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .shadow(color: .black.opacity(0.1), radius: 2)
         .padding()
+        .onAppear(){
+            Task{
+                await validateCertificateCredentialasAsync()
+                await validateCredentialsAsync()
+            }
+        }
     }
     
     private var CompanyTabs: some View {
         VStack(spacing: 12) {
-            NavigationButton(
-                title: "Editar Datos de Empresa",
-                icon: "pencil.line",
-                color: .darkCyan.opacity(0.95)
+            
+            Button(action: {
+                viewModel.showSetAsDefailtConfirmDialog.toggle()
+            }) {
+                
+                let selected = selectedCompanyId == company.id
+                
+                
+                MenuButton(
+                    title: selected ? "Empresa Predeterminada": "Establecer Como predeterminada",
+                    icon: "widget.small.square.fill",
+                    color: selected ?
+                    Color(.darkCyan).opacity(0.95):
+                        Color(.blue).opacity(0.45)
+                )
+                
+            }.disabled(isDisabledSelectAsPrimary())
+            .confirmationDialog(
+                "¿Desea Establecer esta empresa como predeterminada para gestionar facturas?",
+                isPresented: $viewModel.showSetAsDefailtConfirmDialog,
+                titleVisibility: .visible
             ) {
-                EmisorEditView(company: company)
+                Button("Confirmar",action: SetAsDefaultCompany)
+                    
+                
+                Button("Cancelar", role: .cancel) {}
             }
             
-            NavigationButton(
-                title: "Credenciales de Certificado",
-                icon: "lock.fill",
-                color: .darkCyan.opacity(0.95)
-            ) {
-//                CertificateUpdate(selection: Binding(
-//                    get: { company },
-//                    set: { _ in }
-//                ))
+            Button(action: {
+                viewModel.showEditCompanySheet.toggle()
+            }) {
+                MenuButton(
+                    title: "Editar Datos de Empresa",
+                    icon: "pencil.line",
+                    color: .darkCyan.opacity(0.95),
+                    warning: hasAnyMissingField(),
+                    warningMessage: "Actualize Datos Incompletos de Empresa"
+                )
+            }
+            
+            Button(action: {
+                viewModel.showEditCertificateCredentials.toggle()
+            }) {
+                MenuButton(
+                    title: "Credenciales de Certificado",
+                    icon: "lock.fill",
+                    color: Color(.darkCyan).opacity(0.95),
+                    loading: viewModel.isLoadingCertificateStatus,
+                    warning: viewModel.showCertificateInvalidMessage,
+                    warningMessage: "Actualize Certificado"
+                )
             }
             
             Button(action: {
@@ -129,35 +179,95 @@ struct CompanyDetailsView : View {
                 MenuButton(
                     title: "Credenciales Hacienda",
                     icon: "key.fill",
-                    color:
-                        (company.isTestAccount ?
-                        Color( .amarello):
-                        Color(.green).opacity(0.95))
+                    color: Color(.darkCyan).opacity(0.95),
+                    loading: viewModel.isLoadingCredentialsStatus,
+                    warning: viewModel.showCredentialsInvalidMessage,
+                    warningMessage: "Actualize Contraseña de Hacienda"
                 )
             }
             
-            Button(action: {
-                viewModel.showRequestProductionAccessSheet.toggle()
-            }) {
-                MenuButton(
-                    title: "Solicitar Autorización Productiva",
-                    icon: "checkmark.seal.fill",
-                    color: (company.isTestAccount ?
-                            Color( .amarello):
-                            Color(.green).opacity(0.95))
-                )
+            if company.isTestAccount {
+                
+                
+                Button(action: {
+                    viewModel.showRequestProductionAccessSheet.toggle()
+                }) {
+                    MenuButton(
+                        title: "Solicitar Autorización a Producción",
+                        icon: "checkmark.seal.fill",
+                        color: Color( .amarello)
+                    )
+                }
             }
-            
             Button(action: {
                 viewModel.showLogoEditorSheet = true
             }) {
                 MenuButton(
                     title: "Editar Logo de Facturas",
                     icon: "photo.on.rectangle",
-                    color: .darkCyan.opacity(0.95)
+                    color: .darkCyan.opacity(0.95),
+                    warning: hasMissingInvoiceLogo(),
+                    warningMessage: "Selecciones logo de facturas"
                 )
             }
         }
+    }
+    
+    private var StatusSection : some View {
+        VStack{
+            if viewModel.isLoadingCertificateStatus{
+                Label("Verificando Certificado...",systemImage: "progress.indicator")
+                    .foregroundColor(.darkCyan)
+                    .symbolEffect(.variableColor.iterative.dimInactiveLayers.nonReversing, options: .repeat(.continuous))
+            }
+            else{
+                VStack{
+                    HStack {
+                        let color = viewModel.showCertificateInvalidMessage ? Color.red :  Color.darkCyan
+                        let label = viewModel.showCertificateInvalidMessage ? "Invalido" : "OK"
+                        Text("Certificado Hacienda")
+                            .foregroundColor(color)
+                        Spacer()
+                        Circle()
+                            .fill(color)
+                            .frame(width: 8, height: 8)
+                        Text(label)
+                            .font(.subheadline)
+                            .foregroundColor(color)
+                            .padding(7)
+                            .background(color.opacity(0.09))
+                            .cornerRadius(8)
+                    }
+                }
+            }
+            
+            if viewModel.isLoadingCredentialsStatus{
+                Label("Verificando Credenciales...",systemImage: "progress.indicator")
+                    .foregroundColor(.darkCyan)
+                    .symbolEffect(.variableColor.iterative.dimInactiveLayers.nonReversing, options: .repeat(.continuous))
+            }
+            else{
+                VStack{
+                    HStack {
+                        let color = viewModel.showCredentialsInvalidMessage ? Color.red :  Color.darkCyan
+                        let label = viewModel.showCredentialsInvalidMessage ? "Invalido" : "OK"
+                        Text("Credenciales Hacienda")
+                            .foregroundColor(color)
+                        Spacer()
+                        Circle()
+                            .fill(color)
+                            .frame(width: 8, height: 8)
+                        Text(label)
+                            .font(.subheadline)
+                            .foregroundColor(color)
+                            .padding(7)
+                            .background(color.opacity(0.09))
+                            .cornerRadius(8)
+                    }
+                }
+            }
+            
+        }.padding(.horizontal,20)
     }
 }
 
@@ -181,28 +291,47 @@ struct NavigationButton<Destination: View>: View {
     }
 }
 
-struct MenuButton: View {
+private struct MenuButton: View {
     let title: String
     let icon: String
     let color: Color
     
+    var loading: Bool = false
+    var warning: Bool = false
+    var warningMessage : String = ""
+    
     var body: some View {
-        HStack {
-            Label(title, systemImage: icon)
-                .font(.headline)
-            Spacer()
-            Image(systemName: "chevron.right")
-                .font(.caption.bold())
+        VStack{
+            HStack {
+                
+                if loading {
+                    Label("Verificando credenciales de Certificado...",systemImage: "progress.indicator")
+                        .foregroundColor(.white)
+                        .symbolEffect(.variableColor.iterative.dimInactiveLayers.nonReversing, options: .repeat(.continuous))
+                    
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption.bold())
+                    
+                }
+                else{
+                    Label(warning ? warningMessage : title, systemImage: icon )
+                        .font(.headline)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption.bold())
+                    
+                    }
+                }
+            .foregroundColor(.white)
+            .padding()
+            .frame(maxWidth: .infinity)
+            .background(loading ? Color(.gray) : warning ? Color(.amarello) :  color)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .strokeBorder(Color.white.opacity(0.2), lineWidth: 1)
+            ).clipShape(RoundedRectangle(cornerRadius: 12))
         }
-        .foregroundColor(.white)
-        .padding()
-        .frame(maxWidth: .infinity)
-        .background(color)
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .strokeBorder(Color.white.opacity(0.2), lineWidth: 1)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 }
 
@@ -273,9 +402,11 @@ struct CompanyDetailsSection: View {
 private struct CompanyDetailsWrapper: View {
     @Query var companies: [Company]
     @State private var selectedCompanyId: String = ""
-    
+    @State private var selectedCompany: Company?
     var body: some View {
-        CompanyDetailsView(company: companies.first!, selectedCompanyId: $selectedCompanyId)
+        CompanyDetailsView(company: companies.first!,
+                           selection: $selectedCompany,
+                           selectedCompanyId: $selectedCompanyId)
     }
 }
 

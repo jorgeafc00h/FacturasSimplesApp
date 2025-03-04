@@ -41,7 +41,7 @@ extension CertificateUpdate{
     
     func updateCertCredentials() async  {
         viewModel.isValidatingCertificateCredentials = true
-        if let company = selection{
+       
             let encryptedPassword = try! Cryptographic.encrypt(viewModel.password)
             
            
@@ -59,11 +59,11 @@ extension CertificateUpdate{
                 viewModel.showValidationMessage = true
                 viewModel.message = "Error al actualizar Contraseña, actualize y verifique la contraseña del certificado en el portal de Hacienda"
             }
-        }
-        else{
-            viewModel.showAlertMessage = true
-            viewModel.message = ""
-        }
+        
+//        else{
+//            viewModel.showAlertMessage = true
+//            viewModel.message = ""
+//        }
         viewModel.isValidatingCertificateCredentials = false
     }
     
@@ -74,9 +74,9 @@ extension CertificateUpdate{
             if let url = urls.first{
                 
                 print("url \(url)")
-                    if let company = selection{
-                        viewModel.nit = company.nit
-                    }
+                    
+                    viewModel.nit = company.nit
+                    
                     viewModel.selectedUrl = url
                 
                     print("result \(result)")

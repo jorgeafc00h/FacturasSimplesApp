@@ -14,7 +14,7 @@ extension ProfileView{
         
         var showOnboardingSheet : Bool = false
         
-        var showEditCredentialsSheet : Bool = false
+       
         
     }
     
@@ -45,7 +45,6 @@ extension ProfileView{
         if let selectedCompany = try? modelContext.fetch(descriptor).first {
             defaultSectedCompany = selectedCompany
             
-            viewModel.showEditCredentialsSheet = selectedCompany.credentials.isEmpty
             print("selected Company -> \(selectedCompany.nombre)")
         } else {
             print("no selected company identifier: \(selectedCompanyId)")

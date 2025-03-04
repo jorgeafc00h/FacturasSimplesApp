@@ -90,7 +90,9 @@ struct ProfileView: View {
         }
         detail:{
             if let company = selection {
-                CompanyDetailsView(company: company,selectedCompanyId: $selectedCompanyId)
+                CompanyDetailsView(company: company,
+                                   selection: $selection,
+                                   selectedCompanyId: $selectedCompanyId )
             }
         }
         .navigationSplitViewStyle(.balanced)
@@ -111,22 +113,7 @@ struct ProfileView: View {
             label: {
                 NavigationLabel(title:"Configuración Empresas",imagename: "widget.small")
             }
-//            NavigationLink {
-//                CompaniesView(selection: $selection,
-//                              selectedCompanyId:  $selectedCompanyId)
-//            }
-//            label: {
-//                NavigationLabel(title:"Empresas Entorno Producción",imagename: "widget.small")
-//            }
-//            NavigationLink {EditProfileView(selection: $selection)}
-//            label: {
-//                NavigationLabel(title:"Usuario y contraseña MH",imagename: "person.badge.key.fill")
-//            }
-//            
-//            NavigationLink {CertificateUpdate(selection: $selection)}
-//            label: {
-//                NavigationLabel(title:"Contraseña Certificado MH",imagename:  "lock.fill")
-//            }
+            
             Button(action: { testAccounts.toggle() }, label: {
                 HStack {
                     Image(systemName: "testtube.2").padding(.horizontal, 5.0)
@@ -166,9 +153,7 @@ struct ProfileView: View {
                                 $selectedCompanyId,
                                reloadCompany: true)
             }
-        }.sheet(isPresented: $viewModel.showEditCredentialsSheet){
-            //EditProfileView(selection:$selection,required: true)
-        }
+        } 
     }
 }
 

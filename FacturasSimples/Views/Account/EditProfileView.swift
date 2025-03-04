@@ -155,7 +155,7 @@ struct EditProfileView: View {
             else{
                 if viewModel.isValidCredentials{
                     HStack {
-                        Text("Las Credenciales De La Hacienda Son Validas!")
+                        Text("Las Credenciales de Hacienda Son Validas!")
                         Spacer()
                         Circle()
                             .fill(.darkCyan)
