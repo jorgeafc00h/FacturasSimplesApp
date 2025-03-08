@@ -4,6 +4,21 @@ import SwiftUI
 import CoreImage.CIFilterBuiltins
 
 class InvoicePDFGenerator {
+    
+    @AppStorage("IsProduction") static var isProduction: Bool = false
+    
+    static var environmentCode : String {
+        get{
+            return isProduction ? Constants.EnvironmentCode_PRD : Constants.EnvironmentCode
+        }
+    }
+    
+    static var qr_url : String {
+        get{
+            return isProduction ?
+            Constants.qrUrlBase_PRD : Constants.qrUrlBase
+        }
+    }
     static func generatePDF(from invoice: Invoice, company: Company) -> (Data) {
         let fileName = "\(invoice.invoiceType.stringValue())-\(invoice.invoiceNumber).pdf"
         let pdfMetaData = [
@@ -92,7 +107,7 @@ class InvoicePDFGenerator {
             dateFormatter.dateFormat = "dd-MM-yyyy"
             let _date = dateFormatter.string(from: invoice.date).replacingOccurrences(of: "/", with: "-")
             let qrUrlFormat = invoice.generationCode != "" ?
-                        "\(Constants.qrUrlBase)?ambiente=\(Constants.EnvironmentCode)&codGen=\(invoice.generationCode ?? "")&fechaEmi=\(_date)" :
+                        "\(qr_url)?ambiente=\(environmentCode)&codGen=\(invoice.generationCode ?? "")&fechaEmi=\(_date)" :
                         ""
             // QR Code
             let qrRect = CGRect(x: 30, y: 120, width: 75, height: 75)

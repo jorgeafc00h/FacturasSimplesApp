@@ -26,3 +26,9 @@ var pagesIntros : [PageIntro] = [
     .init(introAssetImage: "page1",title:"Info de emisor", subTitle: "Actividad economica, y tipo de establecimiento", displaysAction: true, companyStep3: true  ),
     .init(introAssetImage: "page2",title:"Falta Poco!", subTitle: "Configure el certificado es requerido para firmar documentos tributarios,si aun no lo tienes, accede a el formulario de solicitud de Hacienda en el siguiente link:", displaysAction: true, companyStep4: true  ),
 ]
+
+
+var pagePreProdIntros: [PageIntro]=[
+    .init(introAssetImage: "pre-prod",title:"Solicitar Acceso a Producción", subTitle:"Hacienda requiere generar 50 documentos de cada uno de los DTE para solicitar acceso a producción..." ,backColor: .onboarding1),
+    .init(introAssetImage: "pre-prod",title:"Generar Documentos de Prueba!", subTitle:"luego podras verificar los documentos generados y procesados en la seccion de facturas...", displaysAction: true, backColor: .amarello, companyStep1: true),
+]

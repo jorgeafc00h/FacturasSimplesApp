@@ -1,15 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "profile.png",
+      "filename" : "pre-prod.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
+      "filename" : "pre-prod 1.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
+      "filename" : "pre-prod 2.png",
       "idiom" : "universal",
       "scale" : "3x"
     }

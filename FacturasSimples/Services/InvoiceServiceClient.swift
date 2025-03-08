@@ -6,6 +6,26 @@ import CryptoKit
 
 class InvoiceServiceClient
 {
+    
+    @AppStorage("IsProduction") var isProduction: Bool = false
+    
+    private let encoder = JSONEncoder()
+    
+    var url_base : String {
+        get {
+            return isProduction ?
+            Constants.InvoiceServiceUrl_PRD :
+            Constants.InvoiceServiceUrl
+            
+        }
+    }
+    
+    var environmentCode : String {
+        get{
+            return isProduction ? Constants.EnvironmentCode_PRD : Constants.EnvironmentCode
+        }
+    }
+    
     func GetDefaultSesssion() -> URLSession
     {
         let configuration = URLSessionConfiguration.default
@@ -15,12 +35,12 @@ class InvoiceServiceClient
         return URLSession(configuration: configuration)
     }
     
-    private let encoder = JSONEncoder()
+    
     
     func getCatalogs()async throws -> [Catalog]
     {
         
-        let endpoint = Constants.InvoiceServiceUrl+"/catalog"
+        let endpoint = url_base+"/catalog"
         
         guard let url = URL(string: endpoint) else {
             throw ApiErrors.invalidURL
@@ -54,7 +74,8 @@ class InvoiceServiceClient
     
     func uploadCertificate(data: Data,nit: String) async throws -> Bool
     {
-        let endpoint = Constants.InvoiceServiceUrl+"/document/upload"
+        let endpoint = url_base+"/document/upload"
+        
         guard let url = URL(string: endpoint) else {
             throw ApiErrors.invalidURL
         }
@@ -78,7 +99,8 @@ class InvoiceServiceClient
     
     func validateCertificate(nit: String,key: String) async throws -> Bool
     {
-        let endpoint = Constants.InvoiceServiceUrl+"/settings/certificate/validate"
+        let endpoint = url_base+"/settings/certificate/validate"
+        
         guard let url = URL(string: endpoint) else {
             throw ApiErrors.invalidURL
         }
@@ -115,7 +137,8 @@ class InvoiceServiceClient
         print("DTE JSON")
         print(jsonString)
         
-        let endpoint = Constants.InvoiceServiceUrl+"/document/dte/sync"
+        let endpoint = url_base+"/document/dte/sync"
+        
         guard let url = URL(string: endpoint) else {
             throw ApiErrors.invalidURL
         }
@@ -165,7 +188,9 @@ class InvoiceServiceClient
     }
     
     func uploadPDF(data : Data, controlNum: String, nit: String) async throws  {
-        let endpoint = Constants.InvoiceServiceUrl + "/document/pdf/upload"
+        
+        let endpoint = url_base + "/document/pdf/upload"
+        
         guard let url = URL(string: endpoint) else {
             throw ApiErrors.invalidURL
         }
@@ -214,7 +239,9 @@ class InvoiceServiceClient
     }
     
     func validateCredentials(nit: String, password: String, forceRefresh: Bool = false)async throws -> Bool {
-        let endpoint = Constants.InvoiceServiceUrl + "/account/validate?forceRefresh=\(forceRefresh)"
+        
+        let endpoint = url_base + "/account/validate?forceRefresh=\(forceRefresh)"
+        
         guard let url = URL(string: endpoint) else {
             throw ApiErrors.invalidURL
         }

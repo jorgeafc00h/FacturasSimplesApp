@@ -4,7 +4,7 @@ class MhClient {
     
    
     
-    static func mapInvoice(invoice: Invoice, company: Company)throws -> DTE_Base {
+    static func mapInvoice(invoice: Invoice, company: Company, environmentCode: String)throws -> DTE_Base {
         var index = 1
         
         let items = invoice.items.map { detail -> CuerpoDocumento in
@@ -40,7 +40,7 @@ class MhClient {
         
         let identificacion = Identificacion(
             version: invoice.isCCF ? 3 : 1,
-            ambiente: Constants.EnvironmentCode,
+            ambiente: environmentCode,
             tipoDte: invoice.isCCF ? "03" : "01",
             numeroControl: invoice.controlNumber,
             codigoGeneracion: invoice.generationCode,
@@ -183,7 +183,7 @@ class MhClient {
             porcentajeDescuento: 0.0,
             totalDescu: 0.0,
             tributos: nil,
-            subTotal: invoice.subTotal,
+            subTotal: invoice.subTotal.rounded(),
             ivaRete1: 0.0,
             reteRenta: 0.0,
             montoTotalOperacion: invoice.totalAmount,

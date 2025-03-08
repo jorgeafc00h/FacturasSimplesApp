@@ -21,7 +21,7 @@ struct CustomersView: View {
         }
        
         detail: {
-            if let cust = selection {
+            if let cust = selection { 
                 NavigationStack {
                     CustomerDetailView(customer:cust)
                 }

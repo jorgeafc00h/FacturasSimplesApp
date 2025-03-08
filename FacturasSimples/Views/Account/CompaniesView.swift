@@ -34,13 +34,9 @@ struct CompaniesView: View {
             searchText.isEmpty ? true :
             $0.nit.contains(searchText) ||
             $0.nrc.contains(searchText) ||
-            $0.nombre.contains(searchText) &&
-            $0.isTestAccount == testAccounts
-            
-            
+            $0.nombre.contains(searchText)
         }
-        
-        
+         
         _companies = Query(filter: predicate, sort: \Company.nombre)
     }
     
@@ -49,14 +45,21 @@ struct CompaniesView: View {
     var filteredCompanies: [Company] {
         
         if searchText.isEmpty {
-            companies.filter{$0.isTestAccount == testAccounts}
+            return  testAccounts ? companies : companies.filter{$0.isTestAccount == false }
         }
         else {
+            return testAccounts ?
+               companies.filter{
+                $0.nit.contains(searchText) ||
+                $0.nrc.contains(searchText) ||
+                $0.nombre.contains(searchText)
+            }
+            :
             companies.filter{
                 $0.nit.contains(searchText) ||
                 $0.nrc.contains(searchText) ||
                 $0.nombre.contains(searchText) &&
-                $0.isTestAccount == testAccounts
+                $0.isTestAccount == false
             }
         }
     }

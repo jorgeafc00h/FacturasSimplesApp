@@ -15,7 +15,7 @@ struct  SelectedCompanyButton: View {
                         .fill(Color(.darkCyan ))
                         .frame(width: 55, height: 55)
                         .overlay {
-                            Image(systemName: "widget.small")
+                            Image(systemName: company.isTestAccount ? "testtube.2" : "widget.small")
                                 .font(.system(size: 30))
                                 .foregroundStyle(.background)
                                 .symbolEffect(.breathe, options: .nonRepeating)
@@ -34,6 +34,20 @@ struct  SelectedCompanyButton: View {
                         Text(company.correo)
                             .font(.headline)
                             .foregroundColor(.white)
+                        HStack {
+                            Text(company.isTestAccount ? "Ambiente Pruebas" : "Ambiente Productivo")
+                                .font(.subheadline)
+                                .foregroundColor(company.isTestAccount ? .amarello : .green)
+                                .padding(7)
+                                .background(.amarello.opacity(0.09))
+                                .cornerRadius(8)
+                            Spacer()
+                            Image(systemName: company.isTestAccount ? "exclamationmark.triangle.fill" : "checkmark.seal.fill")
+                                .font(.system(size: 10))
+                                .foregroundColor(company.isTestAccount ? .amarello : .green)
+                                .foregroundStyle(.background)
+                                .symbolEffect(.breathe, options: .nonRepeating)
+                        }
                         if case let (id?, p?) = (company.nit, company.telefono) {
                             Divider()
                             HStack {

@@ -13,6 +13,10 @@ struct CompanyDetailsView : View {
         }
     }
     @AppStorage("selectedCompanyName")  var selectedCompanyName : String = ""
+    
+    @AppStorage("IsProduction") var isProduction: Bool = false
+    
+    @Environment(\.modelContext) var modelContext
     var body: some View {
         ScrollView {
             VStack(spacing: 24) { // Increased from 20 for better section separation
@@ -38,7 +42,7 @@ struct CompanyDetailsView : View {
         }
         .sheet(isPresented: $viewModel.showRequestProductionAccessSheet) {
             NavigationStack {
-                RequestProductionAccessView()
+                RequestProductionView(company: company)
             }
         }
         .sheet(isPresented: $viewModel.showEditCredentialsSheet) {
@@ -132,7 +136,7 @@ struct CompanyDetailsView : View {
                 
                 MenuButton(
                     title: selected ? "Empresa Predeterminada": "Establecer Como predeterminada",
-                    icon: "widget.small.square.fill",
+                    icon: "widget.small",
                     color: selected ?
                     Color(.darkCyan).opacity(0.95):
                         Color(.blue).opacity(0.45)
@@ -197,7 +201,8 @@ struct CompanyDetailsView : View {
                     MenuButton(
                         title: "Solicitar Autorización a Producción",
                         icon: "checkmark.seal.fill",
-                        color: Color( .amarello)
+                        color: Color(.darkCyan).opacity(0.95),
+                        warning: hasNoInvoicesToRequestAccess()
                     )
                 }
             }

@@ -25,15 +25,7 @@ extension ProfileView{
         return nil
     }
     func loadProfileAndSelectedCompany() {
-        // check saved user profile
-//        if returnUiImage(named: "fotoperfil") != nil {
-//            
-//            //imagenPerfil = returnUiImage(named: "fotoperfil")!
-//
-//        }else{
-//            print("no profile picture available")
-//            
-//        }
+    
         print("check user defaults..")
        
         

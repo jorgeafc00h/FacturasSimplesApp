@@ -1,5 +1,6 @@
 import SwiftUI
 import Foundation
+import SwiftData
 
 extension CompanyDetailsView{
     
@@ -35,6 +36,8 @@ extension CompanyDetailsView{
             companyId = company.id
             selection = company
             selectedCompanyName = company.nombreComercial
+            //Constants.IS_PRODUCTION = company.isTestAccount == false
+            isProduction = company.isTestAccount == false
         }
     }
     func validateCertificateCredentialasAsync() async  {
@@ -105,5 +108,18 @@ extension CompanyDetailsView{
         let id = companyId.isEmpty ? selectedCompanyId  : companyId
         
         return company.id == id
+    }
+    
+    
+    
+    func hasNoInvoicesToRequestAccess() -> Bool {
+        let invoiceTypes: [InvoiceType] = [.Factura, .CCF]
+        for type in invoiceTypes {
+            let fetchRequest = FetchDescriptor<Invoice>(predicate: #Predicate { $0.invoiceType == type })
+            if let invoicesOfType = try? modelContext.fetch(fetchRequest), invoicesOfType.count < 50 {
+                return true
+            }
+        }
+        return false
     }
 }

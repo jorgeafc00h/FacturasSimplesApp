@@ -3,7 +3,7 @@ import SwiftData
 
 struct EditProfileView: View {
     
-    @State var imagenPerfil: Image? = Image("AppLogo")
+    @State var applogo: Image? = Image("AppLogo")
     @State var isCameraActive = false
     
     @Bindable var selection : Company
@@ -25,7 +25,7 @@ struct EditProfileView: View {
                         Button(action: {isCameraActive = true}, label: {
                             ZStack{
                                 
-                                imagenPerfil!.resizable().aspectRatio(contentMode: .fill)
+                                applogo!.resizable().aspectRatio(contentMode: .fill)
                                     .frame(width: 118.0, height: 118.0)
                                      
                                     .sheet(isPresented: $isCameraActive, content: {

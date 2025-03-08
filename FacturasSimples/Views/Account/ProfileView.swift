@@ -9,7 +9,7 @@ struct ProfileView: View {
 //
     @Environment(\.modelContext) var modelContext
     
-    //@State var imagenPerfil:UIImage = UIImage(named: "gearshape.2")!
+  
     
     @State var isToggleOn = true
     

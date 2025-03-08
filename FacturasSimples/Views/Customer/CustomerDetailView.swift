@@ -12,17 +12,7 @@ struct CustomerDetailView: View {
     
     var customer : Customer
     
-    @State var imagenPerfil:UIImage = UIImage(named: "perfilEjemplo")!
-    var body: some View {
-        VStack{
-            
-            Image(uiImage: imagenPerfil ).resizable().aspectRatio(contentMode: .fill)
-                .frame(width: 76, height: 76)
-                .clipShape(Circle()) 
-            
-            
-        }.background(.clear)//.padding(EdgeInsets(top: 0, leading: , bottom: 32, trailing: 0))
-        List {
+    var body: some View {List {
             CustomerViewForiOS()
         }
         .navigationTitle(Text("Cliente"))
@@ -43,6 +33,11 @@ struct CustomerDetailView: View {
     private func CustomerViewForiOS() -> some View {
         
         VStack(alignment: .leading) {
+            Section{
+                Image(systemName: "person.circle").resizable().aspectRatio(contentMode: .fill)
+                    .frame(width: 50, height: 50)
+                    .clipShape(Circle())
+            }
             Text(customer.fullName)
                 .font(.title)
                 .bold()

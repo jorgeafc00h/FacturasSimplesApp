@@ -35,9 +35,7 @@ extension InvoiceDetailView {
             
             showConfirmSyncSheet.toggle()
         }
-        
-        
-        
+         
         let invoiceService = InvoiceServiceClient()
         
  
@@ -133,6 +131,7 @@ extension InvoiceDetailView {
             
             return dte
         }
+        
         func validateCredentialsAsync(_ invoice: Invoice) async  -> Bool {
             let serviceClient  = InvoiceServiceClient()
             
@@ -183,7 +182,9 @@ extension InvoiceDetailView {
             }
            
             do {
-                let dte = try MhClient.mapInvoice(invoice: invoice, company: company)
+                let envCode =  invoiceService.environmentCode
+                
+                let dte = try MhClient.mapInvoice(invoice: invoice, company: company,environmentCode: envCode)
                 
                 print("DTE Numero control:\(dte.identificacion.numeroControl ?? "")")
                 
