@@ -148,11 +148,10 @@ struct ProfileView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 1.0)).padding(.horizontal, 8.0)
         }.sheet(isPresented: $viewModel.showOnboardingSheet) {
              
-            if let _ = selection {
-                OnboardingView(requiresOnboarding: $viewModel.showOnboardingSheet,selectedCompanyId:
+            OnboardingView(requiresOnboarding: $viewModel.showOnboardingSheet,selectedCompanyId:
                                 $selectedCompanyId,
                                reloadCompany: true)
-            }
+            
         } 
     }
 }

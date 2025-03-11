@@ -106,7 +106,7 @@ extension AddCompanyView4 {
         let encryptedPassword = try! Cryptographic.encrypt(viewModel.password)
         
         let service = InvoiceServiceClient()
-        let result = try? await service.validateCertificate(nit: company.nit, key: encryptedPassword)
+        let result = try? await service.validateCertificate(nit: company.nit, key: encryptedPassword,isProduction: company.isProduction)
         
         if(result != nil && result!){
             company.certificatePassword = encryptedPassword
@@ -157,7 +157,7 @@ extension AddCompanyView4 {
                 
                 if let certificate = fileData {
                     
-                    let result = try await service.uploadCertificate(data: certificate, nit: company.nit)
+                    let result = try await service.uploadCertificate(data: certificate, nit: company.nit,isProduction: company.isProduction)
                     
                     // now check certificate crecentials if credentials are empty , lets display a warning.
                     viewModel.showAlertMessage = true

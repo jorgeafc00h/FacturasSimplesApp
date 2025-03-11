@@ -45,7 +45,8 @@ extension CompanyDetailsView{
         
         let service = InvoiceServiceClient()
         
-        let result = try? await service.validateCertificate(nit: company.nit, key: company.certificatePassword)
+        
+        let result = try? await service.validateCertificate(nit: company.nit, key: company.certificatePassword,isProduction: company.isProduction)
         
         print("Certificate Validation Result: \(String(describing: result))")
         
@@ -61,7 +62,10 @@ extension CompanyDetailsView{
         
         let service = InvoiceServiceClient()
         
-        let result = try? await service.validateCredentials(nit: company.nit, password: company.credentials,forceRefresh: false)
+        let result = try? await service.validateCredentials(nit: company.nit,
+                                                            password: company.credentials,
+                                                            isProduction: company.isProduction,
+                                                            forceRefresh: false)
         print("Credentials Validation Result: \(String(describing: result))")
         
         if( result == nil || result! == false){

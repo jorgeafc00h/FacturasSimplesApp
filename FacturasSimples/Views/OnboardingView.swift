@@ -185,7 +185,7 @@ private struct introView<ActionView:View>: View {
         .overlay(alignment: .topLeading){
             if intro != pagesIntros.first {
                 Button{
-                    changeIntro(true)
+                      changeIntro(true)
                 }
                 label:{
                     Image(systemName: "chevron.left")
@@ -227,7 +227,9 @@ private struct introView<ActionView:View>: View {
                 .background{
                     Capsule().fill(.black)
                 }
-        }.frame(maxWidth: .infinity)
+        }
+        .disabled(!intro.canContinue)
+        .frame(maxWidth: .infinity)
     }
     
     func changeIntro(_ isPrevious: Bool = false){

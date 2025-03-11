@@ -27,9 +27,9 @@ struct CustomerPicker :View {
         } else {
             customers.filter{searchText.isEmpty ?
                 $0.companyOwnerId == companyIdentifier:
-                $0.firstName.contains(searchText) ||
-                $0.lastName.contains(searchText) ||
-                $0.email.contains(searchText) &&
+                $0.firstName.localizedStandardContains(searchText) ||
+                $0.lastName.localizedStandardContains(searchText) ||
+                $0.email.localizedStandardContains(searchText) &&
                 $0.companyOwnerId == companyIdentifier
             }
         }

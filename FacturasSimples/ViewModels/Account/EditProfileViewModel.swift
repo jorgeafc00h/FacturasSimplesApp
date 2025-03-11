@@ -14,10 +14,15 @@ extension EditProfileView {
         
         var isBusy : Bool = false
          
-        func validateCredentialsAsync(nit: String,password: String) async throws -> Bool {
-            let serviceClient  = InvoiceServiceClient()
+        func validateCredentialsAsync(nit: String,password: String, isProduction: Bool) async throws -> Bool {
+            
+             
+                let serviceClient  = InvoiceServiceClient()
                 
-            return try await serviceClient.validateCredentials(nit: nit, password: password,forceRefresh: true)
+                return try await serviceClient.validateCredentials(nit: nit,
+                                                                   password: password,
+                                                                   isProduction: isProduction,
+                                                                   forceRefresh: true)
         }
         
         var areEquals: Bool {
@@ -47,7 +52,7 @@ extension EditProfileView {
         viewModel.isBusy = true
             
             do{
-                let areValid = try await viewModel.validateCredentialsAsync(nit: selection.nit, password: viewModel.password)
+                let areValid = try await viewModel.validateCredentialsAsync(nit: selection.nit, password: viewModel.password,isProduction: selection.isProduction)
                 
                 if areValid{
                     selection.credentials = viewModel.password
@@ -91,7 +96,7 @@ extension EditProfileView {
         viewModel.isBusy = true
        
             do{
-                let areValid = try await viewModel.validateCredentialsAsync(nit: selection.nit, password: selection.credentials)
+                let areValid = try await viewModel.validateCredentialsAsync(nit: selection.nit, password: selection.credentials,isProduction: selection.isProduction)
                 
                 if !areValid{
                     viewModel.showAlertMessage = true

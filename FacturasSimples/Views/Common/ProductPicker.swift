@@ -198,7 +198,7 @@ private struct ProductPickerItem: View {
             
             Text(product.productName)
             Spacer()
-            Text("$\(product.unitPrice)")
+            Text(product.unitPrice.formatted(.currency(code:"USD")))
         }
         
     }

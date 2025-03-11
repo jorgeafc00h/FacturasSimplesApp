@@ -47,7 +47,9 @@ extension CertificateUpdate{
            
             
             let service = InvoiceServiceClient()
-            let result = try? await service.validateCertificate(nit: company.nit, key: encryptedPassword)
+            let result = try? await service.validateCertificate(nit: company.nit,
+                                                                key: encryptedPassword,
+                                                                isProduction: company.isProduction)
            
             if(result != nil && result!){
                 company.certificatePassword = encryptedPassword
@@ -101,7 +103,7 @@ extension CertificateUpdate{
                 
                 if let certificate = fileData {
                     
-                    _ = try await service.uploadCertificate(data: certificate, nit: viewModel.nit)
+                    _ = try await service.uploadCertificate(data: certificate, nit: viewModel.nit, isProduction: company.isProduction)
                     viewModel.showAlertMessage = true
                     viewModel.message = "Certificado Actualizado!"
                 }

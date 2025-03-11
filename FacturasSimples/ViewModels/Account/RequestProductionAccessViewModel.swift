@@ -152,7 +152,7 @@ extension PreProdStep1{
                                                  key: company.certificatePassword,
                                                  invoiceNumber: invoice.invoiceNumber)
             
-            let dteResponse = try await viewModel.invoiceService.Sync(dte: dte!, credentials: credentials)
+            let dteResponse = try await viewModel.invoiceService.Sync(dte: dte!, credentials: credentials,isProduction: company.isProduction)
             
             print("\(dteResponse.estado)")
             print("SELLO \(dteResponse.selloRecibido)")
@@ -175,7 +175,7 @@ extension PreProdStep1{
         
         do {
             
-            var envCode  = viewModel.invoiceService.environmentCode
+            let envCode  = viewModel.invoiceService.getEnvironmetCode(company.isProduction)
             
             let dte = try MhClient.mapInvoice(invoice: invoice, company: company,environmentCode: envCode)
             

@@ -35,7 +35,7 @@ struct InvoicesListView: View {
             $0.customer.companyOwnerId == companyId
         }
         
-        _invoices = Query(filter: predicate, sort: \Invoice.invoiceNumber, order: .reverse)
+        _invoices = Query(filter: predicate, sort: \Invoice.date, order: .reverse)
     }
     
     var body: some View {

@@ -49,7 +49,7 @@ extension InvoiceDetailView {
                                                      key: company.certificatePassword,
                                                      invoiceNumber: invoice.invoiceNumber)
                 
-                dteResponse  = try await invoiceService.Sync(dte: dte!,credentials:credentials)
+                dteResponse  = try await invoiceService.Sync(dte: dte!,credentials:credentials,isProduction: company.isProduction)
                 
                 print("\(dteResponse?.estado ?? "")")
                 print("SELLO \(dteResponse?.selloRecibido ?? "")")
@@ -108,7 +108,7 @@ extension InvoiceDetailView {
             
             pdfData = _data
             do{
-                try await invoiceService.uploadPDF(data: _data, controlNum: invoice.controlNumber!, nit: company.nit)
+                try await invoiceService.uploadPDF(data: _data, controlNum: invoice.controlNumber!, nit: company.nit,isProduction: company.isProduction)
             }
             catch(let e){
                 print("Error al subir el pdf \(e)")
@@ -153,7 +153,7 @@ extension InvoiceDetailView {
             
             dte = GenerateInvoiceReferences(invoice)
             do{
-                let result =  try await serviceClient.validateCredentials(nit: company.nit, password: company.credentials)
+                let result =  try await serviceClient.validateCredentials(nit: company.nit, password: company.credentials,isProduction: company.isProduction)
                 syncLabel = "Enviando..."
                 isBusy = false
                 return result
@@ -182,7 +182,7 @@ extension InvoiceDetailView {
             }
            
             do {
-                let envCode =  invoiceService.environmentCode
+                let envCode =  invoiceService.getEnvironmetCode(company.isProduction)
                 
                 let dte = try MhClient.mapInvoice(invoice: invoice, company: company,environmentCode: envCode)
                 

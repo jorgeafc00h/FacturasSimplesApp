@@ -2,9 +2,9 @@ import Foundation
 
 struct Constants {
     
-    static let InvoiceServiceUrl_PRD = "https://k-invoices-api-dev.azurewebsites.net/api"
+    static let InvoiceServiceUrl_PRD = "https://k-invoices-api-prod.azurewebsites.net/api"
     
-    static let InvoiceServiceUrl = "https://k-invoices-api-prod.azurewebsites.net/api"
+    static let InvoiceServiceUrl = "https://k-invoices-api-dev.azurewebsites.net/api"
     
     static let includedTax : Decimal = 1.13
     

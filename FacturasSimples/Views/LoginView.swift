@@ -43,7 +43,7 @@ struct LoginView: View {
                     
                     VStack{
                         
-                        LoginViews
+                        //LoginViews
                         
                         
                         Spacer(minLength: 42)
@@ -154,16 +154,18 @@ struct LoginSectionView: View {
                 .foregroundColor(.white)
                 .padding(.vertical)
             Spacer()
-            Button(action: iniciarSesion) {
-                Text("Iniciar Sesión")
-                    .fontWeight(.bold)
-                    .clipShape(Capsule())
-                    .foregroundColor(.white)
-                    .frame( maxWidth: .infinity, alignment: .center)
-                    .padding(EdgeInsets(top: 11, leading: 18, bottom: 11, trailing: 18))
-                    .overlay(Capsule()
-                        .stroke(Color("Dark-Cyan"), lineWidth: 3).shadow(color: .white, radius: 6))
-            }.padding(.bottom)
+            
+            //TODO remove this button
+//            Button(action: iniciarSesion) {
+//                Text("Iniciar Sesión")
+//                    .fontWeight(.bold)
+//                    .clipShape(Capsule())
+//                    .foregroundColor(.white)
+//                    .frame( maxWidth: .infinity, alignment: .center)
+//                    .padding(EdgeInsets(top: 11, leading: 18, bottom: 11, trailing: 18))
+//                    .overlay(Capsule()
+//                        .stroke(Color("Dark-Cyan"), lineWidth: 3).shadow(color: .white, radius: 6))
+//            }.padding(.bottom)
         }
     }
     

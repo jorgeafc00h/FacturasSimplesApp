@@ -172,7 +172,9 @@ extension EmisorEditView {
                 
                 if let certificate = fileData {
                     
-                    let result = try await service.uploadCertificate(data: certificate, nit: viewModel.nit)
+                    let result = try await service.uploadCertificate(data: certificate,
+                                                                     nit: viewModel.nit,
+                                                                     isProduction: company.isProduction)
                     
                     // now check certificate crecentials if credentials are empty , lets display a warning.
                     viewModel.showAlertMessage = true

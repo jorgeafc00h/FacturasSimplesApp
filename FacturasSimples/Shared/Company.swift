@@ -38,6 +38,10 @@ import SwiftData
     
     var isTestAccount : Bool = true
     
+    var isProduction : Bool {
+        return isTestAccount == false
+    }
+    
     var actividadEconomicaLabel: String {
         descActividad == "" ? "Seleccione una actividad económica" : descActividad
     }

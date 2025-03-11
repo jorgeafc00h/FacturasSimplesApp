@@ -7,23 +7,15 @@ import CryptoKit
 class InvoiceServiceClient
 {
     
-    @AppStorage("IsProduction") var isProduction: Bool = false
-    
     private let encoder = JSONEncoder()
     
-    var url_base : String {
-        get {
-            return isProduction ?
-            Constants.InvoiceServiceUrl_PRD :
-            Constants.InvoiceServiceUrl
-            
-        }
+    private func getBaseUrl(_ isProduction: Bool) -> String{
+        return  isProduction ? Constants.InvoiceServiceUrl_PRD : Constants.InvoiceServiceUrl
     }
     
-    var environmentCode : String {
-        get{
-            return isProduction ? Constants.EnvironmentCode_PRD : Constants.EnvironmentCode
-        }
+    
+    func getEnvironmetCode(_ isProduction: Bool) -> String{
+        return isProduction ? Constants.EnvironmentCode_PRD : Constants.EnvironmentCode
     }
     
     func GetDefaultSesssion() -> URLSession
@@ -37,10 +29,10 @@ class InvoiceServiceClient
     
     
     
-    func getCatalogs()async throws -> [Catalog]
+    func getCatalogs(isProduction: Bool = false)async throws -> [Catalog]
     {
         
-        let endpoint = url_base+"/catalog"
+        let endpoint = getBaseUrl(isProduction) + "/catalog"
         
         guard let url = URL(string: endpoint) else {
             throw ApiErrors.invalidURL
@@ -72,9 +64,9 @@ class InvoiceServiceClient
         }
     }
     
-    func uploadCertificate(data: Data,nit: String) async throws -> Bool
+    func uploadCertificate(data: Data,nit: String, isProduction: Bool) async throws -> Bool
     {
-        let endpoint = url_base+"/document/upload"
+        let endpoint = getBaseUrl(isProduction)+"/document/upload"
         
         guard let url = URL(string: endpoint) else {
             throw ApiErrors.invalidURL
@@ -97,9 +89,9 @@ class InvoiceServiceClient
         return true;
     }
     
-    func validateCertificate(nit: String,key: String) async throws -> Bool
+    func validateCertificate(nit: String,key: String,isProduction: Bool) async throws -> Bool
     {
-        let endpoint = url_base+"/settings/certificate/validate"
+        let endpoint = getBaseUrl(isProduction)+"/settings/certificate/validate"
         
         guard let url = URL(string: endpoint) else {
             throw ApiErrors.invalidURL
@@ -125,10 +117,9 @@ class InvoiceServiceClient
         
     }
     
-    func Sync(dte: DTE_Base, credentials: ServiceCredentials)async throws -> DTEResponseWrapper
+    func Sync(dte: DTE_Base, credentials: ServiceCredentials,isProduction: Bool )async throws -> DTEResponseWrapper
     {
-       // let encoder = JSONEncoder()
-        //encoder.outputFormatting = .prettyPrinted
+       
         encoder.dateEncodingStrategy = .iso8601 // to properly fornat Date as json instead of number.
         
         let jsonData =  try encoder.encode(dte)
@@ -137,7 +128,7 @@ class InvoiceServiceClient
         print("DTE JSON")
         print(jsonString)
         
-        let endpoint = url_base+"/document/dte/sync"
+        let endpoint = getBaseUrl(isProduction)+"/document/dte/sync"
         
         guard let url = URL(string: endpoint) else {
             throw ApiErrors.invalidURL
@@ -187,9 +178,9 @@ class InvoiceServiceClient
         }
     }
     
-    func uploadPDF(data : Data, controlNum: String, nit: String) async throws  {
+    func uploadPDF(data : Data, controlNum: String, nit: String,isProduction: Bool) async throws  {
         
-        let endpoint = url_base + "/document/pdf/upload"
+        let endpoint = getBaseUrl(isProduction) + "/document/pdf/upload"
         
         guard let url = URL(string: endpoint) else {
             throw ApiErrors.invalidURL
@@ -238,9 +229,9 @@ class InvoiceServiceClient
         
     }
     
-    func validateCredentials(nit: String, password: String, forceRefresh: Bool = false)async throws -> Bool {
+    func validateCredentials(nit: String, password: String,isProduction: Bool,  forceRefresh: Bool = false)async throws -> Bool {
         
-        let endpoint = url_base + "/account/validate?forceRefresh=\(forceRefresh)"
+        let endpoint = getBaseUrl(isProduction) + "/account/validate?forceRefresh=\(forceRefresh)"
         
         guard let url = URL(string: endpoint) else {
             throw ApiErrors.invalidURL
