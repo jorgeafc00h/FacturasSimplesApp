@@ -111,7 +111,15 @@ extension Company{
             Company(nit: "1234567891",nrc:"34563456", nombre: "Empresa 2",nombreComercial: "Nombre comercial"),
             Company(nit: "1234567892",nrc:"345634562", nombre: "Empresa 3",nombreComercial: "Nombre comercial"),
             Company(nit: "1234567893",nrc:"345634563", nombre: "Empresa 4",nombreComercial: "Nombre comercial"),
-            Company(nit: "1234567894",nrc:"345634564", nombre: "Empresa 5",nombreComercial: "Nombre comercial")
+            Company(nit: "1234567894",nrc:"345634564", nombre: "Empresa 5",nombreComercial: "Nombre comercial"),
+            Company(nit: "1234567892",nrc:"345634562", nombre: "Empresa 6",nombreComercial: "Nombre comercial"),
+            Company(nit: "1234567893",nrc:"345634563", nombre: "Empresa 7",nombreComercial: "Nombre comercial"),
+            Company(nit: "1234567892",nrc:"345634562", nombre: "Empresa 8",nombreComercial: "Nombre comercial"),
+            Company(nit: "1234567893",nrc:"345634563", nombre: "Empresa 9",nombreComercial: "Nombre comercial"),
+            Company(nit: "1234567892",nrc:"345634562", nombre: "Empresa 10",nombreComercial: "Nombre comercial"),
+            Company(nit: "1234567893",nrc:"345634563", nombre: "Empresa 2",nombreComercial: "Nombre comercial"),
+            Company(nit: "1234567892",nrc:"345634562", nombre: "Empresa 3.1416 e",nombreComercial: "Nombre comercial"),
+            Company(nit: "1234567893",nrc:"345634563", nombre: "Empresa 4, E 3.1416",nombreComercial: "Nombre comercial"),
         ]
     }
 }

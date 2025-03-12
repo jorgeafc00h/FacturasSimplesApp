@@ -140,6 +140,17 @@ struct ProfileView: View {
                 }.padding()
             }) .background(Color("Blue-Gray"))
                 .clipShape(RoundedRectangle(cornerRadius: 1.0)).padding(.horizontal, 8.0)
+            
+            
+            NavigationLink {
+                NavigationStack{
+                    UserAccountView()
+                }
+            }
+            label: {
+                NavigationLabel(title:"Configuración Usuario",imagename: "person.badge.shield.checkmark.fill")
+            }
+            
             Button(action: {viewModel.showOnboardingSheet = true}, label: {
                 NavigationLabel(title:"info y ayuda",imagename: "info.circle.fill")
                                    .foregroundColor(.darkCyan)
