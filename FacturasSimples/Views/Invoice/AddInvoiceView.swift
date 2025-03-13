@@ -100,7 +100,7 @@ struct AddInvoiceView: View {
     private var InvoiceDataSection : some View{
         Section {
             Group {
-                TextField("Numero de Factura",text: $viewModel.invoiceNumber)
+                TextField("Número de Factura",text: $viewModel.invoiceNumber)
                     .keyboardType(.numberPad)
                 HStack{
                     Text("Fecha:")

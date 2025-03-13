@@ -31,7 +31,7 @@ struct CustomerEditView: View {
                     TextField("Apellido", text: $customer.lastName)
                     
                     TextField("NIT" ,text: $customer.nationalId)
-                    TextField("Telefono" ,text:  $customer.phone)
+                    TextField("Teléfono" ,text:  $customer.phone)
                     TextField("Correo", text: $customer.email)
                 }
             }
@@ -52,7 +52,7 @@ struct CustomerEditView: View {
                         TextField("NRC", text: $viewModel.nrc)
                             .onChange(of: viewModel.nrc){ customer.nrc = viewModel.nrc}
                         
-                        Button(customer.descActividad ?? "Actividad Economica"){
+                        Button(customer.descActividad ?? "Actividad Económica"){
                             viewModel.displayPickerSheet.toggle()
                         }
                     }
@@ -77,7 +77,7 @@ struct CustomerEditView: View {
                              selection: $customer.codActividad,
                              selectedDescription: $customer.descActividad,
                              showSearch: $viewModel.displayPickerSheet,
-                             title:"Actividad Economica")
+                             title:"Actividad Económica")
         }
         .accentColor(.darkCyan)
         
@@ -86,7 +86,7 @@ struct CustomerEditView: View {
     
     private var AddressSection: some View {
         
-        Section(header: Text("Direccion")) {
+        Section(header: Text("Dirección")) {
                 CustomerGroupBox {
                     Picker("Departamento",selection: $viewModel.departamento){
                         ForEach(departamentos,id:\.self){
@@ -109,7 +109,7 @@ struct CustomerEditView: View {
                     }
                     
                     
-                    TextField("Direccion" , text: $customer.address)
+                    TextField("Dirección" , text: $customer.address)
                 }
                 
             }

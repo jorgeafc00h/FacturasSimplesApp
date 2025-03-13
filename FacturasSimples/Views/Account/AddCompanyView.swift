@@ -1,4 +1,3 @@
-
 import SwiftUI
 import SwiftData
 
@@ -136,13 +135,13 @@ struct AddCompanyView2: View {
                             keyboardType: .emailAddress)
             
             CustomTextField(text:$company.telefono,
-                            hint:"Telefono",
-                            leadingIcon: "phone",
+                            hint:"Teléfono",
+                            leadingIcon: "phone.fill",
                             hintColor: intro.hintColor,
-                            keyboardType: .numberPad)
+                            keyboardType: .phonePad)
             
             CustomTextField(text:$company.complemento,
-                            hint:"Direccion",
+                            hint:"Dirección",
                             leadingIcon: "house.fill",
                             hintColor: intro.hintColor,
                             keyboardType:.default)
@@ -220,7 +219,7 @@ struct AddCompanyView3:  View {
                          selection: $company.codActividad,
                          selectedDescription: $company.descActividad,
                          showSearch: $displayCategoryPicker,
-                         title:"Actividad Economica")
+                         title:"Actividad Económica")
         }
         .sheet(isPresented: $displayTypePicker){
             SearchPickerFromCatalogView(catalogId: "CAT-008",

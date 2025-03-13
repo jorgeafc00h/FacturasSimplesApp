@@ -43,7 +43,7 @@ struct CustomerDetailView: View {
                 .bold()
             
             HStack {
-                Text("Telefono")
+                Text("Teléfono")
                 Spacer()
                 Text(customer.phone)
             }
@@ -79,7 +79,7 @@ struct CustomerDetailView: View {
             }
             
         } header: {
-            Text("Direccion")
+            Text("Dirección")
         }
         
         Section {
@@ -97,7 +97,7 @@ struct CustomerDetailView: View {
                     Spacer()
                     Text(customer.nrc ?? "")
                 }
-                Text("Actividad Economica")
+                Text("Actividad Económica")
                 VStack {
                      
                     Text(customer.descActividad ?? "N/A")
@@ -112,7 +112,7 @@ struct CustomerDetailView: View {
             }
             
         } header: {
-            Text("Informacion de Negocio")
+            Text("Información de Negocio")
         }
         
         

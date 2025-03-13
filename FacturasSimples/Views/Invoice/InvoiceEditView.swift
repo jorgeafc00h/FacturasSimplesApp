@@ -60,7 +60,7 @@ struct InvoiceEditView: View {
         
         
         Section(header: Text("Factura")) {
-            TextField("Numero Factura", text: $invoice.invoiceNumber)
+            TextField("Número Factura", text: $invoice.invoiceNumber)
                 .disabled(true)
             DatePicker("Fecha", selection: $invoice.date, displayedComponents: .date)
             Picker("Estado",selection: $invoice.status){

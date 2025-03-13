@@ -35,7 +35,7 @@ struct AddCustomerView: View {
                    
                     TextField("DUI", text: $viewModel.nationalId)
                         .keyboardType(.numberPad)
-                    TextField("Telefono", text: $viewModel.phone)
+                    TextField("Teléfono", text: $viewModel.phone)
                         .keyboardType(.phonePad)
                     TextField("Email", text: $viewModel.email)
                         .keyboardType(.emailAddress)
@@ -78,7 +78,7 @@ struct AddCustomerView: View {
                          selection: $viewModel.codActividad,
                          selectedDescription: $viewModel.descActividad,
                          showSearch: $viewModel.displayPickerSheet,
-                         title:"Actividad Economica")
+                         title:"Actividad Económica")
         }
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
@@ -122,7 +122,7 @@ private struct AddressSection: View {
     }
     
     var body: some View {
-        Section(header: Text("Direccion")) {
+        Section(header: Text("Dirección")) {
             CustomerGroupBox {
                 Picker("Departamento",selection: $departamentoCode){
                     ForEach(departamentos,id:\.self){
@@ -138,7 +138,7 @@ private struct AddressSection: View {
                     }
                 }.pickerStyle(.menu)
                 
-                TextField("Direccion" , text: $address)
+                TextField("Dirección" , text: $address)
             }
             
         }

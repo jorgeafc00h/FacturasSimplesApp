@@ -35,7 +35,7 @@ enum DTEValidationErrors: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidDocumentLength:
-            return NSLocalizedString("El numero de documento debe contener 9 digitos.", comment: "")
+            return NSLocalizedString("El número de documento debe contener 9 dígitos.", comment: "")
         case .fileNotFound:
             return NSLocalizedString("The data is invalid.", comment: "")
         case .stringGeneratedDoesntMatchExpectedPattern:

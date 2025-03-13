@@ -14,7 +14,7 @@ extension ProfileView{
         
         var showOnboardingSheet : Bool = false
         
-       
+        var showAccountSummary: Bool = false 
         
     }
     

@@ -205,7 +205,7 @@ extension InvoiceDetailView {
     
         try? modelContext.save()
          
-        if let dte = viewModel.dte {
+        if viewModel.dte != nil {
             viewModel.isBusy = true
             Task {
                 

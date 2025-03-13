@@ -43,7 +43,7 @@ struct InvoiceDetailView: View {
                     }
                     .help("Clears all content from the cache")
                     EditButon()
-                        .help("Editar Informacion General de la factura")
+                        .help("Editar Información General de la factura")
                     PrintButton()
                         .help("Vista preview de impresion para compartir factura PDF")
                     
@@ -232,7 +232,7 @@ struct InvoiceDetailView: View {
                             .padding(.top, 5)
                     }
                     VStack(alignment: .leading){
-                        Text("Numero Control")
+                        Text("Número Control")
                             .padding(.top, 5)
                         Text(invoice.controlNumber!)
                             .font(.footnote)

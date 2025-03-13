@@ -138,7 +138,7 @@ struct EmisorEditView: View {
                 selection: $viewModel.codActividad,
                 selectedDescription: $viewModel.desActividad,
                 showSearch: $viewModel.displayCategoryPicker,
-                title: "Actividad Economica"
+                title: "Actividad Económica"
             )
         }
         .alert(viewModel.message, isPresented: $viewModel.showAlertMessage) {
