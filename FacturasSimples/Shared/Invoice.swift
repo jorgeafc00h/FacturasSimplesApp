@@ -139,12 +139,12 @@ enum InvoiceType: Int, Codable, CaseIterable, Identifiable, Hashable {
 
 @Model class InvoiceDetail {
     
-    var quantity: Int
+    var quantity: Decimal
     var invoice : Invoice?
     var product: Product
     
     var productTotal: Decimal {
-        return  Decimal(quantity) * product.unitPrice
+        return  quantity * product.unitPrice
     }
     
     var productTotalWithoutTax: Decimal{
@@ -153,7 +153,7 @@ enum InvoiceType: Int, Codable, CaseIterable, Identifiable, Hashable {
         
     }
     
-    init(quantity: Int,
+    init(quantity: Decimal,
          product: Product
     ) {
         

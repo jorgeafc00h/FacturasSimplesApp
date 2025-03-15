@@ -66,12 +66,12 @@ class MhClient {
     
     static  func formatFromProductDetail(detail: InvoiceDetail, isCCF: Bool) -> CuerpoDocumento {
         
-        let productTotal = (Decimal( detail.quantity) * detail.product.unitPrice).rounded()
+        let productTotal = (detail.quantity * detail.product.unitPrice).rounded()
         let tax = (productTotal - (productTotal / Decimal(1.13))).rounded()
         
         return CuerpoDocumento(
             ivaItem: isCCF ? nil : tax,
-            cantidad: Decimal( detail.quantity),
+            cantidad: detail.quantity,
             numItem: 0,
             codigo: isCCF ? nil : "1", // ???
             codTributo: nil,

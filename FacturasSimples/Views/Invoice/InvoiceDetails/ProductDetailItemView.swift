@@ -30,14 +30,17 @@ struct ProductDetailItemView: View {
                 }
             HStack{
                 Text(detail.product.unitPrice.formatted(.currency(code: "USD")))
-                    .contentTransition(.numericText(value: Double( 0.00  )))
+                    //.contentTransition(.numericText(value: Double( 0.00  )))
+                    .contentTransition(.numericText(countsDown: true))
+                    .contentTransition(.numericText(value: Double(truncating: detail.product.unitPrice as NSNumber)))
                     .font(.footnote)
                 Spacer()
                 Text("\(detail.quantity)")
-                    .contentTransition(.numericText(value: Double(detail.quantity)))
+                
+                    .contentTransition(.numericText(value: Double(truncating: detail.quantity as NSNumber )))
                     .padding()
                     .font(.footnote)
-            }
+                }
             }
             
         }

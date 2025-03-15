@@ -59,7 +59,7 @@ extension PreProdStep1{
                 let customer = viewModel.customers.randomElement()!
                 let invoice = Invoice(invoiceNumber: "\(i)", date: Date(), status: .Nueva, customer: customer, invoiceType: type)
                 invoice.items = viewModel.products.map { product in
-                    InvoiceDetail(quantity: Int.random(in: 1...5), product: product)
+                    InvoiceDetail(quantity: Decimal( Int.random(in: 1...5)), product: product)
                 }
                 return invoice
             }
