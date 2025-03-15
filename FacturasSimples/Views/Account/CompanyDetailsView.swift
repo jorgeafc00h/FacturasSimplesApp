@@ -17,6 +17,7 @@ struct CompanyDetailsView : View {
     @AppStorage("IsProduction") var isProduction: Bool = false
     
     @Environment(\.modelContext) var modelContext
+    @Environment(\.dismiss)   var dismiss
     var body: some View {
         ScrollView {
             VStack(spacing: 24) { // Increased from 20 for better section separation
@@ -30,6 +31,10 @@ struct CompanyDetailsView : View {
                 StatusSection
                 
                 CompanyDetailsSection(company: company)
+                
+                companyInoviceSummary
+                
+                DeleteButton
             }
             .padding(.vertical)
         }
@@ -55,6 +60,12 @@ struct CompanyDetailsView : View {
         }
         .sheet(isPresented: $viewModel.showEditCertificateCredentials){
             CertificateUpdate(company: company)
+        }
+        .onAppear(){
+            refreshLabels()
+        }
+        .onChange(of: company.id) {
+            refreshLabels()
         }
     }
     
@@ -116,12 +127,7 @@ struct CompanyDetailsView : View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .shadow(color: .black.opacity(0.1), radius: 2)
         .padding()
-        .onAppear(){
-            Task{
-                await validateCertificateCredentialasAsync()
-                await validateCredentialsAsync()
-            }
-        }
+        
     }
     
     private var CompanyTabs: some View {
@@ -194,7 +200,6 @@ struct CompanyDetailsView : View {
             
             if company.isTestAccount {
                 
-                
                 Button(action: {
                     viewModel.showRequestProductionAccessSheet.toggle()
                 }) {
@@ -202,7 +207,8 @@ struct CompanyDetailsView : View {
                         title: "Solicitar Autorización a Producción",
                         icon: "checkmark.seal.fill",
                         color: Color(.darkCyan).opacity(0.95),
-                        warning: hasNoInvoicesToRequestAccess()
+                        warning: viewModel.requiresToGenerateTestInvoices,
+                        warningMessage: "Inicia proceso de Autorización a Producción"
                     )
                 }
             }
@@ -210,13 +216,15 @@ struct CompanyDetailsView : View {
                 viewModel.showLogoEditorSheet = true
             }) {
                 MenuButton(
-                    title: "Editar Logo de Facturas",
+                    title: "Edita Logo de Facturas",
                     icon: "photo.on.rectangle",
                     color: .darkCyan.opacity(0.95),
                     warning: hasMissingInvoiceLogo(),
                     warningMessage: "Selecciones logo de facturas"
                 )
             }
+            
+           
         }
     }
     
@@ -276,9 +284,74 @@ struct CompanyDetailsView : View {
             
         }.padding(.horizontal,20)
     }
+    
+    private var DeleteButton: some View {
+        
+            VStack(spacing: 12) {
+                Button(action: {
+                    if hasInvoices() {
+                        viewModel.showCannotDeleteDialog = true
+                    }
+                    else {
+                        viewModel.showDeleteConfirmDialog = true
+                    }
+                }) {
+                    MenuButton(
+                        title: "Eliminar Empresa",
+                        icon: "trash.fill",
+                        color: .red.opacity(0.85)
+                    )
+                }
+                .disabled(selectedCompanyId == company.id)
+                .confirmationDialog(
+                    "¿Está seguro que desea eliminar esta empresa?",
+                    isPresented: $viewModel.showDeleteConfirmDialog,
+                    titleVisibility: .visible
+                ) {
+                    Button("Eliminar", role: .destructive, action: deleteCompany)
+                    Button("Cancelar", role: .cancel) {}
+                } message: {
+                    Text("Esta acción no se puede deshacer.")
+                }
+                .alert(
+                    "No se puede eliminar la empresa",
+                    isPresented: $viewModel.showCannotDeleteDialog
+                ) {
+                    Button("Aceptar", role: .cancel) {}
+                } message: {
+                    Text("La empresa tiene facturas asociadas y no puede ser eliminada. Elimine todas las facturas primero.")
+                }
+            }
+            .padding(.horizontal)
+    }
+    
+    private var companyInoviceSummary: some View {
+        VStack(spacing: 0) {
+            if viewModel.summary.isEmpty {
+                ContentUnavailableView {
+                    Label("Facturas", systemImage: "list.bullet.rectangle.fill")
+                        .symbolEffect(.breathe)
+                }description: {
+                    Text("Aun no tiene facturas.")
+                }
+            }
+            else{
+                ForEach(viewModel.summary) { summary in
+                    VStack(spacing: 0) {
+                        SummaryElement(summary: summary )
+                            .padding(.vertical, 15)
+                            .padding(.horizontal)
+                        
+                    }
+                }
+            }
+        }
+        .background(Color(UIColor.secondarySystemGroupedBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous), corners: [.bottomLeft, .bottomRight])
+    }
 }
 
-struct NavigationButton<Destination: View>: View {
+private struct NavigationButton<Destination: View>: View {
     let title: String
     let icon: String
     let color: Color
@@ -341,8 +414,8 @@ private struct MenuButton: View {
         }
     }
 }
-
-struct CompanyDetailsSection: View {
+ 
+private struct CompanyDetailsSection: View {
     let company: Company
     
     var body: some View {
@@ -370,6 +443,8 @@ struct CompanyDetailsSection: View {
         .padding(.horizontal)
     }
     
+   
+    
     private func infoSection(title: String, items: [(label: String, value: String)]) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(title)
@@ -385,7 +460,7 @@ struct CompanyDetailsSection: View {
                         .font(.body)
                 }
                 .padding(.vertical, 4)
-                
+
                 if item.label != items.last?.label {
                     Divider()
                 }
@@ -402,6 +477,48 @@ struct CompanyDetailsSection: View {
     }
 }
 
+private struct SummaryElement : View{
+        var summary : InvoiceSummary
+        var body: some View {
+            HStack(alignment: .center, spacing: 12) {
+                // Company icon
+                ZStack {
+                    Circle()
+                        .fill(Color(red: 18/255, green: 31/255, blue: 61/255, opacity: 0.9))
+                    Text("C")
+                        .font(.system(size: 22, weight: .semibold))
+                        .foregroundColor(.white)
+                }
+                .frame(width: 50, height: 50)
+                
+                // Company info
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(summary.invoiceType)
+                        .font(.system(size: 17, weight: .semibold))
+                    
+//                    Text("Total: \(summary.total)")
+//                        .font(.subheadline)
+//                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+                
+                // Invoice count
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text("\(summary.total)")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(Color(red: 18/255, green: 31/255, blue: 61/255))
+                    
+                    Text("Total")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+        }
+    
+}
+
+
 #Preview(traits: .sampleCompanies) {
     CompanyDetailsWrapper()
 }
@@ -416,4 +533,6 @@ private struct CompanyDetailsWrapper: View {
                            selectedCompanyId: $selectedCompanyId)
     }
 }
+
+
 

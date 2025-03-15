@@ -27,6 +27,7 @@ import SwiftData
     var status: InvoiceStatus
     var customer: Customer
     var invoiceType: InvoiceType
+    var invoiceTypeLabel:String = ""
     var generationCode: String?
     var controlNumber: String?
     var receptionSeal: String?
@@ -121,10 +122,10 @@ enum InvoiceStatus:Int, Codable {
 //    var id: String { rawValue }
 //}
 
-enum InvoiceType:Int, Codable {
+enum InvoiceType: Int, Codable, CaseIterable, Identifiable, Hashable {
     case Factura
     case CCF
-    
+    var id: Int { rawValue }
     func stringValue() -> String {
         switch(self) {
         case .Factura:

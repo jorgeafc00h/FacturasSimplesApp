@@ -10,7 +10,7 @@ struct InvoicePDFPreview: View {
     var body: some View {
         NavigationStack {
             PDFKitView(data: pdfData)
-                .navigationTitle("Vista Previa PDF")
+                .navigationTitle( invoice.invoiceType.stringValue())
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {

@@ -29,7 +29,24 @@ extension CompanyDetailsView{
         var showCertificateInvalidMessage: Bool = false
         var showCredentialsInvalidMessage: Bool = false
         
+        var showCannotDeleteDialog : Bool = false
+        
+        var showDeleteConfirmDialog : Bool = false
+        
+        var summary: [InvoiceSummary] = []
+        
+        var requiresToGenerateTestInvoices: Bool = false
+        
     }
+    
+    func setLoadingLabels(){
+        print("set loading labels.......")
+        viewModel.isLoadingCertificateStatus = true
+        viewModel.isLoadingCertificateStatus = true
+        viewModel.showCertificateInvalidMessage = true
+        viewModel.showCredentialsInvalidMessage = true
+    }
+    
     // set default company
     func SetAsDefaultCompany(){
         withAnimation { 
@@ -54,6 +71,9 @@ extension CompanyDetailsView{
             
             viewModel.showCertificateInvalidMessage = true
         }
+        else{
+            viewModel.showCertificateInvalidMessage = false
+        }
         viewModel.isLoadingCertificateStatus = false
     }
     
@@ -70,6 +90,9 @@ extension CompanyDetailsView{
         
         if( result == nil || result! == false){
             viewModel.showCredentialsInvalidMessage = true
+        }
+        else{
+            viewModel.showCredentialsInvalidMessage = false
         }
         
         viewModel.isLoadingCredentialsStatus = false
@@ -117,13 +140,62 @@ extension CompanyDetailsView{
     
     
     func hasNoInvoicesToRequestAccess() -> Bool {
-        let invoiceTypes: [InvoiceType] = [.Factura, .CCF]
-        for type in invoiceTypes {
-            let fetchRequest = FetchDescriptor<Invoice>(predicate: #Predicate { $0.invoiceType == type })
-            if let invoicesOfType = try? modelContext.fetch(fetchRequest), invoicesOfType.count < 50 {
-                return true
-            }
+        let id = company.id
+        let fetchRequest = FetchDescriptor<Invoice>(predicate: #Predicate { $0.customer.companyOwnerId == id })
+        let count = (try? modelContext.fetchCount(fetchRequest)) ?? 0
+        return count < 100
+    }
+    
+    func hasInvoices() -> Bool {
+        let id = company.id
+        let fetchRequest = FetchDescriptor<Invoice>(predicate: #Predicate {  $0.customer.companyOwnerId == id })
+        let count = (try? modelContext.fetchCount(fetchRequest)) ?? 0
+         
+        return count > 0
+    }
+    
+    func deleteCompany() {
+        // Remove this company from SwiftData
+        modelContext.delete(company)
+        
+        // If this was the selected company, clear the selection
+        if selectedCompanyId == company.id {
+            companyId = ""
+            selectedCompanyName = ""
         }
-        return false
+        
+       try? modelContext.save()
+        // Navigate back after deletion
+        dismiss()
+    }
+    
+    func refreshLabels() {
+        setLoadingLabels()
+        viewModel.requiresToGenerateTestInvoices = hasNoInvoicesToRequestAccess()
+        viewModel.summary = []
+        
+//        let invoiceTypes: [InvoiceType] = [.Factura, .CCF]
+//        for type in invoiceTypes {
+//            print("type raw:\(type.rawValue)")
+//            
+//            let fetchRequest = FetchDescriptor<Invoice>(predicate: #Predicate {
+//                $0.invoiceType.hashValue == type.hashValue  && $0.customer.companyOwnerId == id
+//            })
+//            let count = (try? modelContext.fetchCount(fetchRequest)) ?? 0
+//            let summary = InvoiceSummary(total: count, invoiceType:  type.stringValue())
+//            viewModel.summary.append(summary)
+//        }
+//
+        let id = company.id
+        // ALL COUNT
+        let fetchRequest = FetchDescriptor<Invoice>(predicate: #Predicate { $0.customer.companyOwnerId == id })
+        let count = (try? modelContext.fetchCount(fetchRequest)) ?? 0
+        let summary = InvoiceSummary(total: count, invoiceType:  "Total Documentos Generados")
+        viewModel.summary.append(summary)
+        
+        Task{
+          await validateCertificateCredentialasAsync()
+            await validateCredentialsAsync()
+        }
     }
 }

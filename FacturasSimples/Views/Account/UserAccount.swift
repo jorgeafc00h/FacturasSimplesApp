@@ -6,6 +6,8 @@ struct UserAccountView: View {
     @Environment(\.modelContext) var modelContext
     @State private var showDeactivateAlert = false
     @State private var showDeactivationSuccessAlert = false
+    @State private var showDeleteAlert = false
+    @State private var showDeletionSuccessAlert = false
     @Environment(\.dismiss) private var dismiss
     
     // Access to companies data using SwiftData
@@ -45,9 +47,14 @@ struct UserAccountView: View {
                 
                 Spacer(minLength: 30)
                 
-                // Deactivate account button
+                // Delete account button
                 deactivateButton
                     .padding(.horizontal, 30)
+                
+                // Deactivate account button
+                deleteButton
+                    .padding(.horizontal, 30)
+                    .padding(.top, 15)
                     .padding(.bottom, 20)
             }
         }
@@ -65,6 +72,16 @@ struct UserAccountView: View {
             }
         } message: {
             Text("Su cuenta ha sido desactivada correctamente. Para volver a usar esta increíble aplicación, necesitará reiniciar la app e iniciar sesión nuevamente.")
+        }
+        // Success alert after deletion
+        .alert("Cuenta Eliminada", isPresented: $showDeletionSuccessAlert) {
+            Button("Entendido", role: .destructive) {
+                // Clear user data and return to login
+                clearUserData()
+                dismiss()
+            }
+        } message: {
+            Text("Su cuenta ha sido eliminada permanentemente. Toda su información ha sido borrada de nuestros sistemas.")
         }
     }
     
@@ -123,7 +140,7 @@ struct UserAccountView: View {
 //                        .resizable()
 //                        .frame(width: 24, height: 24)
 //                        .foregroundColor(Color(red: 18/255, green: 31/255, blue: 61/255))
-//                    
+//
 //                    Text(userID)
 //                        .font(.body)
 //                        .lineLimit(1)
@@ -136,6 +153,36 @@ struct UserAccountView: View {
         }
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
+    }
+
+    private var deleteButton: some View {
+        Button(action: {
+            // Call the delete account function
+            deleteAccount()
+        }) {
+            HStack {
+                Spacer()
+                Image(systemName: "trash.fill")
+                    .font(.headline)
+                Text("Eliminar cuenta")
+                    .font(.headline)
+                Spacer()
+            }
+            .padding()
+            .foregroundColor(.white)
+            .background(Color.red)
+            .cornerRadius(12)
+        }
+        .alert(isPresented: $showDeleteAlert) {
+            Alert(
+                title: Text("Confirmación"),
+                message: Text("¿Estás seguro de que deseas eliminar tu cuenta?"),
+                primaryButton: .destructive(Text("Eliminar")) {
+                    deleteAccount()
+                },
+                secondaryButton: .cancel(Text("Cancelar"))
+            )
+        }
     }
     
     private var companySectionView: some View {
@@ -222,7 +269,7 @@ struct UserAccountView: View {
             }
             .padding()
             .foregroundColor(.white)
-            .background(Color.red)
+            .background(Color.amarello)
             .cornerRadius(12)
         }
         .alert(isPresented: $showDeactivateAlert) {
@@ -265,6 +312,18 @@ struct UserAccountView: View {
         
         // After successful deactivation, show the success alert
         showDeactivationSuccessAlert = true
+    }
+    
+    func deleteAccount() {
+        // Implement account deletion logic here
+        print("Cuenta eliminada")
+        
+        Task {
+            try? await invoiceSerivce.deleteAccount(email: storedEmail, userId: userID, isProduction: true)
+        }
+        
+        // After successful deletion, show the success alert
+        showDeletionSuccessAlert = true
     }
     
     func clearUserData() {

@@ -114,18 +114,47 @@ struct InvoiceEditView: View {
     }
     
     private var addProductSection : some View{
-        VStack{
+        VStack(alignment: .leading){
             TextField("Producto", text: $viewModel.productName)
             
+            Divider()
+                .frame(height: 1)
+                .background(Color("Dark-Cyan")).padding(.bottom)
+            
+             TextField("Precio Unitario", value: $viewModel.unitPrice, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
+                   
+            // .padding(.vertical, 10)
+            Divider()
+                .frame(height: 1)
+                .background(Color("Dark-Cyan")).padding(.bottom)
+            
+            
             HStack{
-                TextField("Precio Unitario", value: $viewModel.unitPrice, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
+                Text("IVA Incluido : \(viewModel.newProductHasTax ? "Si" : "No")")
                 Spacer()
-                Button(action: AddNewProduct,label: {
+                Toggle("", isOn: $viewModel.newProductHasTax)
+            }
+            
+            HStack{
+                Text("IVA: $\(viewModel.productTax)")
+                Spacer()
+                if viewModel.newProductHasTax{
+                    Text("Precio Unitario: $\(viewModel.productWithoutTax)")
+                }
+                else{
+                    Text("Precio mas IVA: $\(viewModel.productUnitPricePlusTax)")
+                }
+            }
+             
+            Button(action: AddNewProduct,label: {
+                HStack{
                     Image(systemName: "checkmark.circle.fill")
                         .contentTransition(.symbolEffect(.replace))
-                   	
-                }).disabled(viewModel.canSaveNewProduct)
-            }.padding(.vertical, 10)
+                    Text("Agregar")
+                        .fontWeight(.bold)
+                }
+            }).disabled(viewModel.isDisabledAddProduct).padding(.vertical)
+            
         }.buttonStyle(BorderlessButtonStyle())
     }
     

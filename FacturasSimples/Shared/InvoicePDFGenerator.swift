@@ -242,9 +242,15 @@ class InvoicePDFGenerator {
                 item.product.productName.draw(at: CGPoint(x: currentX + 2, y: currentY), withAttributes: regularAttributes)
                 currentX += columnWidths[3]
                 
-                item.product.unitPrice.formatted(.currency(code: "USD")).draw(at: CGPoint(x: currentX + 2, y: currentY), withAttributes: regularAttributes)
-                currentX += columnWidths[4]
                 
+                if(invoice.isCCF){
+                    item.product.priceWithoutTax.formatted(.currency(code: "USD")).draw(at: CGPoint(x: currentX + 2, y: currentY), withAttributes: regularAttributes)
+                    currentX += columnWidths[4]
+                }
+                else{
+                    item.product.unitPrice.formatted(.currency(code: "USD")).draw(at: CGPoint(x: currentX + 2, y: currentY), withAttributes: regularAttributes)
+                    currentX += columnWidths[4]
+                }
                 "$0.00".draw(at: CGPoint(x: currentX + 2, y: currentY), withAttributes: regularAttributes)
                 currentX += columnWidths[5]
                 

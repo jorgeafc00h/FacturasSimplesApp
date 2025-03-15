@@ -340,13 +340,13 @@ struct PreProdStep1:View{
                             Text("Completar")
                                 .fontWeight(.bold)
                                 .foregroundColor(.white)
-                                //.frame(maxWidth: .infinity)
                                 .frame(width: size.width * 0.4)
                                 .padding(EdgeInsets(top: 16, leading: 18, bottom: 16, trailing: 18))
                                 .background(Capsule().fill(Color.darkCyan))
                                 .shadow(color: .gray, radius: 6)
                         }
                         .disabled(viewModel.isSyncing)
+                        .frame(maxWidth: .infinity, alignment: .center)
                     }
                     
                     else{
@@ -355,13 +355,13 @@ struct PreProdStep1:View{
                             Text("Procesar")
                                 .fontWeight(.bold)
                                 .foregroundColor(.white)
-                                //.frame(maxWidth: .infinity)
                                 .frame(width: size.width * 0.4)
                                 .padding(EdgeInsets(top: 16, leading: 18, bottom: 16, trailing: 18))
                                 .background(Capsule().fill(Color.black))
                                 .shadow(color: .gray, radius: 6)
                         }
                         .disabled(viewModel.isSyncing)
+                        .frame(maxWidth: .infinity, alignment: .center)
                         .confirmationDialog(
                             "¿Desea generar y enviar 50 DTE por tipo?",
                             isPresented: $viewModel.showConfirmDialog,
@@ -376,6 +376,7 @@ struct PreProdStep1:View{
                 }
                 Spacer(minLength: 7)
             }
+            .frame(maxWidth: .infinity, alignment: .center)
             .alert(isPresented: $viewModel.showAlert) {
                 Alert(title: Text("Información"), message: Text(viewModel.alertMessage), dismissButton: .default(Text("OK")))
             }

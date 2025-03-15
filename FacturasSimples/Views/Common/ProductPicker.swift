@@ -120,7 +120,7 @@ struct ProductPicker: View {
     @State private var productName: String = ""
     @State private var unitPrice: Decimal = 0.0
     @State private var quantity: Int = 1
-    
+    @State private var includeTax: Bool = true
     @Binding var details: [InvoiceDetail]
     
     @Environment(\.dismiss) private var dismiss
@@ -138,7 +138,7 @@ struct ProductPicker: View {
                     Group{
                         TextField("Producto", text: $productName)
                         TextField("Precio Unitario", value: $unitPrice, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
-                        
+                        Toggle("Incluye Iva",isOn: $includeTax)
                     }
                 }
                 Button(action: addNewProduct) {

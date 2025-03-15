@@ -34,6 +34,7 @@ extension AddInvoiceView {
         
         var productName :String = ""
         var unitPrice :Decimal = 0.0
+        var newProductHasTax: Bool = true
        
         var disableAddInvoice : Bool {
             return invoiceNumber.isEmpty || details.isEmpty || customer == nil
@@ -43,6 +44,24 @@ extension AddInvoiceView {
             return productName.isEmpty && unitPrice.isZero
         }
         
+        private var tax: Decimal {
+            return (unitPrice - (unitPrice / Constants.includedTax)).rounded()
+        }
+        
+        var productPlusTax: Decimal {
+            return  ((unitPrice * Constants.includedTax) - unitPrice ).rounded()
+        }
+        
+        var productTax: Decimal {
+            return newProductHasTax ? tax:  productPlusTax
+        }
+        
+        var productWithoutTax: Decimal {
+            return unitPrice - productTax
+        }
+        var productUnitPricePlusTax: Decimal {
+            return unitPrice + productPlusTax
+        }
        
        
     }
@@ -90,7 +109,10 @@ extension AddInvoiceView {
     }
     func AddNewProduct(){
         withAnimation(.easeInOut(duration: 2.34)) {
-            let product = Product(productName: viewModel.productName, unitPrice: viewModel.unitPrice)
+            
+            let _price = viewModel.newProductHasTax ? viewModel.unitPrice : viewModel.productUnitPricePlusTax
+            
+            let product = Product(productName: viewModel.productName, unitPrice: _price)
             product.companyId = companyIdentifier
             viewModel.productName="";
             viewModel.unitPrice=0.0;
@@ -135,6 +157,8 @@ extension InvoiceEditView {
         
         var productName :String = ""
         var unitPrice :Decimal = 0.0
+        var newProductHasTax: Bool = true 
+        
         // 1. Formatter for our value to show as currency
          var currencyFormater: NumberFormatter = {
              var formatter = NumberFormatter()
@@ -145,8 +169,27 @@ extension InvoiceEditView {
              return formatter
          }()
         
-        var canSaveNewProduct: Bool {
+        var isDisabledAddProduct: Bool {
             return productName.isEmpty && unitPrice.isZero
+        }
+        
+        private var tax: Decimal {
+            return (unitPrice - (unitPrice / Constants.includedTax)).rounded()
+        }
+        
+        var productPlusTax: Decimal {
+            return  ((unitPrice * Constants.includedTax) - unitPrice ).rounded()
+        }
+        
+        var productTax: Decimal {
+            return newProductHasTax ? tax:  productPlusTax
+        }
+        
+        var productWithoutTax: Decimal {
+            return unitPrice - productTax
+        }
+        var productUnitPricePlusTax: Decimal {
+            return unitPrice + productPlusTax
         }
     }
     
@@ -162,7 +205,11 @@ extension InvoiceEditView {
     }
     
     func AddNewProduct(){
-        let product = Product(productName: viewModel.productName, unitPrice: viewModel.unitPrice)
+        
+        let _price = viewModel.newProductHasTax ? viewModel.unitPrice : viewModel.productUnitPricePlusTax
+        
+        let product = Product(productName: viewModel.productName, unitPrice: _price)
+         
         viewModel.productName="";
         viewModel.unitPrice=0.0;
         let detail = InvoiceDetail(quantity: 1, product: product)

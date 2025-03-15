@@ -278,6 +278,29 @@ class InvoiceServiceClient
         }
     }
     
+    func deleteAccount(email: String, userId: String,isProduction: Bool )async throws{
+        let endpoint = getBaseUrl(isProduction) + "/account/delete"
+        
+        guard let url = URL(string: endpoint) else {
+            throw ApiErrors.invalidURL
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue(Constants.Apikey, forHTTPHeaderField: Constants.ApiKeyHeaderName)
+        request.setValue(userId, forHTTPHeaderField: "userId")
+        request.setValue(email, forHTTPHeaderField: Constants.MH_USER)
+       
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+         
+       
+        let (data, response) = try await GetDefaultSesssion().data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.statusCode == 200 else {
+            let message = String(data: data, encoding: .utf8)!
+            throw ApiErrors.custom(message: message)
+        }
+    }
+    
 }
  
 //        let token = try await generateToken(teamId: "62V6DQB2H6",
