@@ -78,8 +78,8 @@
             filePath = "FacturasSimples/ViewModels/Invoices/IInvoicesViewModel.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "116"
-            endingLineNumber = "116"
+            startingLineNumber = "115"
+            endingLineNumber = "115"
             landmarkName = "AddNewProduct()"
             landmarkType = "7">
          </BreakpointContent>
@@ -94,8 +94,8 @@
             filePath = "FacturasSimples/Views/Invoice/InvoicesListView.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "13"
-            endingLineNumber = "13"
+            startingLineNumber = "7"
+            endingLineNumber = "7"
             landmarkName = "InvoicesListView"
             landmarkType = "14">
          </BreakpointContent>

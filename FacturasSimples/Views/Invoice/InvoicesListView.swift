@@ -1,39 +1,29 @@
 import SwiftUI
 import SwiftData
 
+ 
 struct InvoicesListView: View {
-    @Environment(\.modelContext)  var modelContext
-    
-    @Query(sort: \Invoice.date, order: .reverse)
-    var invoices: [Invoice]
+    @Environment(\.modelContext) var modelContext
     
     @Binding var selection: Invoice?
     
     @State var viewModel = InvoicesListViewModel()
     
-     
-    @AppStorage("selectedCompanyName")  var selectedCompanyName : String = ""
-    @AppStorage("selectedCompanyIdentifier")  var companyIdentifier : String = ""
+    @AppStorage("selectedCompanyName") var selectedCompanyName: String = ""
+    @AppStorage("selectedCompanyIdentifier") var companyIdentifier: String = ""
     
-    @Query(filter: #Predicate<Catalog> { $0.id == "CAT-012"}, sort: \Catalog.id)
+    @Query(filter: #Predicate<Catalog> { $0.id == "CAT-012" }, sort: \Catalog.id)
     var catalog: [Catalog]
     var syncService = InvoiceServiceClient()
     
-    init(selection: Binding<Invoice?>, selectedCompanyId: String, searchText: String) {
-        
+    @Query var invoices: [Invoice]
+    
+    init(selection: Binding<Invoice?>, selectedCompanyId: String, searchText: String, searchScope: InvoiceSearchScope) {
         _selection = selection
         
         let companyId = selectedCompanyId.isEmpty ? companyIdentifier : selectedCompanyId
         
-        let predicate = #Predicate<Invoice> {
-            searchText.isEmpty ?
-            $0.customer.companyOwnerId == companyId :
-            $0.invoiceNumber.contains(searchText) ||
-            $0.customer.firstName.contains(searchText) ||
-            $0.customer.lastName.contains(searchText) &&
-           // $0.customer.email.contains(searchText) &&
-            $0.customer.companyOwnerId == companyId
-        }
+        let predicate = getSearchPredicate(scope: searchScope, searchText: searchText, companyId: companyId)
         
         _invoices = Query(filter: predicate, sort: \Invoice.date, order: .reverse)
     }
@@ -49,7 +39,7 @@ struct InvoicesListView: View {
         }
         .toolbar{
             ToolbarItemGroup(placement: .topBarTrailing) {
-                Button("Nueva Factura",systemImage: "plus"){
+                Button("Nueva Factura", systemImage: "plus"){
                     viewModel.isShowingAddInvoiceSheet.toggle()
                 }
                 .buttonStyle(BorderlessButtonStyle()) 
@@ -61,12 +51,10 @@ struct InvoicesListView: View {
             }
         }
         .navigationTitle("Facturas: \(selectedCompanyName)")
-        .task { await SyncCatalogs()}
-        
+        .task { await SyncCatalogs() }
     }
     
     private var EmptyInvoicesOverlay: some View {
-        
         ContentUnavailableView {
             Label("Facturas", systemImage: "list.bullet.rectangle.portrait")
                 .symbolEffect(.breathe)
@@ -82,6 +70,42 @@ struct InvoicesListView: View {
         }
         .offset(y: -60)
     }
+    
+    /// Create a predicate based on search scope and text
+    func getSearchPredicate(scope: InvoiceSearchScope, searchText: String, companyId: String) -> Predicate<Invoice> {
+        if searchText.isEmpty {
+            return #Predicate<Invoice> {
+                $0.customer.companyOwnerId == companyId
+            }
+        }
+        
+        switch scope {
+        case .nombre:
+            return #Predicate<Invoice> {
+                ($0.customer.firstName.localizedStandardContains(searchText) || 
+                 $0.customer.lastName.localizedStandardContains(searchText)) &&
+                $0.customer.companyOwnerId == companyId
+            }
+        case .nit:
+            return #Predicate<Invoice> {
+                $0.customer.nit.localizedStandardContains(searchText) &&
+                $0.customer.companyOwnerId == companyId
+            }
+        case .dui:
+            return #Predicate<Invoice> {
+                $0.customer.nationalId.localizedStandardContains(searchText) &&
+                $0.customer.companyOwnerId == companyId
+            }
+        case .nrc:
+            return #Predicate<Invoice> {
+                //($0.customer.nrc != nil &&
+                 $0.customer.nrc.localizedStandardContains(searchText) &&
+                $0.customer.companyOwnerId == companyId
+            }
+        }
+    }
+    
+     
 }
 
 

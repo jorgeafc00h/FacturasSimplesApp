@@ -81,6 +81,10 @@ enum EnvironmentType{
         
     }
 }
+
+
+
+
 //enum DTEValidationErrors: LocalizedError {
 //    case invalidInput(String)
 //    case certificateError

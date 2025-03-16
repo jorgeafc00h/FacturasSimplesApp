@@ -213,8 +213,8 @@ extension CustomerEditView {
     func InitCollections(){
         viewModel.departamento = customer.departamentoCode
         viewModel.municipio = customer.municipioCode
-        viewModel.nrc = customer.nrc ?? ""
-        viewModel.nit = customer.nit ?? ""
+        viewModel.nrc = customer.nrc
+        viewModel.nit = customer.nit
     }
     
     func onDepartamentoChange(){

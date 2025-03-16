@@ -27,7 +27,7 @@ import SwiftData
     
     var nationalId: String
     var contributorId: String?
-    var nit: String? 
+    var nit: String = ""
     var documentType: String?
     var codActividad: String?
     var descActividad: String?
@@ -37,7 +37,7 @@ import SwiftData
     var municipio: String
     //var color: Color
     
-    var nrc: String?
+    var nrc: String = ""
     var hasInvoiceSettings: Bool = false
     
     @Relationship(deleteRule: .deny,inverse: \Invoice.customer)
@@ -90,8 +90,8 @@ extension Customer {
     func deactivateCustomerInvoiceSettings(){
         descActividad = nil
         codActividad = nil
-        nit = nil
-        nrc = nil
+        //nit = nil
+        nrc = ""
         
         
     }

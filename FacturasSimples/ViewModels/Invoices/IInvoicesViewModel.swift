@@ -10,8 +10,7 @@ extension InvoicesView{
         var showAddCustomerSheet: Bool = false
         
         var showAddTestInvoices: Bool = false
-        
-       
+         
     }
 }
 

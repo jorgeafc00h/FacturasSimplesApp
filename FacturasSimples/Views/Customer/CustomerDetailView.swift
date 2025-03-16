@@ -90,12 +90,12 @@ struct CustomerDetailView: View {
                 HStack {
                     Text("NIT")
                     Spacer()
-                    Text(customer.nit ?? "")
+                    Text(customer.nit)
                 }
                 HStack {
                     Text("NRC")
                     Spacer()
-                    Text(customer.nrc ?? "")
+                    Text(customer.nrc)
                 }
                 Text("Actividad Económica")
                 VStack {

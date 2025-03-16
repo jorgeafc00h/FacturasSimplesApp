@@ -19,34 +19,46 @@ struct CustomerPicker :View {
     @Binding var selection : Customer?
     
     @State private var searchText: String = ""
+    @State private var searchScope: SearchScope = .name
     @AppStorage("selectedCompanyIdentifier")  var companyIdentifier : String = ""
+    
+    enum SearchScope: String, CaseIterable {
+        case name = "Nombre"
+        case dui = "DUI"
+        case nit = "NIT"
+        case nrc = "NRC"
+    }
     
     var filteredCustomers: [Customer] {
         if searchText.isEmpty {
-           customers
+            return customers.filter { $0.companyOwnerId == companyIdentifier }
         } else {
-            customers.filter{searchText.isEmpty ?
-                $0.companyOwnerId == companyIdentifier:
-                $0.firstName.localizedStandardContains(searchText) ||
-                $0.lastName.localizedStandardContains(searchText) ||
-                $0.email.localizedStandardContains(searchText) &&
-                $0.companyOwnerId == companyIdentifier
+            return customers.filter {
+                let matchesCompany = $0.companyOwnerId == companyIdentifier
+                
+                guard matchesCompany else { return false }
+                
+                switch searchScope {
+                case .name:
+                    return $0.firstName.localizedStandardContains(searchText) ||
+                           $0.lastName.localizedStandardContains(searchText) ||
+                           $0.fullName.localizedStandardContains(searchText)
+                case .dui:
+                    return $0.nationalId.localizedStandardContains(searchText)
+                case .nit:
+                    return $0.nit.localizedStandardContains(searchText)
+                case .nrc:
+                    return $0.nrc.localizedStandardContains(searchText)
+                }
             }
         }
     }
      
     init(selection : Binding<Customer?>){
-        
         _selection = selection
         
-        let filterPredicate = #Predicate<Customer> {
-            searchText.isEmpty ?
-            $0.companyOwnerId == companyIdentifier :
-            $0.firstName.contains(searchText) ||
-            $0.lastName.contains(searchText) ||
-            $0.email.contains(searchText) ||
-            $0.companyOwnerId == companyIdentifier
-            }
+        // Basic filter just for company - search filtering is handled by filteredCustomers computed property
+        let filterPredicate = #Predicate<Customer> { $0.companyOwnerId == companyIdentifier }
          
         _customers = Query(filter: filterPredicate, sort: \Customer.firstName)
     }
@@ -82,6 +94,11 @@ struct CustomerPicker :View {
             
         }
         .searchable(text: $searchText, prompt: "Buscar Cliente")
+        .searchScopes($searchScope, scopes: {
+            ForEach(SearchScope.allCases, id: \.self) { scope in
+                Text(scope.rawValue).tag(scope)
+            }
+        })
         .presentationDetents([.medium, .large])
     }
 }

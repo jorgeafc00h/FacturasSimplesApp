@@ -179,7 +179,7 @@ class InvoicePDFGenerator {
             invoice.customer.company.draw(at: CGPoint(x: receptorCol1, y: receptorY + 10), withAttributes: regularAttributes)
             
             "NRC:".draw(at: CGPoint(x: receptorCol1, y: receptorY + receptorLabelSpacing), withAttributes: grayAttributes)
-            (invoice.customer.nrc ?? "").draw(at: CGPoint(x: receptorCol1, y: receptorY + receptorLabelSpacing +  CGFloat(10)), withAttributes: regularAttributes)
+            (invoice.customer.nrc).draw(at: CGPoint(x: receptorCol1, y: receptorY + receptorLabelSpacing +  CGFloat(10)), withAttributes: regularAttributes)
             
             // Column 2
             "Tipo de Documento:".draw(at: CGPoint(x: receptorCol2, y: receptorY), withAttributes: grayAttributes)
