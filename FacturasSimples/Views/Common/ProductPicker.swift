@@ -49,15 +49,8 @@ struct ProductPicker: View {
     }
     
     var body: some View {
-        NavigationView {
-            
-            if isShowingAddNewProduct{
-                NewProductFormView(details:$details)
-            }
-            else {
-                ProductFromCatalogPicker
-            }
-            
+        NavigationStack {
+            ProductFromCatalogPicker
         }.presentationDetents([.medium, .large])
     }
     
@@ -89,12 +82,7 @@ struct ProductPicker: View {
                     Button("Cancelar") {
                         dismiss()
                     }
-                }
-                ToolbarItemGroup(placement: .topBarTrailing) {
-                    Spacer()
-                    Button("Nuevo Producto",systemImage: "plus"){isShowingAddNewProduct=true}
-                        .buttonStyle(BorderlessButtonStyle())
-                }
+                } 
             }.accentColor(.darkCyan)
         }
         
@@ -113,76 +101,6 @@ struct ProductPicker: View {
     }
     
     
-}
-
- struct NewProductFormView: View {
-    
-    @State private var productName: String = ""
-    @State private var unitPrice: Decimal = 0.0
-    @State private var quantity: Int = 1
-    @State private var includeTax: Bool = true
-    @Binding var details: [InvoiceDetail]
-    
-    @Environment(\.dismiss) private var dismiss
-    @Environment(\.modelContext) var modelContext
-    
-    init(details: Binding<[InvoiceDetail]>){
-        
-        _details = details
-    }
-    
-    var body: some View{
-        withAnimation{
-            VStack{
-                Form{
-                    Group{
-                        TextField("Producto", text: $productName)
-                        TextField("Precio Unitario", value: $unitPrice, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
-                        Toggle("Incluye Iva",isOn: $includeTax)
-                    }
-                }
-                Button(action: addNewProduct) {
-                    Text("Guardar")
-                        .fontWeight(.bold)
-                        .foregroundColor(.darkBlue)
-                        .padding(EdgeInsets(top: 11, leading: 18, bottom: 11, trailing: 18))
-                        .overlay(RoundedRectangle(cornerRadius: 6)
-                            .stroke(Color(.darkCyan), lineWidth: 2).shadow(color: .white, radius: 6))
-                }.padding(.bottom)
-            }
-            .frame(
-                idealWidth: LayoutConstants.sheetIdealWidth,
-                idealHeight: LayoutConstants.sheetIdealHeight
-            )
-            .navigationTitle("Nuevo Producto")
-            .navigationBarTitleDisplayMode(.automatic)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancelar") {
-                        dismiss()
-                    }
-                }
-                ToolbarItemGroup(placement: .topBarTrailing) {
-                    Spacer()
-                    Button("Guardar",systemImage: "checkmark.circle",action: addNewProduct)
-                        .buttonStyle(BorderlessButtonStyle())
-                }
-            }.accentColor(.darkCyan)
-        }
-    }
-    
-    func addNewProduct(){
-        withAnimation{
-            let product = Product(productName: productName, unitPrice: unitPrice)
-            
-            modelContext.insert(product)
-            
-            let detail = InvoiceDetail(quantity: 1, product: product)
-            
-            details.append(detail)
-            dismiss()
-        }
-    }
 }
 
 

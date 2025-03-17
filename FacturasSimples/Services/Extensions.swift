@@ -147,6 +147,14 @@ class Extensions
         //return result.uppercased()
         return result.uppercased()
     }
+    
+    public static func documentTypeFromInvoiceType(_ invoicetype: InvoiceType) -> Int {
+        switch invoicetype {
+        case .Factura: return 1
+        case .CCF: return  3
+        case .NotaCredito: return 5
+        }
+    }
         
 }
 

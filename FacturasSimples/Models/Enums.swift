@@ -82,6 +82,48 @@ enum EnvironmentType{
     }
 }
 
+enum TipoDocumento: Int, CaseIterable {
+    case factura = 1
+    case comprobanteCreditoFiscal = 3
+    case notaRemision = 4
+    case notaCredito = 5
+    case notaDebito = 6
+    case comprobanteRetencion = 7
+    case comprobanteLiquidacion = 8
+    case documentoContableLiquidacion = 9
+    case facturaExportacion = 11
+    case facturaSujetoExcluido = 14
+    case comprobanteDonacion = 15
+
+    var description: String {
+        switch self {
+        case .factura:
+            return "Factura"
+        case .comprobanteCreditoFiscal:
+            return "Comprobante de crédito fiscal"
+        case .notaRemision:
+            return "Nota de remisión"
+        case .notaCredito:
+            return "Nota de crédito"
+        case .notaDebito:
+            return "Nota de débito"
+        case .comprobanteRetencion:
+            return "Comprobante de retención"
+        case .comprobanteLiquidacion:
+            return "Comprobante de liquidación"
+        case .documentoContableLiquidacion:
+            return "Documento contable de liquidación"
+        case .facturaExportacion:
+            return "Facturas de exportación"
+        case .facturaSujetoExcluido:
+            return "Factura de sujeto excluido"
+        case .comprobanteDonacion:
+            return "Comprobante de donación"
+        }
+    }
+    
+    
+}
 
 
 

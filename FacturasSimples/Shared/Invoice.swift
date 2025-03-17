@@ -27,12 +27,12 @@ import SwiftData
     var status: InvoiceStatus
     var customer: Customer
     var invoiceType: InvoiceType
-    var invoiceTypeLabel:String = ""
+    //var documentType : Int = 1
     var generationCode: String?
     var controlNumber: String?
     var receptionSeal: String?
     
-    var environmentCode : String = "00"
+    
     
     @Relationship(deleteRule: .cascade, inverse: \ InvoiceDetail.invoice)
     var items: [InvoiceDetail] = []
@@ -90,6 +90,9 @@ import SwiftData
         self.generationCode = generationCode
         self.controlNumber = controlNumber
         self.receptionSeal = receptionSeal
+        //self.documentType = Extensions.documentTypeFromInvoiceType(invoiceType)
+        
+        
     }
     
 }
@@ -125,6 +128,7 @@ enum InvoiceStatus:Int, Codable {
 enum InvoiceType: Int, Codable, CaseIterable, Identifiable, Hashable {
     case Factura
     case CCF
+    case NotaCredito
     var id: Int { rawValue }
     func stringValue() -> String {
         switch(self) {
@@ -132,9 +136,13 @@ enum InvoiceType: Int, Codable, CaseIterable, Identifiable, Hashable {
             return "FACTURA"
         case .CCF:
             return "COMPROBANTE DE CRÉDITO FISCAL"
+            
+        case .NotaCredito:
+            return "NOTA DE CRÉDITO"
         }
     }
 }
+
 
 
 @Model class InvoiceDetail {

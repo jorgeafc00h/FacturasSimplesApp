@@ -14,27 +14,7 @@ class MhClient {
             return item
         }
         
-        
-        let emisor = Emisor(
-            nit: company.nit,
-            nrc: company.nrc,
-            nombre: company.nombre,
-            codActividad: company.codActividad,
-            descActividad: company.descActividad,
-            nombreComercial: company.nombreComercial,
-            tipoEstablecimiento: company.tipoEstablecimiento,
-            direccion: Direccion(departamento: company.departamentoCode,
-                                 municipio: company.municipioCode,
-                                 complemento: company.complemento),
-            telefono: Extensions.formatPhoneNumber(telefono: company.telefono),
-            correo: company.correo,
-            codEstableMH: company.codEstableMH != "" ?
-            company.codEstableMH : nil ,
-            codEstable: company.codEstable != "" ?
-            company.codEstable : nil,
-            codPuntoVentaMH: nil,
-            codPuntoVenta: nil
-        )
+        let emisor = mapEmisor(company)
         
         let resumen = mapResumen(invoice: invoice, items: items)
         
@@ -64,7 +44,32 @@ class MhClient {
         return dte
     }
     
-    static  func formatFromProductDetail(detail: InvoiceDetail, isCCF: Bool) -> CuerpoDocumento {
+    private static func mapEmisor(_ company: Company) -> Emisor {
+        let emisor = Emisor(
+            nit: company.nit,
+            nrc: company.nrc,
+            nombre: company.nombre,
+            codActividad: company.codActividad,
+            descActividad: company.descActividad,
+            nombreComercial: company.nombreComercial,
+            tipoEstablecimiento: company.tipoEstablecimiento,
+            direccion: Direccion(departamento: company.departamentoCode,
+                                 municipio: company.municipioCode,
+                                 complemento: company.complemento),
+            telefono: Extensions.formatPhoneNumber(telefono: company.telefono),
+            correo: company.correo,
+            codEstableMH: company.codEstableMH != "" ?
+            company.codEstableMH : nil ,
+            codEstable: company.codEstable != "" ?
+            company.codEstable : nil,
+            codPuntoVentaMH: nil,
+            codPuntoVenta: nil
+        )
+        
+        return emisor
+    }
+    
+    private static  func formatFromProductDetail(detail: InvoiceDetail, isCCF: Bool) -> CuerpoDocumento {
         
         let productTotal = (detail.quantity * detail.product.unitPrice).rounded()
         let tax = (productTotal - (productTotal / Decimal(1.13))).rounded()
@@ -93,7 +98,7 @@ class MhClient {
         )
     }
     
-    static func mapReceptor(invoice: Invoice)throws -> Receptor {
+    private static func mapReceptor(invoice: Invoice)throws -> Receptor {
         let customer = invoice.customer
         
         
@@ -120,43 +125,9 @@ class MhClient {
             nit: invoice.isCCF ? customer.nit : nil
         )
         return receptor
-        //            if !invoice.isCCF {
-        //                return Receptor(
-        //                    nrc: nil,
-        //                    numDocumento: extensions.formatNationalId(customer.nationalId),
-        //                    tipoDocumento: "13", // customer.documentType ?? "13",
-        //                    nombre: customer.fullName,
-        //                    correo: customer.email,
-        //                    codActividad: customer.codActividad?.isEmpty == false ? customer.codActividad : nil,
-        //                    descActividad: customer.descActividad?.isEmpty == false ? customer.descActividad : nil,
-        //                    direccion: Direccion(
-        //                        departamento: customer.direccion.departamento,
-        //                        municipio: customer.direccion.municipio,
-        //                        complemento: customer.direccion.complemento
-        //                    ),
-        //                    telefono: customer.phone
-        //                )
-        //            } else {
-        //                // CCF
-        //                return Receptor(
-        //                    nrc: customer.nrc ?? customer.contributorId ?? "", // Required
-        //                    nombre: customer.fullName,
-        //                    correo: customer.email,
-        //                    codActividad: customer.codActividad?.isEmpty == false ? customer.codActividad : nil,
-        //                    descActividad: customer.descActividad?.isEmpty == false ? customer.descActividad : nil,
-        //                    nombreComercial: customer.company,
-        //                    direccion: Direccion(
-        //                        departamento: customer.direccion.departamento,
-        //                        municipio: customer.direccion.municipio,
-        //                        complemento: customer.direccion.complemento
-        //                    ),
-        //                    telefono: customer.phone,
-        //                    nit: invoice.isCCF ? customer.nit : nil // Required CCF
-        //                )
-        //            }
     }
     
-    static func mapResumen(invoice: Invoice, items: [CuerpoDocumento]) -> Resumen {
+    private static func mapResumen(invoice: Invoice, items: [CuerpoDocumento]) -> Resumen {
         
         let total = invoice.totalAmount.asDoubleRounded
         
@@ -170,6 +141,8 @@ class MhClient {
            
         print("Total iva: \(iva)")
         
+        let isCCF = invoice.isCCF || invoice.invoiceType == .NotaCredito
+        
         let resumen = Resumen(
             totalNoSuj: 0.0,
             totalExenta: 0.0,
@@ -182,7 +155,11 @@ class MhClient {
             descuGravada: 0.0,
             porcentajeDescuento: 0.0,
             totalDescu: 0.0,
-            tributos: nil,
+            tributos:  isCCF ?
+                    [Tributo(codigo: "20",
+                             descripcion: "Impuesto al Valor Agregado 13%",
+                             valor: (iva as NSDecimalNumber).doubleValue)]
+                    : nil,
             subTotal: invoice.subTotal.rounded(),
             ivaRete1: 0.0,
             reteRenta: 0.0,
@@ -200,7 +177,44 @@ class MhClient {
         return resumen
     }
     
-    
-    
+    static func mapCreditNote(invoice: Invoice, company: Company, environmentCode: String)throws -> DTE_Base {
+        var index = 1
+        
+        let items = invoice.items.map { detail -> CuerpoDocumento in
+            var item = formatFromProductDetail(detail: detail, isCCF: invoice.isCCF)
+            item.numItem = index
+            index += 1
+            return item
+        }
+        
+        let emisor = mapEmisor(company)
+        
+        let resumen = mapResumen(invoice: invoice, items: items)
+        
+        let identificacion = Identificacion(
+            version: invoice.isCCF ? 3 : 1,
+            ambiente: environmentCode,
+            tipoDte: invoice.isCCF ? "03" : invoice.invoiceType == .NotaCredito ? "05" : "01",
+            numeroControl: invoice.controlNumber,
+            codigoGeneracion: invoice.generationCode,
+            tipoModelo: 1,
+            tipoOperacion: 1,
+            tipoContingencia: nil,
+            motivoContin: nil,
+            fecEmi: Date(),
+            horEmi:try Extensions.generateHourString(date: Date()),
+            tipoMoneda: "USD"
+        )
+        
+        let dte = DTE_Base(
+            identificacion: identificacion,
+            emisor: emisor,
+            receptor: try mapReceptor(invoice: invoice),
+            cuerpoDocumento: items,
+            resumen: resumen
+        )
+         
+        return dte
+    }
     
 }
