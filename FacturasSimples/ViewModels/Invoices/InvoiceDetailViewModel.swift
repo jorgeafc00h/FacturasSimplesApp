@@ -212,6 +212,7 @@ extension InvoiceDetailView {
                 if let response =   await viewModel.SyncInvoice(invoice: invoice){
                     
                     invoice.status = .Completada
+                    invoice.statusRawValue =  invoice.status.id
                     invoice.receptionSeal = response.selloRecibido
                     try? modelContext.save()
                     
@@ -237,6 +238,12 @@ extension InvoiceDetailView {
     
     func loadEmisor() {
         viewModel.dteResponse = nil
+        if invoice.documentType.isEmpty{
+            invoice.documentType = Extensions.documentTypeFromInvoiceType(invoice.invoiceType)
+            try? modelContext.save()
+        }
+        print("DocType \(invoice.documentType)")
+            
         do{
             let descriptor = FetchDescriptor<Company>(
                 predicate: #Predicate<Company>{

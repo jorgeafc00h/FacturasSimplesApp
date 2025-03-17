@@ -148,11 +148,11 @@ class Extensions
         return result.uppercased()
     }
     
-    public static func documentTypeFromInvoiceType(_ invoicetype: InvoiceType) -> Int {
+    public static func documentTypeFromInvoiceType(_ invoicetype: InvoiceType) -> String {
         switch invoicetype {
-        case .Factura: return 1
-        case .CCF: return  3
-        case .NotaCredito: return 5
+        case .Factura: return "01"
+        case .CCF: return  "03"
+        case .NotaCredito: return "05"
         }
     }
         

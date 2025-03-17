@@ -13,6 +13,8 @@ enum InvoiceSearchScope: String, CaseIterable {
     case nit = "NIT"
     case dui = "DUI"
     case nrc = "NRC"
+    case factura = "Factura"
+    case ccf = "CCF"
 }
 
 struct InvoicesView: View {

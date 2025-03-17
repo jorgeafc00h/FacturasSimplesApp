@@ -79,6 +79,7 @@ extension PreProdStep1{
                 do {
                     try await Sync(invoice)
                     invoice.status = .Completada
+                    invoice.statusRawValue = invoice.status.id
                     modelContext.insert(invoice)
                 } catch {
                     print("Error syncing invoice: \(error)")

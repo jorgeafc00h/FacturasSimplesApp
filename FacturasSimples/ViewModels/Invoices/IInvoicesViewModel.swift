@@ -74,7 +74,10 @@ extension AddInvoiceView {
                                   customer: viewModel.customer!,
                                   invoiceType: viewModel.invoiceType)
             invoice.items = viewModel.details
- 
+        
+            if invoice.documentType.isEmpty{
+                invoice.documentType = Extensions.documentTypeFromInvoiceType(viewModel.invoiceType)
+            }
             
             
             modelContext.insert(invoice)
@@ -226,6 +229,10 @@ extension InvoiceEditView {
                 }
                 
                 return detail
+            }
+            
+            if invoice.documentType.isEmpty{
+                invoice.documentType = Extensions.documentTypeFromInvoiceType(invoice.invoiceType)
             }
              
             try modelContext.save()

@@ -18,10 +18,13 @@ class MhClient {
         
         let resumen = mapResumen(invoice: invoice, items: items)
         
+        let documentType = Extensions.documentTypeFromInvoiceType(invoice.invoiceType)
+        let version =  (documentType as NSString).integerValue
+        
         let identificacion = Identificacion(
-            version: invoice.isCCF ? 3 : 1,
+            version: version,
             ambiente: environmentCode,
-            tipoDte: invoice.isCCF ? "03" : "01",
+            tipoDte: documentType,
             numeroControl: invoice.controlNumber,
             codigoGeneracion: invoice.generationCode,
             tipoModelo: 1,
@@ -141,7 +144,7 @@ class MhClient {
            
         print("Total iva: \(iva)")
         
-        let isCCF = invoice.isCCF || invoice.invoiceType == .NotaCredito
+        let isCCF = invoice.isCCF
         
         let resumen = Resumen(
             totalNoSuj: 0.0,
@@ -191,10 +194,13 @@ class MhClient {
         
         let resumen = mapResumen(invoice: invoice, items: items)
         
+        let documentType = Extensions.documentTypeFromInvoiceType(.NotaCredito)
+        let version =  (documentType as NSString).integerValue
+        
         let identificacion = Identificacion(
-            version: invoice.isCCF ? 3 : 1,
+            version: version,
             ambiente: environmentCode,
-            tipoDte: invoice.isCCF ? "03" : invoice.invoiceType == .NotaCredito ? "05" : "01",
+            tipoDte: documentType, //invoice.isCCF ? "03" : invoice.invoiceType == .NotaCredito ? "05" : "01",
             numeroControl: invoice.controlNumber,
             codigoGeneracion: invoice.generationCode,
             tipoModelo: 1,

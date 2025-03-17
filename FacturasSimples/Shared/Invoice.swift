@@ -25,8 +25,13 @@ import SwiftData
     //var customerId: Int
     
     var status: InvoiceStatus
+    
+    var statusRawValue: Int = 0
     var customer: Customer
     var invoiceType: InvoiceType
+    
+    var documentType: String = ""
+    
     //var documentType : Int = 1
     var generationCode: String?
     var controlNumber: String?
@@ -90,18 +95,18 @@ import SwiftData
         self.generationCode = generationCode
         self.controlNumber = controlNumber
         self.receptionSeal = receptionSeal
-        //self.documentType = Extensions.documentTypeFromInvoiceType(invoiceType)
-        
+        self.documentType = Extensions.documentTypeFromInvoiceType(invoiceType)
+        self.statusRawValue = status.rawValue
         
     }
     
 }
-enum InvoiceStatus:Int, Codable {
+enum InvoiceStatus:Int, Codable, CaseIterable, Identifiable, Hashable {
     case Nueva
     case Sincronizando
     case Completada
     case Cancelada
-    
+    var id: Int { rawValue }
     func stringValue() -> String {
         switch(self) {
         case .Nueva:
