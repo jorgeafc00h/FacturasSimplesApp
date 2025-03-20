@@ -13,7 +13,7 @@ extension InvoiceDetailView {
         var showingConfirmAutoEmail : Bool = false
         var sendingAutomaticEmail : Bool = false
         var emailSent : Bool = false
-        
+        var showConfirmCreditNote: Bool = false
         
         var alertTitle: String = ""
         var alertMessage: String = ""
@@ -31,19 +31,16 @@ extension InvoiceDetailView {
         
         var dte : DTE_Base?
         var dteResponse : DTEResponseWrapper?
-        func showConfirmSync(){
-            
-            showConfirmSyncSheet.toggle()
-        }
-         
+        
+        
         let invoiceService = InvoiceServiceClient()
         
- 
-        func SyncInvoice(invoice: Invoice) async  -> DTEResponseWrapper? {
+        
+        func  SyncInvoice(invoice: Invoice) async  -> DTEResponseWrapper? {
             
             
             do{
-                 
+                
                 let credentials = ServiceCredentials(user: dte!.emisor.nit,
                                                      credential: company.credentials,
                                                      key: company.certificatePassword,
@@ -54,39 +51,7 @@ extension InvoiceDetailView {
                 print("\(dteResponse?.estado ?? "")")
                 print("SELLO \(dteResponse?.selloRecibido ?? "")")
                 
-//                
-//                
-//                if(result.estado == "PROCESADO"){
-//                    invoice.receptionSeal = result.selloRecibido
-//                    invoice.status = .Completada
-//                }
-
-                    
-//                    let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-//                    let docs = documentsURL.appendingPathComponent("DTE_DOCUMENTOS")
-//                    
-//                    do {
-//                        try FileManager.default.createDirectory(at: docs, withIntermediateDirectories: true, attributes: nil)
-//                        let dteJsonUrl = docs.appendingPathComponent("\(result.numeroControl).json")
-//                        
-//                        let encoder = JSONEncoder()
-//                        encoder.outputFormatting = .prettyPrinted
-//                        encoder.dateEncodingStrategy = .iso8601
-//                        
-//                        let jsonData =  try encoder.encode(result.dte)
-//                        
-//                        do {
-//                            try jsonData.write(to: dteJsonUrl)
-//                            print("Successfully wrote to file!")
-//                        } catch {
-//                            print("Error writing to file: \(error)")
-//                        }
-//                        
-//                    } catch {
-//                        print("Error creating directory: \(error)")
-//                    }
                 
-               
                 return dteResponse
                 
             }
@@ -121,7 +86,7 @@ extension InvoiceDetailView {
             
             let path2 = "https://kinvoicestdev.blob.core.windows.net/06141404941342/DTE-01-8VK8VUL7-085808497996953.json?sv=2021-10-04&st=2025-02-19T22%3A18%3A20Z&se=2025-02-20T22%3A18%3A20Z&sr=b&sp=r&sig=x4g%2FQmctgtGmv9wsDdVnhEsVFPmI7UIDr%2FoASH91TkM%3D"
             
-           // let invoiceService = InvoiceServiceClient()
+            // let invoiceService = InvoiceServiceClient()
             
             let dte =  try? await invoiceService.getDocumentFromStorage(path: path)
             
@@ -132,31 +97,39 @@ extension InvoiceDetailView {
             return dte
         }
         
-        func validateCredentialsAsync(_ invoice: Invoice) async  -> Bool {
+        func validateCredentialsAsync(_ invoice: Invoice) async  {
             let serviceClient  = InvoiceServiceClient()
             
             if company.credentials.isEmpty {
                 isBusy = false
                 showErrorAlert = true
                 errorMessage = "La contraseña de hacienda aun no se ha configurado correctamente, seleccione perfil y configure la contraseña"
-                return false
+                return
             }
             
             if company.certificatePassword.isEmpty {
                 isBusy = false
                 showErrorAlert = true
                 errorMessage = "La contraseña de su certificado firmador aun no se ha configurado correctamente, seleccione perfil y luego contraseña de certificado"
-                return false
+                return 
             }
             syncLabel = "Validando Credenciales de Hacienda....."
             isBusy = true
             
             dte = GenerateInvoiceReferences(invoice)
+            
+            if dte == nil {
+                isBusy = false
+                return
+            }
+            
             do{
                 let result =  try await serviceClient.validateCredentials(nit: company.nit, password: company.credentials,isProduction: company.isProduction)
                 syncLabel = "Enviando..."
                 isBusy = false
-                return result
+                
+                showConfirmSyncSheet = true
+                //return result
             }
             catch(let message){
                 print("\(message)")
@@ -164,7 +137,7 @@ extension InvoiceDetailView {
                 showErrorAlert = true
                 errorMessage = "Usuario o contraseña incorrectos"
                 
-                return false
+                //return false
             }
         }
         
@@ -174,13 +147,15 @@ extension InvoiceDetailView {
             if invoice.controlNumber == nil || invoice.controlNumber == "" {
                 invoice.controlNumber =  invoice.isCCF ?
                 try? Extensions.generateString(baseString: "DTE-03",pattern: nil) :
+                invoice.invoiceType == .NotaCredito ?
+                try? Extensions.generateString(baseString: "DTE-05",pattern: nil) :
                 try? Extensions.generateString(baseString: "DTE",pattern: "^DTE-01-[A-Z0-9]{8}-[0-9]{15}$")
             }
             
             if invoice.generationCode == nil || invoice.generationCode == "" {
                 invoice.generationCode = try? Extensions.getGenerationCode()
             }
-           
+            
             do {
                 let envCode =  invoiceService.getEnvironmetCode(company.isProduction)
                 
@@ -192,7 +167,7 @@ extension InvoiceDetailView {
             } catch (let error){
                 print("failed to map invoice to dte \(error.localizedDescription)")
                 
-                errorMessage = "No se pudo generar EL DTE verifique los campos requeridos"
+                errorMessage = "No se pudo generar EL DTE verifique los campos requeridos \n \(error.localizedDescription)"
                 showErrorAlert = true
                 return nil
             }
@@ -202,9 +177,9 @@ extension InvoiceDetailView {
     
     
     func SyncInvoice(){
-    
+        
         try? modelContext.save()
-         
+        
         if viewModel.dte != nil {
             viewModel.isBusy = true
             Task {
@@ -216,9 +191,29 @@ extension InvoiceDetailView {
                     invoice.receptionSeal = response.selloRecibido
                     try? modelContext.save()
                     
+                    udpateRelatedDocuemntFromCreditNote()
                     await viewModel.backupPDF(invoice)
                 }
                 viewModel.isBusy = false
+            }
+        }
+    }
+    
+    func udpateRelatedDocuemntFromCreditNote() {
+        if invoice.invoiceType == .NotaCredito {
+            
+            let id = invoice.relatedId!
+            
+            let descriptor = FetchDescriptor<Invoice>(
+                predicate: #Predicate<Invoice>{
+                    $0.inoviceId == id
+                }
+                
+            )
+            
+            if let relatedInvoice = try? modelContext.fetch(descriptor).first {
+                relatedInvoice.status = .Cancelada
+                try? modelContext.save()
             }
         }
     }
@@ -230,10 +225,13 @@ extension InvoiceDetailView {
             viewModel.showErrorAlert = true
             return
         }
-        withAnimation{
+        
+        else{
+            withAnimation{
             modelContext.delete(invoice)
             dismiss()
-        }
+            }
+       }
     }
     
     func loadEmisor() {
@@ -243,7 +241,7 @@ extension InvoiceDetailView {
             try? modelContext.save()
         }
         print("DocType \(invoice.documentType)")
-            
+        
         do{
             let descriptor = FetchDescriptor<Company>(
                 predicate: #Predicate<Company>{
@@ -282,7 +280,57 @@ extension InvoiceDetailView {
         viewModel.pdfData = InvoicePDFGenerator.generatePDF(from: invoice, company: viewModel.company)
     }
     
- 
+    
+    func generateCreditNote(){
+        
+        let note = Invoice(invoiceNumber: invoice.invoiceNumber,
+                           date: invoice.date,
+                           status: invoice.status, customer: invoice.customer,
+                           invoiceType: .NotaCredito)
+        
+        let items = invoice.items.map { detail -> InvoiceDetail in
+            return InvoiceDetail(quantity: detail.quantity, product: detail.product)
+            
+        }
+        
+        let descriptor = FetchDescriptor<Invoice>(
+            predicate: #Predicate<Invoice>{
+                $0.customer.companyOwnerId == companyIdentifier
+            },
+            sortBy: [SortDescriptor(\.date, order: .reverse)]
+        )
+        
+        if let latestInvoice = try? modelContext.fetch(descriptor).first {
+            if let currentNumber = Int(latestInvoice.invoiceNumber) {
+                note.invoiceNumber = String(format: "%05d", currentNumber + 1)
+            } else {
+                let currentNumber = Int(invoice.invoiceNumber)
+                note.invoiceNumber = String(format: "%05d", currentNumber! + 1)
+            }
+        } else {
+            let currentNumber = Int(invoice.invoiceNumber)
+            note.invoiceNumber = String(format: "%05d", currentNumber! + 1)
+        }
+        
+        note.status = .Nueva
+        note.date = Date()
+        note.invoiceType = .NotaCredito
+        note.relatedDocumentNumber = invoice.generationCode
+        note.relatedDocumentType = invoice.documentType
+        note.relatedInvoiceType = invoice.invoiceType
+        note.relatedId = invoice.inoviceId
+        note.items = items
+        note.relatedDocumentDate = invoice.date
+        
+        modelContext.insert(note)
+        try? modelContext.save()
+        
+        dismiss()
+        
+        
+    }
+    
+    
     
 }
 

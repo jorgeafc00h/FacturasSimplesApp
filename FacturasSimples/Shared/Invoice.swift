@@ -25,19 +25,22 @@ import SwiftData
     //var customerId: Int
     
     var status: InvoiceStatus
+    var statusRawValue : Int
     
-    var statusRawValue: Int = 0
     var customer: Customer
     var invoiceType: InvoiceType
     
     var documentType: String = ""
-    
-    //var documentType : Int = 1
+     
     var generationCode: String?
     var controlNumber: String?
     var receptionSeal: String?
     
-    
+    var relatedDocumentNumber : String?
+    var relatedDocumentType: String?
+    var relatedInvoiceType: InvoiceType?
+    var relatedId: String?
+    var relatedDocumentDate: Date?
     
     @Relationship(deleteRule: .cascade, inverse: \ InvoiceDetail.invoice)
     var items: [InvoiceDetail] = []
@@ -82,8 +85,7 @@ import SwiftData
          invoiceType: InvoiceType = .Factura,
          generationCode: String = "",
          controlNumber: String = "",
-         receptionSeal: String = "",
-         environmentCode: String = Constants.EnvironmentCode) {
+         receptionSeal: String = "") {
         
         self.invoiceNumber = invoiceNumber
         self.date = date
@@ -97,6 +99,8 @@ import SwiftData
         self.receptionSeal = receptionSeal
         self.documentType = Extensions.documentTypeFromInvoiceType(invoiceType)
         self.statusRawValue = status.rawValue
+        self.relatedDocumentNumber = ""
+        self.relatedDocumentType = ""
         
     }
     

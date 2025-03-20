@@ -18,12 +18,12 @@ struct InvoiceEditView: View {
                 customerSection
                 invoiceDetailsSection
                 productsSection
-                invoiceTotalSeaction
+                invoiceTotalSection
                 Section {
                     Button(action: saveInvoice, label: {
                         HStack {
                             Image(systemName: "checkmark.circle")
-                            Text("Guardar Factura")
+                            Text("Guardar \(invoice.invoiceType.stringValue())".capitalized)
                         }
                     })
                     .frame(maxWidth: .infinity)
@@ -40,11 +40,12 @@ struct InvoiceEditView: View {
             .navigationBarTitleDisplayMode(.inline)
             
         }
+        .onAppear(perform: setDefaultsForCreditNote)
         .accentColor(accentColor)
     }
     
     private var customerSection: some View {
-        Section(header: Text("Customer")) {
+        Section(header: Text("Cliente")) {
             HStack {
                 Text(invoice.customer.fullName)
                 Spacer()
@@ -59,8 +60,8 @@ struct InvoiceEditView: View {
         
         
         
-        Section(header: Text("Factura")) {
-            TextField("Número Factura", text: $invoice.invoiceNumber)
+        Section(header: Text("Detalles de Factura")) {
+            TextField("Número de Factura", text: $invoice.invoiceNumber)
                 .disabled(true)
             DatePicker("Fecha", selection: $invoice.date, displayedComponents: .date)
             Picker("Estado",selection: $invoice.status){
@@ -73,7 +74,9 @@ struct InvoiceEditView: View {
                     
                     Text(invoiceType.stringValue()).tag(invoiceType)
                 }
-            }.pickerStyle(.segmented)
+            }
+            .disabled(disableIfInvoiceTypeIsNotAvailableInOptions())
+            .pickerStyle(.segmented)
             
         }
     }
@@ -92,7 +95,7 @@ struct InvoiceEditView: View {
                 if !viewModel.showAddProductSection {
                     Button(action: SearchProduct,label: {
                         Label("Buscar Producto", systemImage: "magnifyingglass")
-                    })
+                    }).disabled(disableIfInvoiceTypeIsNotAvailableInOptions())
                 }
                 Spacer()
                 Button(action: ShowAddProductSection,label: {
@@ -158,7 +161,7 @@ struct InvoiceEditView: View {
         }.buttonStyle(BorderlessButtonStyle())
     }
     
-   private var invoiceTotalSeaction : some View{
+   private var invoiceTotalSection : some View{
        VStack{
            HStack{
                Text("Sub Total:")
@@ -175,6 +178,13 @@ struct InvoiceEditView: View {
                Spacer()
                Text(invoice.totalAmount.formatted(.currency(code: "USD")))
            }
+       }
+       .alert(isPresented: $viewModel.showErrorAlert) {
+           Alert(
+               title: Text("Error"),
+               message: Text(viewModel.errorMessage),
+               dismissButton: .default(Text("OK"))
+           )
        }
     }
     

@@ -30,7 +30,7 @@ struct CustomerEditView: View {
                     TextField("Nombre", text: $customer.firstName)
                     TextField("Apellido", text: $customer.lastName)
                     
-                    TextField("NIT" ,text: $customer.nationalId)
+                    TextField("DUI" ,text: $customer.nationalId)
                     TextField("Teléfono" ,text:  $customer.phone)
                     TextField("Correo", text: $customer.email)
                 }

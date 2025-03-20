@@ -33,15 +33,7 @@ struct InvoiceDetailView: View {
             
             ToolbarItem(placement: .primaryAction) {
                 Menu {
-                    Button {
-                        Task {
-                            
-                            _ = await viewModel.testDeserialize(invoice)
-                        }
-                    } label: {
-                        Text("Generar Nota de crédito")
-                    }
-                    .help("Clears all content from the cache")
+                    CreditNoteButton()
                     EditButon()
                         .help("Editar Información General de la factura")
                     PrintButton()
@@ -130,6 +122,17 @@ struct InvoiceDetailView: View {
             }.foregroundColor(.darkCyan)
         }
         .disabled(viewModel.emailSent)
+        
+    }
+    
+    @ViewBuilder
+    private func CreditNoteButton() -> some View {
+        Button {
+            viewModel.showConfirmCreditNote = true
+        } label: {
+            Text("Generar Nota de crédito")
+        }
+        .help("Genera Nota de credito a partir de la factura seleccionada.")
         
     }
     
@@ -282,8 +285,8 @@ struct InvoiceDetailView: View {
                     Button(action: {
                         
                         Task{
-                            _ = await viewModel.validateCredentialsAsync(invoice)
-                            viewModel.showConfirmSync()
+                              await viewModel.validateCredentialsAsync(invoice)
+                           
                         }
                     },label: {
                         HStack {
@@ -308,7 +311,6 @@ struct InvoiceDetailView: View {
                     ) {
                         
                         Button(action: SyncInvoice, label: { Text("Sincronizar") })
-                        
                         
                         Button("Cancelar", role: .cancel) {}
                     }
@@ -358,6 +360,16 @@ struct InvoiceDetailView: View {
                         }
                         
                         
+                        Button("Cancelar", role: .cancel) {}
+                    }
+                    .confirmationDialog(
+                        "¿Está seguro que desea Generar una Nota de crédito para esta Factura?",
+                        isPresented: $viewModel.showConfirmCreditNote,
+                        titleVisibility: .visible
+                    ) {
+                        Button("OK") {
+                            generateCreditNote()
+                        }
                         Button("Cancelar", role: .cancel) {}
                     }
                 if viewModel.sendingAutomaticEmail {

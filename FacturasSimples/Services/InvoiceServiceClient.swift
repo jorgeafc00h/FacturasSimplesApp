@@ -122,11 +122,12 @@ class InvoiceServiceClient
        
         encoder.dateEncodingStrategy = .iso8601 // to properly fornat Date as json instead of number.
         
-        let jsonData =  try encoder.encode(dte)
+        let jsonData = try encoder.encode(dte)
         let jsonString = String(data: jsonData, encoding: .utf8)!
             
         print("DTE JSON")
         print(jsonString)
+        print("END DTE JSON")
         
         let endpoint = getBaseUrl(isProduction)+"/document/dte/sync"
         

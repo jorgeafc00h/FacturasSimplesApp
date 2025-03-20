@@ -5,6 +5,11 @@ class MhClient {
    
     
     static func mapInvoice(invoice: Invoice, company: Company, environmentCode: String)throws -> DTE_Base {
+        
+        if(invoice.invoiceType == .NotaCredito) {
+            return try mapCreditNote(invoice: invoice, company: company, environmentCode: environmentCode)
+        }
+        
         var index = 1
         
         let items = invoice.items.map { detail -> CuerpoDocumento in
@@ -15,12 +20,12 @@ class MhClient {
         }
         
         let emisor = mapEmisor(company)
-        
+       //
         let resumen = mapResumen(invoice: invoice, items: items)
         
         let documentType = Extensions.documentTypeFromInvoiceType(invoice.invoiceType)
-        let version =  (documentType as NSString).integerValue
-        
+        let version =  invoice.invoiceType == .Factura ? 1 : 3
+                                
         let identificacion = Identificacion(
             version: version,
             ambiente: environmentCode,
@@ -38,6 +43,7 @@ class MhClient {
         
         let dte = DTE_Base(
             identificacion: identificacion,
+            documentoRelacionado: nil,
             emisor: emisor,
             receptor: try mapReceptor(invoice: invoice),
             cuerpoDocumento: items,
@@ -122,7 +128,7 @@ class MhClient {
                 complemento: customer.address),
             telefono: customer.phone,
             correo : customer.email,
-            tipoDocumento: !invoice.isCCF ? "13" : nil,
+            tipoDocumento: invoice.invoiceType == .Factura ? "13" : nil,
             numDocumento: invoice.isCCF ? nil :
                 try Extensions.formatNationalId(customer.nationalId),
             nit: invoice.isCCF ? customer.nit : nil
@@ -137,8 +143,15 @@ class MhClient {
         
         let totalLabel = Extensions.numberToWords(total)
         
+        //let totalIva =  items.compactMap { $0.ivaItem ?? 0 }.reduce(0, +)
         
-        let totalIva =  items.compactMap { $0.ivaItem ?? 0 }.reduce(0, +)
+        let taxItems = invoice.items.map { detail -> Decimal in
+            let productTotal = (detail.quantity * detail.product.unitPrice).rounded()
+            let tax = (productTotal - (productTotal / Decimal(1.13))).rounded()
+            return tax
+        }
+        
+        let totalIva = taxItems.compactMap { $0 }.reduce(0, +)
         
         let iva = totalIva.rounded()
            
@@ -161,7 +174,7 @@ class MhClient {
             tributos:  isCCF ?
                     [Tributo(codigo: "20",
                              descripcion: "Impuesto al Valor Agregado 13%",
-                             valor: (iva as NSDecimalNumber).doubleValue)]
+                             valor: iva)]
                     : nil,
             subTotal: invoice.subTotal.rounded(),
             ivaRete1: 0.0,
@@ -180,25 +193,88 @@ class MhClient {
         return resumen
     }
     
+    private static func mapResumenForCreditNote(invoice: Invoice, items: [CuerpoDocumento],isCCF: Bool) -> Resumen {
+        
+        let total = invoice.totalAmount.asDoubleRounded
+        
+        
+        let totalLabel = Extensions.numberToWords(total)
+        
+        
+        let taxItems = invoice.items.map { detail -> Decimal in
+            let productTotal = (detail.quantity * detail.product.unitPrice).rounded()
+            let tax = (productTotal - (productTotal / Decimal(1.13))).rounded()
+            return tax
+        }
+        
+        let totalIva = taxItems.compactMap { $0 }.reduce(0, +)
+         
+        let iva =  totalIva.rounded()
+           
+        print("Total iva: \(iva) isCCF: \(isCCF)")
+         
+        let resumen = Resumen(
+            totalNoSuj: 0.0,
+            totalExenta: 0.0,
+            totalGravada: isCCF ?
+            invoice.totalWithoutTax : invoice.totalAmount,
+            subTotalVentas: isCCF ?
+            invoice.totalWithoutTax : invoice.totalAmount,
+            descuNoSuj: 0.0,
+            descuExenta: 0.0,
+            descuGravada: 0.0,
+            porcentajeDescuento: nil,
+            totalDescu: 0.0,
+            tributos:  isCCF ?
+                    [Tributo(codigo: "20",
+                             descripcion: "Impuesto al Valor Agregado 13%",
+                             valor: iva) ]
+                    : nil,
+            subTotal: invoice.subTotal.rounded(),
+            ivaRete1: 0.0,
+            reteRenta: 0.0,
+            montoTotalOperacion: invoice.totalAmount,
+            totalNoGravado: nil,
+            totalPagar: nil,
+            totalLetras: totalLabel,
+            totalIva: nil,
+            saldoFavor: nil,
+            condicionOperacion: 1,
+            //pagos: nil,
+            //numPagoElectronico: nil,
+            ivaPerci1: iva
+        )
+        
+        return resumen
+    }
+   
     static func mapCreditNote(invoice: Invoice, company: Company, environmentCode: String)throws -> DTE_Base {
         var index = 1
         
+        // check if the related document is a CCF
+        let isCCF = invoice.relatedInvoiceType == .CCF
+        
         let items = invoice.items.map { detail -> CuerpoDocumento in
-            var item = formatFromProductDetail(detail: detail, isCCF: invoice.isCCF)
+            var item = formatFromProductDetail(detail: detail, isCCF: isCCF)
+            
+            let productTotal = (detail.quantity * detail.product.unitPrice).rounded()
+            
+            item.numeroDocumento = invoice.relatedDocumentNumber
             item.numItem = index
+            item.ventaGravada = productTotal
             index += 1
             return item
         }
         
         let emisor = mapEmisor(company)
         
-        let resumen = mapResumen(invoice: invoice, items: items)
+        let resumen = mapResumenForCreditNote(invoice: invoice, items: items,isCCF: isCCF)
         
-        let documentType = Extensions.documentTypeFromInvoiceType(.NotaCredito)
-        let version =  (documentType as NSString).integerValue
+        let documentType = Extensions.documentTypeFromInvoiceType(invoice.invoiceType)
+        //let version =  (documentType as NSString).integerValue
         
         let identificacion = Identificacion(
-            version: version,
+            version: 3,// hardcoded version credit note
             ambiente: environmentCode,
             tipoDte: documentType, //invoice.isCCF ? "03" : invoice.invoiceType == .NotaCredito ? "05" : "01",
             numeroControl: invoice.controlNumber,
@@ -210,12 +286,45 @@ class MhClient {
             fecEmi: Date(),
             horEmi:try Extensions.generateHourString(date: Date()),
             tipoMoneda: "USD"
+            
+        )
+        
+        let relatedDoc =  DocumentoRelacionado(tipoDocumento: invoice.relatedDocumentType!,
+                                               tipoGeneracion: 2,
+                                               numeroDocumento: invoice.relatedDocumentNumber!,
+                                               fechaEmision : invoice.relatedDocumentDate! )
+        
+        let customer = invoice.customer
+          
+        let nrc = isCCF ? customer.nrc : nil
+        
+        let receptor = Receptor(
+            nrc: nrc,
+            nombre: customer.fullName,
+            nombreComercial: isCCF ?
+            customer.company :nil,
+            codActividad: isCCF ?
+            customer.codActividad! : nil,
+            descActividad: isCCF ?
+            customer.descActividad : nil,
+            direccion: Direccion(
+                departamento: customer.departamentoCode,
+                municipio: customer.municipioCode,
+                complemento: customer.address),
+            telefono: customer.phone,
+            correo : customer.email,
+            tipoDocumento: invoice.invoiceType == .Factura ? "13" : nil,
+            numDocumento: isCCF ? nil :
+                try Extensions.formatNationalId(customer.nationalId),
+            nit: isCCF ? customer.nit : nil
         )
         
         let dte = DTE_Base(
             identificacion: identificacion,
+            documentoRelacionado: [relatedDoc],
             emisor: emisor,
-            receptor: try mapReceptor(invoice: invoice),
+            receptor: receptor,
+            otrosDocumentos: nil,
             cuerpoDocumento: items,
             resumen: resumen
         )

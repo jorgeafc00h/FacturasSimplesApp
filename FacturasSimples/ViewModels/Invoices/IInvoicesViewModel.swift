@@ -193,6 +193,10 @@ extension InvoiceEditView {
         var productUnitPricePlusTax: Decimal {
             return unitPrice + productPlusTax
         }
+        var total : Decimal = 0.0
+        
+        var showErrorAlert: Bool = false
+        var errorMessage: String = ""
     }
     
     func SearchProduct(){
@@ -234,6 +238,15 @@ extension InvoiceEditView {
             if invoice.documentType.isEmpty{
                 invoice.documentType = Extensions.documentTypeFromInvoiceType(invoice.invoiceType)
             }
+            if invoice.totalAmount >  viewModel.total, disableIfInvoiceTypeIsNotAvailableInOptions()  {
+                viewModel.showErrorAlert = true
+                let errorMessage = invoice.relatedInvoiceType == .Factura ?
+                "El Total no puede ser mayor al total de la factura" :
+                "El Total no puede ser mayor al total del crédito fiscal"
+                viewModel.errorMessage  =  errorMessage
+                return
+            }
+            
              
             try modelContext.save()
             dismiss()
@@ -244,6 +257,19 @@ extension InvoiceEditView {
     }
     func deleteProduct(at offsets: IndexSet) {
         invoice.items.remove(atOffsets: offsets)
+    }
+    
+    func disableIfInvoiceTypeIsNotAvailableInOptions() -> Bool{
+        return !viewModel.invoiceTypes.contains(where: { $0.rawValue == invoice.invoiceType.id })
+    }
+    
+    func setDefaultsForCreditNote(){
+        
+        let isRequiredtrack = disableIfInvoiceTypeIsNotAvailableInOptions()
+        
+        if isRequiredtrack {
+            viewModel.total = invoice.totalAmount
+        }
     }
 }
 

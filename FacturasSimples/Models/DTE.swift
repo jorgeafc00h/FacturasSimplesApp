@@ -1,4 +1,3 @@
-
 import Foundation
 
 struct DTE_Base: Codable {
@@ -38,7 +37,43 @@ struct DTE_Base: Codable {
         case extensionField = "extension"
         case apendice
     }
-   
+    
+    // Custom encoder to conditionally include otrosDocumentos
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        // Always encode these fields
+        try container.encode(identificacion, forKey: .identificacion)
+        try container.encode(emisor, forKey: .emisor)
+        try container.encode(receptor, forKey: .receptor)
+        try container.encode(resumen, forKey: .resumen)
+        
+        // Conditionally encode optional fields
+        if let documentoRelacionado = documentoRelacionado {
+            try container.encode(documentoRelacionado, forKey: .documentoRelacionado)
+        }
+        
+        // Only include otrosDocumentos if tipoDte is not "05" (credit note)
+        if identificacion.tipoDte != "05", let otrosDocumentos = otrosDocumentos {
+            try container.encode(otrosDocumentos, forKey: .otrosDocumentos)
+        }
+        
+        if let ventaTercero = ventaTercero {
+            try container.encode(ventaTercero, forKey: .ventaTercero)
+        }
+        
+        if let cuerpoDocumento = cuerpoDocumento {
+            try container.encode(cuerpoDocumento, forKey: .cuerpoDocumento)
+        }
+        
+        if let extensionField = extensionField {
+            try container.encode(extensionField, forKey: .extensionField)
+        }
+        
+        if let apendice = apendice {
+            try container.encode(apendice, forKey: .apendice)
+        }
+    }
 }
  
 struct Receptor: Codable {
@@ -112,10 +147,10 @@ struct Emisor: Codable {
     var direccion: Direccion
     var telefono: String
     var correo: String
-    var codEstableMH: String??
-    var codEstable: String??
-    var codPuntoVentaMH: String??
-    var codPuntoVenta: String??
+    var codEstableMH: String?? = nil
+    var codEstable: String?? = nil
+    var codPuntoVentaMH: String?? = nil
+    var codPuntoVenta: String?? = nil
     
 }
  
@@ -179,18 +214,18 @@ struct Resumen: Codable {
     var descuNoSuj: Decimal
     var descuExenta: Decimal
     var descuGravada: Decimal
-    var porcentajeDescuento: Decimal
+    var porcentajeDescuento: Decimal?? = nil
     var totalDescu: Double
     var tributos: [Tributo]?? = nil
     var subTotal: Decimal
     var ivaRete1: Decimal
     var reteRenta: Decimal
     var montoTotalOperacion: Decimal
-    var totalNoGravado: Double
-    var totalPagar: Decimal
+    var totalNoGravado: Double?? = nil
+    var totalPagar: Decimal?? = nil
     var totalLetras: String
     var totalIva: Decimal??
-    var saldoFavor: Decimal
+    var saldoFavor: Decimal?? = nil
     var condicionOperacion: Int
     var pagos: [Pago]?? = nil
     var numPagoElectronico: PagoElectronico?? = nil
@@ -200,7 +235,7 @@ struct Resumen: Codable {
 struct Tributo: Codable {
     var codigo: String
     var descripcion: String
-    var valor: Double
+    var valor: Decimal
 }
 
   
@@ -224,4 +259,4 @@ struct PagoElectronico : Codable{
     
 }
 
- 
+
