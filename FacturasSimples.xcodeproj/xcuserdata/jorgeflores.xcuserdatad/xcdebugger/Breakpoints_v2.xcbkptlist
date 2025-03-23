@@ -14,8 +14,8 @@
             filePath = "FacturasSimples/Services/InvoiceServiceClient.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "365"
-            endingLineNumber = "365"
+            startingLineNumber = "426"
+            endingLineNumber = "426"
             landmarkName = "unknown"
             landmarkType = "0">
          </BreakpointContent>
@@ -151,22 +151,6 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "DCA9232F-26A3-4A80-A0D0-9EF28EF38E28"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FacturasSimples/Services/InvoiceServiceClient.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "185"
-            endingLineNumber = "185"
-            landmarkName = "uploadPDF(data:controlNum:nit:isProduction:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
             uuid = "1F1AA0F5-E4A0-4013-BBCF-5161DEAA3C71"
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
@@ -270,10 +254,10 @@
             filePath = "FacturasSimples/ViewModels/Invoices/InvoiceDetailViewModel.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "244"
-            endingLineNumber = "244"
+            startingLineNumber = "245"
+            endingLineNumber = "245"
             landmarkName = "loadEmisor()"
-            landmarkType = "9">
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -302,10 +286,10 @@
             filePath = "FacturasSimples/ViewModels/Invoices/InvoiceDetailViewModel.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "318"
-            endingLineNumber = "318"
+            startingLineNumber = "319"
+            endingLineNumber = "319"
             landmarkName = "generateCreditNote()"
-            landmarkType = "9">
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -334,8 +318,8 @@
             filePath = "FacturasSimples/ViewModels/Invoices/InvoiceDetailViewModel.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "123"
-            endingLineNumber = "123"
+            startingLineNumber = "124"
+            endingLineNumber = "124"
             landmarkName = "validateCredentialsAsync(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -401,6 +385,54 @@
             startingLineNumber = "248"
             endingLineNumber = "248"
             landmarkName = "mapResumenForCreditNote(invoice:items:isCCF:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "5D34C416-8996-43E4-A733-7A9C0D4A041E"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FacturasSimples/Services/InvoiceServiceClient.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "307"
+            endingLineNumber = "307"
+            landmarkName = "invalidateDocumentAsync(dte:credentials:isProduction:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "B7087B3F-CB63-4A56-9CF9-A4FBBB755CC5"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FacturasSimples/Services/InvoiceServiceClient.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "341"
+            endingLineNumber = "341"
+            landmarkName = "invalidateDocumentAsync(dte:credentials:isProduction:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "76E76799-874F-4E55-A13D-D81CB3A0EF2D"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FacturasSimples/Services/InvoiceServiceClient.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "340"
+            endingLineNumber = "340"
+            landmarkName = "invalidateDocumentAsync(dte:credentials:isProduction:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

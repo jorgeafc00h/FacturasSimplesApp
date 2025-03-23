@@ -332,4 +332,51 @@ class MhClient {
         return dte
     }
     
+    static func mapInvalidationModel(invoice: Invoice, company: Company,motivo:Motivo,nombreEstablecimiento: String, environmentCode: String) throws -> DTE_InvalidationRequest {
+        
+        let _emisor = mapEmisor(company)
+        
+        let emisor = EmisorInvalidate(nit: _emisor.nit,
+                                      nombre: _emisor.nombre,
+                                      tipoEstablecimiento: _emisor.tipoEstablecimiento,
+                                      nomEstablecimiento: nombreEstablecimiento,
+                                      codEstableMH: _emisor.codEstableMH,
+                                      codEstable: _emisor.codEstable,
+                                      codPuntoVentaMH: _emisor.codPuntoVentaMH,
+                                      codPuntoVenta: _emisor.codPuntoVenta,
+                                      telefono: _emisor.telefono,
+                                      correo: _emisor.correo)
+        
+        let identification = IdentificationInvalidate(version:2,
+                                                      ambiente: environmentCode,
+                                                      codigoGeneracion: try Extensions.getGenerationCode(),
+                                                      fecAnula: Extensions.generateDateString(),
+                                                      horAnula: Extensions.generateTimeString())
+        
+        let docNumber = invoice.isCCF ?
+                        invoice.customer.nit :
+                        invoice.customer.nationalId
+         
+        
+        let model = DTE_InvalidationRequest(identificacion: identification,
+                                            emisor: emisor,
+                                            documento: Documento(
+                                                tipoDte: invoice.documentType,
+                                                codigoGeneracion: invoice.generationCode!,
+                                                selloRecibido: invoice.receptionSeal!,
+                                                numeroControl: invoice.controlNumber!,
+                                                fecEmi: Extensions.generateDateString(date: invoice.date),
+                                                montoIva: invoice.tax,
+                                                codigoGeneracionR: nil,
+                                                tipoDocumento:"13", //invoice.isCCF ? "36" : "13",
+                                                numDocumento: docNumber,
+                                                nombre: invoice.customer.fullName,
+                                                telefono: invoice.customer.phone,
+                                                correo: invoice.customer.email
+                                            ),
+                                            motivo:motivo)
+        
+          return model
+        
+    }
 }

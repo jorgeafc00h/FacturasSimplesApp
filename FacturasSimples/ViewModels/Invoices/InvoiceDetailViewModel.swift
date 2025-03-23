@@ -32,6 +32,7 @@ extension InvoiceDetailView {
         var dte : DTE_Base?
         var dteResponse : DTEResponseWrapper?
         
+        var showDeactivateSheet : Bool = false
         
         let invoiceService = InvoiceServiceClient()
         
@@ -330,7 +331,9 @@ extension InvoiceDetailView {
         
     }
     
-    
+    func invalidateDocument(){
+        
+    }
     
 }
 

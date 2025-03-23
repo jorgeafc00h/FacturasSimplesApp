@@ -34,21 +34,24 @@ struct CustomerPicker :View {
             return customers.filter { $0.companyOwnerId == companyIdentifier }
         } else {
             return customers.filter {
-                let matchesCompany = $0.companyOwnerId == companyIdentifier
-                
-                guard matchesCompany else { return false }
+                //                let matchesCompany = $0.companyOwnerId == companyIdentifier
+                //
+                //                guard matchesCompany else { return false }
                 
                 switch searchScope {
                 case .name:
                     return $0.firstName.localizedStandardContains(searchText) ||
-                           $0.lastName.localizedStandardContains(searchText) ||
-                           $0.fullName.localizedStandardContains(searchText)
+                    $0.lastName.localizedStandardContains(searchText) &&
+                    $0.companyOwnerId == companyIdentifier
                 case .dui:
-                    return $0.nationalId.localizedStandardContains(searchText)
+                    return $0.nationalId.localizedStandardContains(searchText) &&
+                           $0.companyOwnerId == companyIdentifier
                 case .nit:
-                    return $0.nit.localizedStandardContains(searchText)
+                    return $0.nit.localizedStandardContains(searchText) &&
+                           $0.companyOwnerId == companyIdentifier
                 case .nrc:
-                    return $0.nrc.localizedStandardContains(searchText)
+                    return $0.nrc.localizedStandardContains(searchText) &&
+                    $0.companyOwnerId == companyIdentifier
                 }
             }
         }

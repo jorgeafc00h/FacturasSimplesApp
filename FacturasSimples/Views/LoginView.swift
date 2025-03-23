@@ -156,16 +156,16 @@ struct LoginSectionView: View {
             Spacer()
             
             //TODO remove this button
-//            Button(action: iniciarSesion) {
-//                Text("Iniciar Sesión")
-//                    .fontWeight(.bold)
-//                    .clipShape(Capsule())
-//                    .foregroundColor(.white)
-//                    .frame( maxWidth: .infinity, alignment: .center)
-//                    .padding(EdgeInsets(top: 11, leading: 18, bottom: 11, trailing: 18))
-//                    .overlay(Capsule()
-//                        .stroke(Color("Dark-Cyan"), lineWidth: 3).shadow(color: .white, radius: 6))
-//            }.padding(.bottom)
+            Button(action: iniciarSesion) {
+                Text("Iniciar Sesión")
+                    .fontWeight(.bold)
+                    .clipShape(Capsule())
+                    .foregroundColor(.white)
+                    .frame( maxWidth: .infinity, alignment: .center)
+                    .padding(EdgeInsets(top: 11, leading: 18, bottom: 11, trailing: 18))
+                    .overlay(Capsule()
+                        .stroke(Color("Dark-Cyan"), lineWidth: 3).shadow(color: .white, radius: 6))
+            }.padding(.bottom)
         }
     }
     

@@ -155,7 +155,18 @@ class Extensions
         case .NotaCredito: return "05"
         }
     }
-        
+    
+
+    public static func generateDateString(date:Date = Date())-> String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        return dateFormatter.string(from: date)
+    }
+    public static func generateTimeString() -> String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "HH:mm:ss"
+        return dateFormatter.string(from: Date())
+    }
 }
 
 // Extension for Decimal rounding

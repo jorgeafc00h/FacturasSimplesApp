@@ -42,6 +42,7 @@ import SwiftData
     var relatedId: String?
     var relatedDocumentDate: Date?
     
+    var invalidatedViaApi: Bool = false
     @Relationship(deleteRule: .cascade, inverse: \ InvoiceDetail.invoice)
     var items: [InvoiceDetail] = []
     

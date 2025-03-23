@@ -158,10 +158,10 @@ class InvoiceServiceClient
             
             if let errorModel = errorDte {
                 
-                var errors = errorModel.response.observaciones
+                var errors = errorModel.observaciones
                 
-                if !errorModel.response.descripcionMsg.isEmpty {
-                    errors.append(errorModel.response.descripcionMsg)
+                if !errorModel.descripcionMsg.isEmpty {
+                    errors.append(errorModel.descripcionMsg)
                 }
                 
                 let _customErrorMessage = errors.joined(separator: "\n")
@@ -300,6 +300,67 @@ class InvoiceServiceClient
             let message = String(data: data, encoding: .utf8)!
             throw ApiErrors.custom(message: message)
         }
+    }
+    
+    func invalidateDocumentAsync(dte:  DTE_InvalidationRequest, credentials: ServiceCredentials, isProduction : Bool) async throws -> Bool {
+        
+        encoder.dateEncodingStrategy = .iso8601 // to properly fornat Date as json instead of number.
+        
+        let jsonData = try encoder.encode(dte)
+        let jsonString = String(data: jsonData, encoding: .utf8)!
+            
+        print("DTE JSON")
+        print(jsonString)
+        print("END DTE JSON")
+        
+        let endpoint = getBaseUrl(isProduction)+"/document/dte/invalidate"
+        
+        guard let url = URL(string: endpoint) else {
+            throw ApiErrors.invalidURL
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue(Constants.Apikey, forHTTPHeaderField: Constants.ApiKeyHeaderName)
+        request.setValue(credentials.key, forHTTPHeaderField: Constants.CertificateKey)
+        
+        request.setValue(credentials.user, forHTTPHeaderField: Constants.MH_USER)
+        request.setValue(credentials.credential, forHTTPHeaderField: Constants.MH_KEY)
+        
+        request.setValue(credentials.invoiceNumber, forHTTPHeaderField: Constants.InvoiceNumber)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+               
+        request.httpBody = jsonData
+        
+        let (data, response) = try await GetDefaultSesssion().data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.statusCode == 200 else {
+            let message = String(data: data, encoding: .utf8)!
+            
+            // try decode into DTE With Error and observations.
+            let errorDte = try? JSONDecoder().decode(DTEErrorResponseWrapper.self, from: data)
+            
+            if let errorModel = errorDte {
+                
+                var errors = errorModel.observaciones
+                
+                if !errorModel.descripcionMsg.isEmpty {
+                    errors.append(errorModel.descripcionMsg)
+                }
+                
+                let _customErrorMessage = errors.joined(separator: "\n")
+               throw ApiErrors.custom(message: _customErrorMessage)
+            
+            }
+            throw ApiErrors.custom(message: message)
+        }
+        return true
+//        do{
+//            return try JSONDecoder().decode(DTEResponseWrapper.self, from: data)
+//        }
+//        catch(_){
+//            let message = String(data: data, encoding: .utf8)!
+//            throw ApiErrors.custom(message: message)
+//        }
     }
     
 }

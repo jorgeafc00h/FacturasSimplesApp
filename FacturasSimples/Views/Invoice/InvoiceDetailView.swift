@@ -42,6 +42,9 @@ struct InvoiceDetailView: View {
                     if( invoice.status == .Completada){
                         SendEmailButton()
                             .help( "Enviar factura por email automatico, eso es util en caso de que actualize el correo electronico del cliente o si desea enviar nuevamente la factura")
+                        
+                        DeactivateButton()
+                            .help("Anular este documento en el sistema")
                     }
                 } label: {
                     Image(systemName: "gear")
@@ -64,6 +67,9 @@ struct InvoiceDetailView: View {
                     invoice: invoice
                 )
             }
+        }
+        .sheet(isPresented: $viewModel.showDeactivateSheet) {
+            DeactivateDocumentView(invoice: invoice, company: viewModel.company)
         }
     }
     
@@ -134,6 +140,19 @@ struct InvoiceDetailView: View {
         }
         .help("Genera Nota de credito a partir de la factura seleccionada.")
         
+    }
+    
+    @ViewBuilder
+    private func DeactivateButton() -> some View {
+        Button {
+            viewModel.showDeactivateSheet = true
+        } label: {
+            HStack{
+                Image(systemName: "xmark.circle")
+                    .symbolEffect(.breathe, options: .nonRepeating)
+                Text("Anular Documento")
+            }.foregroundColor(.red)
+        }
     }
     
     @ViewBuilder
@@ -377,10 +396,29 @@ struct InvoiceDetailView: View {
                         .foregroundColor(.darkCyan)
                         .symbolEffect(.variableColor.iterative.dimInactiveLayers.nonReversing, options: .repeat(.continuous))
                 }
+                
                  
+            }
+            
+            if invoice.invalidatedViaApi {
+                HStack {
+                    Text("\(invoice.invoiceType)")
+                    Spacer()
+                    Circle()
+                        .fill(invoice.statusColor)
+                        .frame(width: 8, height: 8)
+                    Text("ANULADA")
+                        .font(.subheadline)
+                        .foregroundColor(invoice.statusColor)
+                        .padding(7)
+                        .background(invoice.statusColor.opacity(0.09))
+                        .cornerRadius(8)
+                 }
             }
         }
     }
+    
+    
 }
 
 #Preview(traits: .sampleInvoices) {
