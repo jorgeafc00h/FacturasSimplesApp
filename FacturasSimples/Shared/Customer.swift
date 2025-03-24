@@ -39,6 +39,7 @@ import SwiftData
     
     var nrc: String = ""
     var hasInvoiceSettings: Bool = false
+    var hasContributorRetention: Bool = false
     
     @Relationship(deleteRule: .deny,inverse: \Invoice.customer)
     var invoices: [Invoice] = []

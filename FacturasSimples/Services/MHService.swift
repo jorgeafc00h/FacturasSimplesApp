@@ -138,9 +138,12 @@ class MhClient {
     
     private static func mapResumen(invoice: Invoice, items: [CuerpoDocumento]) -> Resumen {
         
-        let total = invoice.totalAmount.asDoubleRounded
+        let total =
+        invoice.customer.hasContributorRetention ?
+        (invoice.totalAmount.asDoubleRounded - invoice.ivaRete1.asDoubleRounded) :
+        invoice.totalAmount.asDoubleRounded
         
-        
+      
         let totalLabel = Extensions.numberToWords(total)
         
         //let totalIva =  items.compactMap { $0.ivaItem ?? 0 }.reduce(0, +)
@@ -177,11 +180,11 @@ class MhClient {
                              valor: iva)]
                     : nil,
             subTotal: invoice.subTotal.rounded(),
-            ivaRete1: 0.0,
+            ivaRete1: invoice.customer.hasContributorRetention ? invoice.ivaRete1 :  0.0,
             reteRenta: 0.0,
             montoTotalOperacion: invoice.totalAmount,
             totalNoGravado: 0.0,
-            totalPagar: invoice.totalAmount,
+            totalPagar: Decimal(total),
             totalLetras: totalLabel,
             totalIva: iva,
             saldoFavor: 0.0,

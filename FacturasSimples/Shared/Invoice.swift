@@ -31,7 +31,7 @@ import SwiftData
     var invoiceType: InvoiceType
     
     var documentType: String = ""
-     
+    
     var generationCode: String?
     var controlNumber: String?
     var receptionSeal: String?
@@ -47,32 +47,38 @@ import SwiftData
     var items: [InvoiceDetail] = []
     
     /// review this logic
-       var totalAmount: Decimal {
-           return items.reduce(0){
-               ($0 + $1.productTotal).rounded()
-           }
-       }
-       
-       var tax: Decimal {
-           return (totalAmount - (totalAmount / Constants.includedTax)).rounded()
-       }
-       
-       var subTotal: Decimal {
-           return (totalAmount > 0 ? totalAmount - tax : 0).rounded()
-       }
-       
-       var isCCF: Bool {
-           return invoiceType == .CCF
-       }
-       
-       var totalItems: Int {
-           return items.count
-       }
-       
+    var totalAmount: Decimal {
+        return items.reduce(0){
+            ($0 + $1.productTotal).rounded()
+        }
+    }
+    
+    var tax: Decimal {
+        return (totalAmount - (totalAmount / Constants.includedTax)).rounded()
+    }
+    
+    var subTotal: Decimal {
+        return (totalAmount > 0 ? totalAmount - tax : 0).rounded()
+    }
+    
+    var isCCF: Bool {
+        return invoiceType == .CCF
+    }
+    
+    var totalItems: Int {
+        return items.count
+    }
+    
+    
+    var totalWithoutTax: Decimal {
+        return (totalAmount / 1.13).rounded()
+    }
+    
+    var ivaRete1: Decimal{
+        return customer.hasContributorRetention ?
+        (totalWithoutTax * 0.01).rounded() : 0
+    }
   
-       var totalWithoutTax: Decimal {
-           return (totalAmount / 1.13).rounded()
-       }
     
     var version: Int {
         return isCCF ? 3 : 1
@@ -128,7 +134,7 @@ enum InvoiceStatus:Int, Codable, CaseIterable, Identifiable, Hashable {
 }
 
 //enum InvoicetSearchScope: String, Codable, CaseIterable, Identifiable, Hashable {
-//     
+//
 //    case Factura
 //    case Credito
 //    case NonEditable

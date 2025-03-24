@@ -39,6 +39,8 @@ struct AddCustomerView: View {
                         .keyboardType(.phonePad)
                     TextField("Email", text: $viewModel.email)
                         .keyboardType(.emailAddress)
+                        .autocapitalization(.none)
+                        .textContentType(.emailAddress)
                 }
             }
             
@@ -63,6 +65,12 @@ struct AddCustomerView: View {
                         
                         Button(viewModel.ActividadLabel){
                             viewModel.displayPickerSheet.toggle()
+                        }
+                        
+                        Toggle("Gran Contributente",isOn: $viewModel.hasContributorRetention)
+                        
+                        if viewModel.hasContributorRetention{
+                            Text("La categoría de gran contribuyente en el Ministerio de Hacienda es requerida")
                         }
                     }
                 }

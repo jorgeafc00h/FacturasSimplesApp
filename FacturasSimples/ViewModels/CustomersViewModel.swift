@@ -134,6 +134,8 @@ extension AddCustomerView{
         
         var showConfirmCancel: Bool = false
         
+        var hasContributorRetention: Bool = false
+        
         var ActividadLabel : String {
             descActividad ?? "Seleccione Acvitdad Economica"
         }
@@ -172,6 +174,7 @@ extension AddCustomerView{
             newCustomer.codActividad = viewModel.codActividad
             newCustomer.nit = viewModel.nit
             newCustomer.nrc = viewModel.nrc
+            newCustomer.hasContributorRetention = viewModel.hasContributorRetention
             
             
             modelContext.insert(newCustomer)

@@ -305,10 +305,16 @@ class InvoicePDFGenerator {
                 currentY += rowSpacing
             }
             
+            let total =
+            invoice.customer.hasContributorRetention ?
+            (invoice.totalAmount.asDoubleRounded - invoice.ivaRete1.asDoubleRounded) :
+            invoice.totalAmount.asDoubleRounded
+            
+            
             // Total en Letras
             "Total en Letras:".draw(at: CGPoint(x: labelX, y: currentY), withAttributes: footerAttributes)
             currentY += rowSpacing
-            numberToWords((invoice.totalAmount as NSDecimalNumber).doubleValue).uppercased().draw(at: CGPoint(x: labelX, y: currentY ), withAttributes: smallerFooterAttributes)
+            numberToWords(total).uppercased().draw(at: CGPoint(x: labelX, y: currentY ), withAttributes: smallerFooterAttributes)
             
             // small logo
             let smallLogoRect  = CGRect(x: 3, y: 770, width: 10, height: 13)
@@ -337,12 +343,12 @@ class InvoicePDFGenerator {
             
             // Resumen Rows
             let summaryRows = [
-                ("Sumatoria de Ventas", invoice.totalAmount),
+                ("Sumatoria de Ventas", Decimal(total)),
                 ("Monto Global de Descuento, Rebajas y Otros a Ventas No Sujetas:", Decimal(0)),
                 ("Monto Global de Descuento, Rebajas y Otros a Ventas Exentas:", Decimal(0)),
                 ("Monto Global de Descuento, Rebajas y Otros a Ventas Gravadas:", Decimal(0)),
-                ("20 - Impuesto al Valor Agregado 13%:",invoice.isCCF ?  invoice.totalAmount * Decimal(0.13) : 0),
-                ("Sub Total:", invoice.totalAmount),
+                ("20 - Impuesto al Valor Agregado 13%:",invoice.isCCF ?  invoice.tax : 0),
+                ("Sub Total:", invoice.isCCF ? invoice.subTotal: invoice.totalAmount),
                 ("(-) IVA Retenido:", Decimal(0)),
                 ("(-) Retención Renta:", Decimal(0)),
                 ("Monto Total de la Operación:", invoice.totalAmount),

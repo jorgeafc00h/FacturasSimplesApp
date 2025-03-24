@@ -98,7 +98,7 @@ struct DeactivateDocumentView: View {
                     }) {
                         HStack {
                             Spacer()
-                            Text("Anular Documento")
+                            Text("Invalidar Documento")
                                 .bold()
                             Spacer()
                         }
@@ -107,18 +107,18 @@ struct DeactivateDocumentView: View {
                     .tint(.red)
                     .padding()
                     .confirmationDialog(
-                        "¿Está seguro que desea anular este documento?",
+                        "¿Está seguro que desea Invalidar este documento?",
                         isPresented: $showConfirmation,
                         titleVisibility: .visible
                     ) {
-                        Button("Anular", role: .destructive) {
+                        Button("Invalidar", role: .destructive) {
                             submitDeactivation()
                         }
                         Button("Cancelar", role: .cancel) {}
                     }
                 }
             }
-            .navigationTitle("Anular Documento")
+            .navigationTitle("Invalidar Documento")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancelar") {
@@ -146,7 +146,7 @@ struct DeactivateDocumentView: View {
                                     .animation(.linear(duration: 1).repeatForever(autoreverses: false), value: isSubmitting)
                             }
                             
-                            Text("Procesando anulación...")
+                            Text("Procesando Invalidación...")
                                 .font(.headline)
                                 .foregroundColor(.gray)
                                 

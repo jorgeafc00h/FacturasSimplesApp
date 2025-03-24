@@ -31,8 +31,13 @@ struct CustomerEditView: View {
                     TextField("Apellido", text: $customer.lastName)
                     
                     TextField("DUI" ,text: $customer.nationalId)
+                        .keyboardType(.numberPad)
                     TextField("Teléfono" ,text:  $customer.phone)
+                        .keyboardType(.phonePad)
                     TextField("Correo", text: $customer.email)
+                        .keyboardType(.emailAddress)
+                        .autocapitalization(.none)
+                        .textContentType(.emailAddress)
                 }
             }
             
@@ -54,6 +59,11 @@ struct CustomerEditView: View {
                         
                         Button(customer.descActividad ?? "Actividad Económica"){
                             viewModel.displayPickerSheet.toggle()
+                        }
+                        Toggle("Gran Contributente",isOn: $customer.hasContributorRetention)
+                        
+                        if customer.hasContributorRetention{
+                            Text("La categoría de gran contribuyente en el Ministerio de Hacienda es requerida")
                         }
                     }
                 }
