@@ -120,7 +120,10 @@ class InvoiceServiceClient
     func Sync(dte: DTE_Base, credentials: ServiceCredentials,isProduction: Bool )async throws -> DTEResponseWrapper
     {
        
-        encoder.dateEncodingStrategy = .iso8601 // to properly fornat Date as json instead of number.
+        //encoder.dateEncodingStrategy = .iso8601 // to properly fornat Date as json instead of number.
+        // Use custom date encoding strategy
+        encoder.dateEncodingStrategy = .formatted(DateFormatter.iso8601DateOnly)
+          
         
         let jsonData = try encoder.encode(dte)
         let jsonString = String(data: jsonData, encoding: .utf8)!
@@ -304,7 +307,8 @@ class InvoiceServiceClient
     
     func invalidateDocumentAsync(dte:  DTE_InvalidationRequest, credentials: ServiceCredentials, isProduction : Bool) async throws -> Bool {
         
-        encoder.dateEncodingStrategy = .iso8601 // to properly fornat Date as json instead of number.
+        //encoder.dateEncodingStrategy = .iso8601 // to properly fornat Date as json instead of number.
+        encoder.dateEncodingStrategy = .formatted(DateFormatter.iso8601DateOnly)
         
         let jsonData = try encoder.encode(dte)
         let jsonString = String(data: jsonData, encoding: .utf8)!

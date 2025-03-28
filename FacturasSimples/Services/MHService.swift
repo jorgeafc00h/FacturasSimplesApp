@@ -184,7 +184,7 @@ class MhClient {
             reteRenta: 0.0,
             montoTotalOperacion: invoice.totalAmount,
             totalNoGravado: 0.0,
-            totalPagar: Decimal(total),
+            totalPagar: Decimal(total).rounded(),
             totalLetras: totalLabel,
             totalIva: iva,
             saldoFavor: 0.0,

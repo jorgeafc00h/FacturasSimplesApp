@@ -26,10 +26,10 @@ struct RequestProductionView: View {
                             PreProdStep1(company: company, size: size)
                         }
                     }
-                    .padding(.top,25)
+                    //.padding(.top,25)
                 }
             }
-            .padding(15)
+            .padding(5)
             .interactiveDismissDisabled()
             
         }
@@ -66,7 +66,7 @@ private struct SubPageView<ActionView:View> :View{
                 Image(intro.introAssetImage)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .padding(15)
+                    .padding(5)
                     .frame(width: size.width, height: size.height)
             }
             // movig up
@@ -77,16 +77,16 @@ private struct SubPageView<ActionView:View> :View{
                 Spacer(minLength: 0)
                 
                 Text(intro.title)
-                    .font(.system(size:40))
+                    .font(.system(size:30))
                     .fontWeight(.black)
-                    .padding(.top,15)
+                    .padding(.top,3)
                 //                    .lineLimit(5)
                     .foregroundColor(.black)
                     .minimumScaleFactor(0.01)
                     .multilineTextAlignment(.leading)
                 
                 Text(intro.subTitle)
-                    .font(.system(size:20))
+                    .font(.system(size:17))
                     .fontWeight(.semibold)
                     .padding(.top,15)
                     .minimumScaleFactor(0.01)
@@ -108,6 +108,7 @@ private struct SubPageView<ActionView:View> :View{
                     // moving down
                         .offset(y: showView ? 0 : size.height / 2)
                         .opacity(showView ? 1 : 0)
+                    Spacer(minLength: 40)
                     
                 }
             }
@@ -142,7 +143,6 @@ private struct SubPageView<ActionView:View> :View{
                 showView = true
             }
         }
-        
     }
     private var continueButon : some View {
         Button{
@@ -193,116 +193,7 @@ private struct SubPageView<ActionView:View> :View{
         
     }
 }
-
-//struct RequestProductionAccessView: View {
-//    @Environment(\.modelContext)   var modelContext
-//    @Environment(\.dismiss)   var dismiss
-//    @Bindable var company: Company
-//    @State var viewModel = RequestProductionAccessViewModel()
-//
-//
-//
-//    var body: some View {
-//        ZStack {
-//            Color(.onboarding1).ignoresSafeArea()
-//
-//            GeometryReader { geometry in
-//                VStack {
-//                    Spacer(minLength: 50)
-//
-//                    Text("Solicitar Acceso a Producción")
-//                        .font(.title)
-//                        .fontWeight(.bold)
-//                        .foregroundColor(.primary)
-//                        .padding(.bottom, 20)
-//                        .offset(y: viewModel.showView ? 0 : -geometry.size.height / 2)
-//                        .opacity(viewModel.showView ? 1 : 0)
-//                        .animation(.spring(response: 0.8, dampingFraction: 0.8, blendDuration: 0).delay(0.1), value: viewModel.showView)
-//
-//                    VStack(spacing: 20) {
-//                        if viewModel.hasMinimumInvoices {
-//                            Button(action: ValidateProductionAccount) {
-//                                Text("Siguiente")
-//                                    .fontWeight(.bold)
-//                                    .foregroundColor(.white)
-//                                    .frame(maxWidth: .infinity)
-//                                    .padding(EdgeInsets(top: 16, leading: 18, bottom: 16, trailing: 18))
-//                                    .background(Capsule().fill(Color.blue))
-//                                    .shadow(color: .gray, radius: 6)
-//                            }
-//                        } else {
-//                            Button(action: { viewModel.showConfirmDialog = true }) {
-//                                Text("Generar y Enviar 50 DTE por Tipo")
-//                                    .fontWeight(.bold)
-//                                    .foregroundColor(.white)
-//                                    .frame(maxWidth: .infinity)
-//                                    .padding(EdgeInsets(top: 16, leading: 18, bottom: 16, trailing: 18))
-//                                    .background(Capsule().fill(Color.blue))
-//                                    .shadow(color: .gray, radius: 6)
-//                            }
-//                            .confirmationDialog(
-//                                "¿Desea generar y enviar 50 DTE por tipo?",
-//                                isPresented: $viewModel.showConfirmDialog,
-//                                titleVisibility: .visible
-//                            ) {
-//                                Button("Confirmar", action: generateAndSendInvoices)
-//                                Button("Cancelar", role: .cancel) {}
-//                            }
-//                        }
-//
-//                        if viewModel.isSyncing {
-//                            ProgressView(value: viewModel.progress, total: 1.0)
-//                                .padding()
-//                                .tint(Color.blue)
-//                                .offset(y: viewModel.showView ? 0 : geometry.size.height / 2)
-//                                .opacity(viewModel.showView ? 1 : 0)
-//                                .animation(.spring(response: 0.8, dampingFraction: 0.8, blendDuration: 0).delay(0.1), value: viewModel.showView)
-//                            Text("Progreso: \(Int(viewModel.progress * 100))%")
-//                                .foregroundColor(.primary)
-//                                .padding(.bottom)
-//                                .offset(y: viewModel.showView ? 0 : geometry.size.height / 2)
-//                                .opacity(viewModel.showView ? 1 : 0)
-//                                .animation(.spring(response: 0.8, dampingFraction: 0.8, blendDuration: 0).delay(0.1), value: viewModel.showView)
-//                        }
-//
-//                        Link("Solicitar Entorno Producción Facturación Electrónica", destination: URL(string: "https://admin.factura.gob.sv/login")!)
-//                            .foregroundColor(Color.blue)
-//                            .padding(.top, 30)
-//                            .offset(y: viewModel.showView ? 0 : geometry.size.height / 2)
-//                            .opacity(viewModel.showView ? 1 : 0)
-//                            .animation(.spring(response: 0.8, dampingFraction: 0.8, blendDuration: 0).delay(0.1), value: viewModel.showView)
-//
-//                        Button(action: {
-//                            dismiss()
-//                        }) {
-//                            Text("OK")
-//                                .foregroundColor(.gray)
-//                                .padding(.top, 20)
-//                        }.disabled(viewModel.isSyncing)
-//                        .offset(y: viewModel.showView ? 0 : geometry.size.height / 2)
-//                        .opacity(viewModel.showView ? 1 : 0)
-//                        .animation(.spring(response: 0.8, dampingFraction: 0.8, blendDuration: 0).delay(0.1), value: viewModel.showView)
-//                    }
-//                    .padding(.horizontal, 42.0)
-//                    .offset(y: viewModel.showView ? 0 : geometry.size.height / 2)
-//                    .opacity(viewModel.showView ? 1 : 0)
-//                    .animation(.spring(response: 0.8, dampingFraction: 0.8, blendDuration: 0).delay(0.1), value: viewModel.showView)
-//
-//                    Spacer()
-//                }
-//                .alert(isPresented: $viewModel.showAlert) {
-//                    Alert(title: Text("Información"), message: Text(viewModel.alertMessage), dismissButton: .default(Text("OK")))
-//                }
-//            }
-//        }
-//        .interactiveDismissDisabled()
-//        .onAppear(perform: {
-//            withAnimation(.spring(response: 0.8, dampingFraction: 0.8, blendDuration: 0).delay(0.1)) {
-//                viewModel.showView = true
-//            }
-//        })
-//    }
-//}
+ 
 
 struct PreProdStep1:View{
     
@@ -312,13 +203,56 @@ struct PreProdStep1:View{
     var size: CGSize
     
     @State var viewModel = RequestProductionAccessViewModel()
+    
+    // Add state variables for confirmation dialogs
+    @State private var showFacturasDialog = false
+    @State private var showCCFDialog = false
+    @State private var showNotasDialog = false
+    @State private var showProcessAllDialog = false
+    
+    // Add state variables for force regeneration dialogs
+    @State private var showForceFacturasDialog = false
+    @State private var showForceCCFDialog = false 
+    @State private var showForceNotasDialog = false
+    @State private var showForceAllDialog = false
+    
+    // Add state to track selected document type
+    @State private var selectedDocType: DocumentType = .factura
+    @State private var showDocumentMenu = false
+    
+    enum DocumentType: String, CaseIterable, Identifiable {
+        case factura = "Facturas"
+        case ccf = "Créditos Fiscales"
+        case notaCredito = "Notas de Crédito"
+        case todo = "Todo"
+        
+        var id: String { self.rawValue }
+        
+        var iconName: String {
+            switch self {
+            case .factura: return "doc.text"
+            case .ccf: return "doc.text.fill"
+            case .notaCredito: return "arrow.left.and.right.doc"
+            case .todo: return "doc.on.doc.fill"
+            }
+        }
+        
+        var isProcessed: (RequestProductionAccessViewModel) -> Bool {
+            switch self {
+            case .factura: return { $0.hasProcessedFacturas }
+            case .ccf: return { $0.hasProcessedCCF }
+            case .notaCredito: return { $0.hasProcessedCreditNotes }
+            case .todo: return { $0.hasProcessedFacturas && $0.hasProcessedCCF && $0.hasProcessedCreditNotes }
+            }
+        }
+    }
+    
     var body: some View {
         GeometryReader { geometry in
             VStack(spacing:10){
                 
                 Link("ir al portal de Hacienda Facturación Electrónica", destination: URL(string: "https://admin.factura.gob.sv/login")!)
                     .foregroundColor(.darkBlue)
-                    .padding(.bottom)
                 
                 if viewModel.isSyncing {
                     withAnimation{
@@ -334,7 +268,6 @@ struct PreProdStep1:View{
                     }
                 }
                 else{
-                    
                     if viewModel.hasCompleted {
                         Button(action: ValidateProductionAccount) {
                             Text("Completar")
@@ -348,47 +281,185 @@ struct PreProdStep1:View{
                         .disabled(viewModel.isSyncing)
                         .frame(maxWidth: .infinity, alignment: .center)
                     }
-                    
-                    else{
-                        
-                        Button(action: { viewModel.showConfirmDialog = true }) {
-                            Text("Procesar")
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
-                                .frame(width: size.width * 0.4)
-                                .padding(EdgeInsets(top: 16, leading: 18, bottom: 16, trailing: 18))
-                                .background(Capsule().fill(Color.black))
-                                .shadow(color: .gray, radius: 6)
-                        }
-                        .disabled(viewModel.isSyncing)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .confirmationDialog(
-                            "¿Desea generar y enviar 50 DTE por tipo?",
-                            isPresented: $viewModel.showConfirmDialog,
-                            titleVisibility: .visible
-                        ) {
-                            Button("Confirmar", action: generateAndSendInvoices)
-                            Button("Cancelar", role: .cancel) {
-                                ValidateProductionAccount()
+                    else {
+                        // Dropdown selector for document type
+                        Spacer()
+                        Menu {
+                            ForEach(DocumentType.allCases) { docType in
+                                Button(action: { 
+                                    selectedDocType = docType
+                                    showConfirmationForType(docType)
+                                }) {
+                                    HStack {
+                                        Image(systemName: docType.iconName)
+                                        Text(docType.rawValue)
+                                        if docType.isProcessed(viewModel) {
+                                            Image(systemName: "checkmark")
+                                                .foregroundColor(.green)
+                                        }
+                                    }
+                                }
                             }
+                        } label: {
+                            HStack {
+                                Image(systemName: selectedDocType.iconName)
+                                Text("Procesar \(selectedDocType.rawValue)")
+                                Image(systemName: "chevron.down")
+                                    .font(.caption)
+                            }
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .frame(width: size.width * 0.7)
+                            .padding(EdgeInsets(top: 16, leading: 18, bottom: 16, trailing: 18))
+                            .background(Capsule().fill(Color.black))
+                            .shadow(color: .gray, radius: 6)
                         }
+                        .padding(.top,10)
+                        .disabled(viewModel.isSyncing)
+                        
+//                        Button(action: { processSelectedDocumentType() }) {
+//                            Text("Procesar")
+//                                .fontWeight(.bold)
+//                                .foregroundColor(.white)
+//                                .frame(width: size.width * 0.4)
+//                                .padding(EdgeInsets(top: 16, leading: 18, bottom: 16, trailing: 18))
+//                                .background(Capsule().fill(Color.black))
+//                                .shadow(color: .gray, radius: 6)
+//                        }
+//                        .disabled(viewModel.isSyncing)
+//                        .padding(.top, 20)
                     }
                 }
-                Spacer(minLength: 7)
             }
             .frame(maxWidth: .infinity, alignment: .center)
             .alert(isPresented: $viewModel.showAlert) {
                 Alert(title: Text("Información"), message: Text(viewModel.alertMessage), dismissButton: .default(Text("OK")))
             }
+            
+            // Confirmation dialogs
+            .confirmationDialog("¿Desea generar y enviar Facturas?", isPresented: $showFacturasDialog, titleVisibility: .visible) {
+                Button("Confirmar") {
+                    prepareCustomersAndProducts()
+                    
+                    // Check if we already have enough facturas
+                    if viewModel.invoices.count(where: { $0.invoiceType == .Factura && $0.status == .Completada }) >= viewModel.totalInvoices {
+                        showForceFacturasDialog = true
+                    } else {
+                        generateFacturas()
+                        sendInvoices()
+                    }
+                }
+                Button("Cancelar", role: .cancel) {}
+            }
+            
+            .confirmationDialog("¿Desea generar y enviar Créditos Fiscales?", isPresented: $showCCFDialog, titleVisibility: .visible) {
+                Button("Confirmar") {
+                    prepareCustomersAndProducts()
+                    
+                    // Check if we already have enough CCF
+                    if viewModel.invoices.count(where: { $0.invoiceType == .CCF && $0.status == .Completada }) >= viewModel.totalInvoices {
+                        showForceCCFDialog = true
+                    } else {
+                        generateCreditosFiscales()
+                        sendInvoices()
+                    }
+                }
+                Button("Cancelar", role: .cancel) {}
+            }
+            
+            .confirmationDialog("¿Desea generar y enviar Notas de Crédito?", isPresented: $showNotasDialog, titleVisibility: .visible) {
+                Button("Confirmar") {
+                    prepareCustomersAndProducts()
+                    
+                    // Check if we already have enough Credit Notes
+                    if viewModel.invoices.count(where: { $0.invoiceType == .NotaCredito && $0.status == .Completada }) >= 50 {
+                        showForceNotasDialog = true
+                    } else {
+                        generateCreditNotes()
+                        sendInvoices()
+                    }
+                }
+                Button("Cancelar", role: .cancel) {}
+            }
+            
+            // Confirmation dialog for "Procesar Todo"
+            .confirmationDialog("¿Desea generar y enviar todos los tipos de documentos?", isPresented: $showProcessAllDialog, titleVisibility: .visible) {
+                Button("Confirmar") {
+                    prepareCustomersAndProducts()
+                    
+                    // Check if we already have enough of any type
+                    let hasEnoughFacturas = viewModel.invoices.count(where: { $0.invoiceType == .Factura && $0.status == .Completada }) >= viewModel.totalInvoices
+                    let hasEnoughCCF = viewModel.invoices.count(where: { $0.invoiceType == .CCF && $0.status == .Completada }) >= viewModel.totalInvoices
+                    let hasEnoughNotes = viewModel.invoices.count(where: { $0.invoiceType == .NotaCredito && $0.status == .Completada }) >= 50
+                    
+                    if hasEnoughFacturas || hasEnoughCCF || hasEnoughNotes {
+                        showForceAllDialog = true
+                    } else {
+                        processAllDocuments()
+                    }
+                }
+                Button("Cancelar", role: .cancel) {}
+            }
+            
+            // Force generation confirmation dialogs
+            .confirmationDialog("Ya existen suficientes Facturas completadas. ¿Desea generar una nueva tanda de todas formas?", isPresented: $showForceFacturasDialog, titleVisibility: .visible) {
+                Button("Sí, generar nueva tanda") {
+                    generateFacturas(forceGenerate: true)
+                    sendInvoices()
+                }
+                Button("No, cancelar", role: .cancel) {}
+            }
+            
+            .confirmationDialog("Ya existen suficientes Créditos Fiscales completados. ¿Desea generar una nueva tanda de todas formas?", isPresented: $showForceCCFDialog, titleVisibility: .visible) {
+                Button("Sí, generar nueva tanda") {
+                    generateCreditosFiscales(forceGenerate: true)
+                    sendInvoices()
+                }
+                Button("No, cancelar", role: .cancel) {}
+            }
+            
+            .confirmationDialog("Ya existen suficientes Notas de Crédito completadas. ¿Desea generar una nueva tanda de todas formas?", isPresented: $showForceNotasDialog, titleVisibility: .visible) {
+                Button("Sí, generar nueva tanda") {
+                    generateCreditNotes(forceGenerate: true)
+                    sendInvoices()
+                }
+                Button("No, cancelar", role: .cancel) {}
+            }
+            
+            .confirmationDialog("Ya existen suficientes documentos completados. ¿Desea generar una nueva tanda de todos los tipos de todas formas?", isPresented: $showForceAllDialog, titleVisibility: .visible) {
+                Button("Sí, generar nueva tanda de todos") {
+                    processAllDocuments(forceGenerate: true)
+                }
+                Button("No, cancelar", role: .cancel) {}
+            }
+            
+            .onAppear {
+                loadAllInvoices()
+            }
         }
+    }
+    
+    // Function to show the appropriate confirmation dialog based on document type
+    private func showConfirmationForType(_ docType: DocumentType) {
+        switch docType {
+        case .factura:
+            showFacturasDialog = true
+        case .ccf:
+            showCCFDialog = true
+        case .notaCredito:
+            showNotasDialog = true
+        case .todo:
+            showProcessAllDialog = true
+        }
+    }
+    
+    // Function to process the selected document type
+    private func processSelectedDocumentType() {
+        showConfirmationForType(selectedDocType)
     }
 }
 
-//#Preview {
-//    RequestProductionAccessView(company: Company(nit: "123", nrc: "456", nombre: "Test Company"))
-//}
-
-
+ 
 
 #Preview("Onboarding") {
     RequestProductionView(company: Company(nit: "123", nrc: "456", nombre: "Test Company"))
@@ -397,6 +468,23 @@ struct PreProdStep1:View{
 #Preview("Onboarding Dark") {
     RequestProductionView(company: Company(nit: "123", nrc: "456", nombre: "Test Company"))
         .preferredColorScheme(.dark)
+}
+
+
+#Preview ("3rd Page",traits: .sampleCompanies){
+    
+    // Add sample data
+    let company = Company(nit:"123512351",nrc:"1351346",nombre:"Joe Cool",descActividad: "")
+    
+    let intro = pagesIntros[5]
+    GeometryReader{
+        let size = $0.size
+        PreProdStep1(
+            company: company,
+            size: size
+        )
+    }
+     
 }
 
 

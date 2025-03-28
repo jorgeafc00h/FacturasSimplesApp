@@ -167,6 +167,37 @@ class Extensions
         dateFormatter.dateFormat = "HH:mm:ss"
         return dateFormatter.string(from: Date())
     }
+    
+    public static func generateControlNumberAndCode(_ invoice: Invoice){
+        //check if has valid controlnumber in case of edit
+        if invoice.controlNumber != nil ,
+           invoice.controlNumber != "" {
+            
+            let hasInvalidControlNumberPrefix =
+            (invoice.invoiceType == .Factura && !invoice.controlNumber!.hasPrefix("DTE-01")) ||
+            (invoice.invoiceType == .CCF && !invoice.controlNumber!.hasPrefix("DTE-03")) ||
+            (invoice.invoiceType == .NotaCredito && !invoice.controlNumber!.hasPrefix("DTE-05"))
+            
+            
+            if (hasInvalidControlNumberPrefix){
+                invoice.controlNumber = nil
+                invoice.documentType  = Extensions.documentTypeFromInvoiceType(invoice.invoiceType)
+            }
+        }
+        
+        
+        if invoice.controlNumber == nil || invoice.controlNumber == "" {
+            invoice.controlNumber =  invoice.isCCF ?
+            try? Extensions.generateString(baseString: "DTE-03",pattern: nil) :
+            invoice.invoiceType == .NotaCredito ?
+            try? Extensions.generateString(baseString: "DTE-05",pattern: nil) :
+            try? Extensions.generateString(baseString: "DTE",pattern: "^DTE-01-[A-Z0-9]{8}-[0-9]{15}$")
+        }
+        
+        if invoice.generationCode == nil || invoice.generationCode == "" {
+            invoice.generationCode = try? Extensions.getGenerationCode()
+        }
+    }
 }
 
 // Extension for Decimal rounding
@@ -194,4 +225,14 @@ extension Decimal {
         var asDoubleRounded: Double {
             toDouble(roundingMode: .plain)
         }
+}
+extension DateFormatter {
+    static let iso8601DateOnly: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        formatter.calendar = Calendar(identifier: .iso8601)
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        return formatter
+    }()
 }

@@ -31,28 +31,78 @@ extension  InvoicesListView{
         } 
     }
      
-//    func fetchInvoices(){
-//        let predicate = #Predicate<Invoice> {
-//            searchText.isEmpty ?
-//            $0.customer.companyOwnerId == selectedCompanyId:
-//            $0.invoiceNumber.localizedStandardContains(searchText) ||
-//            $0.customer.firstName.localizedStandardContains(searchText) ||
-//            $0.customer.lastName.localizedStandardContains(searchText) ||
-//            $0.customer.email.localizedStandardContains(searchText) &&
-//            $0.customer.companyOwnerId == selectedCompanyId
-//        }
-//        
-//        let sortDescriptor =  SortDescriptor(\Invoice.invoiceNumber,order: .reverse)
-//        
-//        let descriptor = FetchDescriptor<Invoice>(predicate: predicate, sortBy: [sortDescriptor])
-//        
-//        let _customers = try? modelContext.fetch(descriptor)
-//        
-//        if let collection = _customers{
-//            viewModel.invoices = collection
-//            viewModel.invocesCount = collection.count
-//        }
-//    }
+    /// Create a predicate based on search scope and text
+    func getSearchPredicate(scope: InvoiceSearchScope, searchText: String, companyId: String) -> Predicate<Invoice> {
+        if searchText.isEmpty {
+            switch scope {
+            case .factura:
+                
+                let  _type = Extensions.documentTypeFromInvoiceType( InvoiceType.Factura)
+                
+                return #Predicate<Invoice> {
+                    $0.customer.companyOwnerId == companyId &&
+                    $0.documentType == _type
+                }
+            case .ccf:
+                let  _type = Extensions.documentTypeFromInvoiceType( InvoiceType.CCF)
+                
+                return #Predicate<Invoice> {
+                    $0.customer.companyOwnerId == companyId &&
+                    $0.documentType == _type
+                }
+            default :
+                return #Predicate<Invoice> {
+                    $0.customer.companyOwnerId == companyId
+                }
+            }
+        }
+        
+        switch scope {
+        case .nombre:
+            return #Predicate<Invoice> {
+                ($0.customer.firstName.localizedStandardContains(searchText) ||
+                 $0.customer.lastName.localizedStandardContains(searchText)) &&
+                $0.customer.companyOwnerId == companyId
+            }
+        case .nit:
+            return #Predicate<Invoice> {
+                $0.customer.nit.localizedStandardContains(searchText) &&
+                $0.customer.companyOwnerId == companyId
+            }
+        case .dui:
+            return #Predicate<Invoice> {
+                $0.customer.nationalId.localizedStandardContains(searchText) &&
+                $0.customer.companyOwnerId == companyId
+            }
+        case .nrc:
+            return #Predicate<Invoice> {
+                //($0.customer.nrc != nil &&
+                $0.customer.nrc.localizedStandardContains(searchText) &&
+                $0.customer.companyOwnerId == companyId
+            }
+            
+        case .factura:
+            
+            let  _type = Extensions.documentTypeFromInvoiceType( InvoiceType.Factura)
+            
+            return #Predicate<Invoice> {
+                $0.documentType == _type &&
+                $0.customer.companyOwnerId == companyId &&
+                $0.customer.firstName.localizedStandardContains(searchText)
+            }
+        
+        case .ccf:
+        
+            let  _type = Extensions.documentTypeFromInvoiceType( InvoiceType.CCF)
+        
+        return #Predicate<Invoice> {
+            //$0.controlNumber != nil &&  $0.controlNumber!.contains(searchText) ||
+            $0.documentType == _type &&
+            $0.customer.companyOwnerId == companyId &&
+            $0.customer.firstName.localizedStandardContains(searchText)
+        }
+      }
+    }
 
 }
 

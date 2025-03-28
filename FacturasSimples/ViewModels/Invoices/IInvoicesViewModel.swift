@@ -235,9 +235,8 @@ extension InvoiceEditView {
                 return detail
             }
             
-            if invoice.documentType.isEmpty{
-                invoice.documentType = Extensions.documentTypeFromInvoiceType(invoice.invoiceType)
-            }
+            invoice.documentType  = Extensions.documentTypeFromInvoiceType(invoice.invoiceType)
+            
             if invoice.totalAmount >  viewModel.total, disableIfInvoiceTypeIsNotAvailableInOptions()  {
                 viewModel.showErrorAlert = true
                 let errorMessage = invoice.relatedInvoiceType == .Factura ?

@@ -125,7 +125,7 @@ extension InvoiceDetailView {
             }
             
             do{
-                let result =  try await serviceClient.validateCredentials(nit: company.nit, password: company.credentials,isProduction: company.isProduction)
+                _ =  try await serviceClient.validateCredentials(nit: company.nit, password: company.credentials,isProduction: company.isProduction)
                 syncLabel = "Enviando..."
                 isBusy = false
                 
@@ -144,18 +144,7 @@ extension InvoiceDetailView {
         
         func GenerateInvoiceReferences(_ invoice: Invoice) -> DTE_Base? {
             
-            
-            if invoice.controlNumber == nil || invoice.controlNumber == "" {
-                invoice.controlNumber =  invoice.isCCF ?
-                try? Extensions.generateString(baseString: "DTE-03",pattern: nil) :
-                invoice.invoiceType == .NotaCredito ?
-                try? Extensions.generateString(baseString: "DTE-05",pattern: nil) :
-                try? Extensions.generateString(baseString: "DTE",pattern: "^DTE-01-[A-Z0-9]{8}-[0-9]{15}$")
-            }
-            
-            if invoice.generationCode == nil || invoice.generationCode == "" {
-                invoice.generationCode = try? Extensions.getGenerationCode()
-            }
+            Extensions.generateControlNumberAndCode(invoice)
             
             do {
                 let envCode =  invoiceService.getEnvironmetCode(company.isProduction)
@@ -214,6 +203,7 @@ extension InvoiceDetailView {
             
             if let relatedInvoice = try? modelContext.fetch(descriptor).first {
                 relatedInvoice.status = .Cancelada
+                relatedInvoice.statusRawValue =  relatedInvoice.status.id
                 try? modelContext.save()
             }
         }
@@ -316,6 +306,7 @@ extension InvoiceDetailView {
         note.status = .Nueva
         note.date = Date()
         note.invoiceType = .NotaCredito
+        note.documentType = Extensions.documentTypeFromInvoiceType(.NotaCredito)
         note.relatedDocumentNumber = invoice.generationCode
         note.relatedDocumentType = invoice.documentType
         note.relatedInvoiceType = invoice.invoiceType

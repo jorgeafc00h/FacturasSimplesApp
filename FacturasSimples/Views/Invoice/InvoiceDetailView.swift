@@ -103,15 +103,18 @@ struct InvoiceDetailView: View {
    
     @ViewBuilder
     private func EditButon() -> some View {
-        NavigationLink {
-            InvoiceEditView(invoice: invoice)
-        } label: {
-            HStack{
-                Image(systemName: "pencil.line")
-                    .symbolEffect(.breathe, options: .nonRepeating)
-                Text("Editar factura")
-            }.foregroundColor(.darkCyan)
-        }.disabled(invoice.status == .Completada)
+        if invoice.status != .Nueva {   EmptyView() }
+        else{
+            NavigationLink {
+                InvoiceEditView(invoice: invoice)
+            } label: {
+                HStack{
+                    Image(systemName: "pencil.line")
+                        .symbolEffect(.breathe, options: .nonRepeating)
+                    Text("Editar factura")
+                }.foregroundColor(.darkCyan)
+            }.disabled(invoice.status == .Completada)
+        }
     }
     
     @ViewBuilder
@@ -133,25 +136,32 @@ struct InvoiceDetailView: View {
     
     @ViewBuilder
     private func CreditNoteButton() -> some View {
-        Button {
-            viewModel.showConfirmCreditNote = true
-        } label: {
-            Text("Generar Nota de crédito")
+        if invoice.invoiceType == .CCF, invoice.status == .Completada{
+            Button {
+                viewModel.showConfirmCreditNote = true
+            } label: {
+                Text("Generar Nota de crédito")
+            }
+            .help("Genera Nota de credito a partir de la factura seleccionada.")
         }
-        .help("Genera Nota de credito a partir de la factura seleccionada.")
-        
+        else {
+            EmptyView()
+        }
     }
     
     @ViewBuilder
     private func DeactivateButton() -> some View {
-        Button {
-            viewModel.showDeactivateSheet = true
-        } label: {
-            HStack{
-                Image(systemName: "xmark.circle")
-                    .symbolEffect(.breathe, options: .nonRepeating)
-                Text("Anular Documento")
-            }.foregroundColor(.red)
+        if invoice.status != .Completada {  EmptyView() }
+        else{
+            Button {
+                viewModel.showDeactivateSheet = true
+            } label: {
+                HStack{
+                    Image(systemName: "xmark.circle")
+                        .symbolEffect(.breathe, options: .nonRepeating)
+                    Text("Anular Documento")
+                }.foregroundColor(.red)
+            }
         }
     }
     

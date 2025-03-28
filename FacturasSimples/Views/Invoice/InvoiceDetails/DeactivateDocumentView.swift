@@ -93,17 +93,21 @@ struct DeactivateDocumentView: View {
                 
                 
                 Section {
-                    Button(action: {
-                        showConfirmation = true
-                    }) {
+                    Button(action: { showConfirmation = true}) {
                         HStack {
                             Spacer()
                             Text("Invalidar Documento")
                                 .bold()
                             Spacer()
                         }
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(EdgeInsets(top: 16, leading: 18, bottom: 16, trailing: 18))
+                        .background(Capsule().fill(.red))
+                        .shadow(color: .gray, radius: 6)
                     }
-                    .buttonStyle(.borderedProminent)
+                    //.buttonStyle(.borderedProminent)
                     .tint(.red)
                     .padding()
                     .confirmationDialog(
@@ -212,6 +216,19 @@ struct DeactivateDocumentView: View {
                     invoice.invalidatedViaApi = true 
                     try? modelContext.save()
                     showSuccessMessage = true
+                    
+                    if invoice.invoiceType == .NotaCredito {
+                        let id = invoice.relatedId!
+                        let _fetchRequest = FetchDescriptor<Invoice>(predicate: #Predicate{
+                            $0.inoviceId == id
+                        })
+                        if let relatedInvoices = try? modelContext.fetch(_fetchRequest) {
+                            let invoice = relatedInvoices.first!
+                            invoice.status = .Completada
+                            try? modelContext.save()
+                            
+                        }
+                    }
                 }
                 
                 isSubmitting = false 

@@ -89,7 +89,7 @@ struct EditProfileView: View {
                VStack{
                    if viewModel.isBusy{
                        HStack {
-                           Label("Actualiando...",systemImage: "progress.indicator")
+                           Label("Actualizando...",systemImage: "progress.indicator")
                                .symbolEffect(.variableColor.iterative.dimInactiveLayers.nonReversing, options: .repeat(.continuous))
                        }
                    }
