@@ -496,36 +496,6 @@
             endingLineNumber = "406"
             landmarkName = "Sync(_:)"
             landmarkType = "7">
-            <Locations>
-               <Location
-                  uuid = "AADB2D35-8DDA-400C-BC7A-AB1FD9BA92AE - 65cd2fba66529823"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(3) suspend resume partial function for FacturasSimples.PreProdStep1.Sync(FacturasSimples.Invoice) async throws -&gt; ()"
-                  moduleName = "FacturasSimples.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/ViewModels/Account/RequestProductionAccessViewModel.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "409"
-                  endingLineNumber = "409">
-               </Location>
-               <Location
-                  uuid = "AADB2D35-8DDA-400C-BC7A-AB1FD9BA92AE - 65cd2fba66529823"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(3) suspend resume partial function for FacturasSimples.PreProdStep1.Sync(FacturasSimples.Invoice) async throws -&gt; ()"
-                  moduleName = "FacturasSimples.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/ViewModels/Account/RequestProductionAccessViewModel.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "409"
-                  endingLineNumber = "409">
-               </Location>
-            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
