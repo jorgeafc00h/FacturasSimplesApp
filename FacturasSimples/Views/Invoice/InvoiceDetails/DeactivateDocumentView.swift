@@ -212,7 +212,7 @@ struct DeactivateDocumentView: View {
                                                                                 isProduction: company.isProduction)
                 
                 if(result){
-                    invoice.status = .Cancelada
+                    invoice.status = .Anulada
                     invoice.invalidatedViaApi = true 
                     try? modelContext.save()
                     showSuccessMessage = true

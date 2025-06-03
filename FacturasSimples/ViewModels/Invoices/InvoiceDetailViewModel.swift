@@ -202,7 +202,7 @@ extension InvoiceDetailView {
             )
             
             if let relatedInvoice = try? modelContext.fetch(descriptor).first {
-                relatedInvoice.status = .Cancelada
+                relatedInvoice.status = .Anulada
                 relatedInvoice.statusRawValue =  relatedInvoice.status.id
                 try? modelContext.save()
             }

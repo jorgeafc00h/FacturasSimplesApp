@@ -116,14 +116,14 @@ enum InvoiceStatus:Int, Codable, CaseIterable, Identifiable, Hashable {
     case Nueva
     case Sincronizando
     case Completada
-    case Cancelada
+    case Anulada
     var id: Int { rawValue }
     func stringValue() -> String {
         switch(self) {
         case .Nueva:
             return "Nueva"
-        case .Cancelada:
-            return "Cancelada"
+        case .Anulada:
+            return "Anulada"
         case .Completada:
             return "Completada"
         case .Sincronizando:
@@ -197,7 +197,7 @@ extension Invoice {
             return Color.green
         case .Nueva:
             return Color.orange
-        case .Cancelada:
+        case .Anulada:
             return Color.red
         default:
             return Color.gray

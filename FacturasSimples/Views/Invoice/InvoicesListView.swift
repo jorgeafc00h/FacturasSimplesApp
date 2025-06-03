@@ -38,11 +38,22 @@ struct InvoicesListView: View {
             AddInvoiceView(selectedInvoice: $selection)
         }
         .toolbar{
-            ToolbarItemGroup(placement: .topBarTrailing) {
+            ToolbarItemGroup(placement: .primaryAction) {
                 Button("Nueva Factura", systemImage: "plus"){
                     viewModel.isShowingAddInvoiceSheet.toggle()
                 }
                 .buttonStyle(BorderlessButtonStyle()) 
+            }
+            
+            
+            ToolbarItem(placement: .automatic){
+                Menu{
+                    
+                    Toggle("Filtros De busqueda", isOn: .constant(false))
+                    
+                }label: {
+                    Image(systemName: "line.3.horizontal.decrease.circle")
+                }
             }
         }
         .overlay {

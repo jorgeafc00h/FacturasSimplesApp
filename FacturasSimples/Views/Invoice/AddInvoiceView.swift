@@ -65,6 +65,9 @@ struct AddInvoiceView: View {
             }.accentColor(.darkCyan)
         }
         .onAppear(perform: getNextInoviceNumber)
+        .onChange(of: viewModel.invoiceType){
+            getNextInoviceOrCCFNumber(invoiceType: viewModel.invoiceType)
+        }
         .presentationDetents([.large])
     }
     
@@ -122,7 +125,9 @@ struct AddInvoiceView: View {
                             
                             Text(invoiceType.stringValue()).tag(invoiceType)
                         }
-                    }.pickerStyle(.segmented)
+                    }
+                    //.onChange(of: viewModel.invoiceType, action: getNextInoviceOrCCFNumber(invoiceType: viewModel.invoiceType))
+                    .pickerStyle(.segmented)
                 }
                 
             }

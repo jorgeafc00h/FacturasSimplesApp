@@ -5,7 +5,7 @@ extension PreProdStep1{
     
     @Observable
     class RequestProductionAccessViewModel {
-        
+            
         var invoices: [Invoice] = []
         var generatedInvoices: [Invoice] = []
         var customers: [Customer] = []
@@ -30,6 +30,12 @@ extension PreProdStep1{
         
         // Flag to force generation even when minimum is met
         var forceGeneration: Bool = false
+        
+        var isLoadingCertificateStatus: Bool = false
+        var isLoadingCredentialsStatus: Bool = false
+        var showCertificateInvalidMessage: Bool = false
+        var showCredentialsInvalidMessage: Bool = false
+        
     }
     
     func loadAllInvoices() {
@@ -61,7 +67,7 @@ extension PreProdStep1{
         sendInvoices()
         
     }
-    func generateInvoices() {
+    func generateInvoices()  {
         prepareCustomersAndProducts()
         
         // This method now acts as a coordinator for all invoice types
@@ -93,8 +99,51 @@ extension PreProdStep1{
         ValidateProductionAccount()
     }
     
+    func validateCertificateCredentialasAsync() async  {
+        viewModel.isLoadingCertificateStatus = true
+        
+        let service = InvoiceServiceClient()
+        
+        
+        let result = try? await service.validateCertificate(nit: company.nit, key: company.certificatePassword,isProduction: company.isProduction)
+        
+        print("Certificate Validation Result: \(String(describing: result))")
+        
+        if(result == nil || result! == false){
+            
+            viewModel.showCertificateInvalidMessage = true
+        }
+        else{
+            viewModel.showCertificateInvalidMessage = false
+        }
+        viewModel.isLoadingCertificateStatus = false
+    }
+    
+    func validateCredentialsAsync() async  {
+        viewModel.isLoadingCredentialsStatus = true
+        
+        let service = InvoiceServiceClient()
+        
+        let result = try? await service.validateCredentials(nit: company.nit,
+                                                            password: company.credentials,
+                                                            isProduction: company.isProduction,
+                                                            forceRefresh: false)
+        print("Credentials Validation Result: \(String(describing: result))")
+        
+        if( result == nil || result! == false){
+            viewModel.showCredentialsInvalidMessage = true
+        }
+        else{
+            viewModel.showCredentialsInvalidMessage = false
+        }
+        
+        viewModel.isLoadingCredentialsStatus = false
+    }
+    
     // Helper method to prepare customers and products
-    func prepareCustomersAndProducts() {
+    func prepareCustomersAndProducts()  {
+        //check MH credentials
+       
         // Only create customers and products if they haven't been created yet
         if viewModel.customers.isEmpty {
             let firstNames = ["Juan", "María", "Carlos", "Ana", "Luis", "Sofía", "Miguel", "Lucía", "Javier", "Isabel"]
@@ -296,6 +345,15 @@ extension PreProdStep1{
         viewModel.isSyncing = true
         viewModel.progress = 0.0
         Task {
+            await validateCertificateCredentialasAsync()
+            await validateCredentialsAsync()
+            
+            if viewModel.showCertificateInvalidMessage || viewModel.showCredentialsInvalidMessage{
+                viewModel.alertMessage = "Por favor verifica los datos de tu certificado y las credenciales de hacienda"
+                viewModel.showAlert = true
+                return
+            }
+            
             for (index, invoice) in viewModel.generatedInvoices.enumerated() {
                 
                 if invoice.status == .Completada {
@@ -407,7 +465,7 @@ extension PreProdStep1{
                 )
                 
                 if let relatedInvoice = try? modelContext.fetch(descriptor).first{
-                    relatedInvoice.status = .Cancelada
+                    relatedInvoice.status = .Anulada
                     relatedInvoice.statusRawValue = relatedInvoice.status.id
                     try? modelContext.save()
                 }

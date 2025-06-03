@@ -48,6 +48,7 @@ struct CompanyDetailsView : View {
         .sheet(isPresented: $viewModel.showRequestProductionAccessSheet) {
             NavigationStack {
                 RequestProductionView(company: company)
+                
             }
         }
         .sheet(isPresented: $viewModel.showEditCredentialsSheet) {

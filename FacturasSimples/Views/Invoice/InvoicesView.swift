@@ -64,7 +64,7 @@ struct InvoicesView: View {
                 }
             }
         } 
-        .searchable(text: $searchText, placement: .sidebar, prompt: "Buscar por \(searchScope.rawValue)")
+        .searchable(text: $searchText, placement: .navigationBarDrawer, prompt: "Buscar por \(searchScope.rawValue)")
         .searchScopes($searchScope) {
             ForEach(InvoiceSearchScope.allCases, id: \.self) { scope in
                 Text(scope.rawValue).tag(scope)

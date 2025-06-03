@@ -8,10 +8,9 @@ struct RequestProductionView: View {
     
     @Bindable var company : Company
     
-    //@AppStorage("selectedCompanyIdentifier")  var companyId : String = ""
     
     @Environment(\.modelContext) var modelContext
-    @Environment(\.dismiss) var dismiss
+    @State private var showCloseButton: Bool = false
     
     var body: some View {
         ZStack{
@@ -20,15 +19,16 @@ struct RequestProductionView: View {
             GeometryReader{
                 let size = $0.size
                 
-                SubPageView(intro: $activeIntro,size: size){
+                SubPageView(intro: $activeIntro,size: size,showCloseButton: $showCloseButton){
                     VStack{
                         if activeIntro.companyStep1{
-                            PreProdStep1(company: company, size: size)
+                            PreProdStep1(company: company, size: size, showCloseButton: $showCloseButton)
                         }
                     }
                     //.padding(.top,25)
                 }
             }
+            
             .padding(5)
             .interactiveDismissDisabled()
             
@@ -41,15 +41,16 @@ private struct SubPageView<ActionView:View> :View{
     
     @Binding var intro: PageIntro
     var size: CGSize
-    
+    @Environment(\.dismiss)   var dismiss
     
     var actionView: ActionView
     
-    init(intro:Binding<PageIntro>, size: CGSize,
+    init(intro:Binding<PageIntro>, size: CGSize,showCloseButton: Binding<Bool>,
          @ViewBuilder actionView: @escaping () -> ActionView){
         self._intro = intro
         
         self.size = size
+        self._showCloseButton = showCloseButton
         self.actionView = actionView()
     }
     
@@ -57,6 +58,7 @@ private struct SubPageView<ActionView:View> :View{
     
     @State private var showView: Bool = false
     @State private var hideHoleView: Bool = false
+    @Binding private var showCloseButton : Bool
     var body: some View{
         VStack{
             // image view
@@ -136,6 +138,24 @@ private struct SubPageView<ActionView:View> :View{
                 .offset(y: showView ? 0 : -200)
                 .offset(y: hideHoleView ? -200: 0)
                 
+            }
+        }
+        .overlay(alignment: .topTrailing){
+            if !showCloseButton{
+                Button{
+                    dismiss()
+                }
+                label:{
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.black)
+                        .contentShape(Rectangle())
+                }
+                .padding(10)
+                //Animating Back Button, comes from top when active
+                .offset(y: showView ? 0 : -200)
+                .offset(y: hideHoleView ? -200: 0)
             }
         }
         .onAppear(){
@@ -219,6 +239,7 @@ struct PreProdStep1:View{
     // Add state to track selected document type
     @State private var selectedDocType: DocumentType = .factura
     @State private var showDocumentMenu = false
+    @Binding var showCloseButton: Bool
     
     enum DocumentType: String, CaseIterable, Identifiable {
         case factura = "Facturas"
@@ -345,6 +366,7 @@ struct PreProdStep1:View{
                     if viewModel.invoices.count(where: { $0.invoiceType == .Factura && $0.status == .Completada }) >= viewModel.totalInvoices {
                         showForceFacturasDialog = true
                     } else {
+                        showCloseButton = false
                         generateFacturas()
                         sendInvoices()
                     }
@@ -360,6 +382,7 @@ struct PreProdStep1:View{
                     if viewModel.invoices.count(where: { $0.invoiceType == .CCF && $0.status == .Completada }) >= viewModel.totalInvoices {
                         showForceCCFDialog = true
                     } else {
+                        showCloseButton = false
                         generateCreditosFiscales()
                         sendInvoices()
                     }
@@ -375,6 +398,7 @@ struct PreProdStep1:View{
                     if viewModel.invoices.count(where: { $0.invoiceType == .NotaCredito && $0.status == .Completada }) >= 50 {
                         showForceNotasDialog = true
                     } else {
+                        showCloseButton = false
                         generateCreditNotes()
                         sendInvoices()
                     }
@@ -395,6 +419,7 @@ struct PreProdStep1:View{
                     if hasEnoughFacturas || hasEnoughCCF || hasEnoughNotes {
                         showForceAllDialog = true
                     } else {
+                        showCloseButton = false
                         processAllDocuments()
                     }
                 }
@@ -404,6 +429,7 @@ struct PreProdStep1:View{
             // Force generation confirmation dialogs
             .confirmationDialog("Ya existen suficientes Facturas completadas. ¿Desea generar una nueva tanda de todas formas?", isPresented: $showForceFacturasDialog, titleVisibility: .visible) {
                 Button("Sí, generar nueva tanda") {
+                    showCloseButton = false
                     generateFacturas(forceGenerate: true)
                     sendInvoices()
                 }
@@ -412,6 +438,7 @@ struct PreProdStep1:View{
             
             .confirmationDialog("Ya existen suficientes Créditos Fiscales completados. ¿Desea generar una nueva tanda de todas formas?", isPresented: $showForceCCFDialog, titleVisibility: .visible) {
                 Button("Sí, generar nueva tanda") {
+                    showCloseButton = false
                     generateCreditosFiscales(forceGenerate: true)
                     sendInvoices()
                 }
@@ -420,6 +447,7 @@ struct PreProdStep1:View{
             
             .confirmationDialog("Ya existen suficientes Notas de Crédito completadas. ¿Desea generar una nueva tanda de todas formas?", isPresented: $showForceNotasDialog, titleVisibility: .visible) {
                 Button("Sí, generar nueva tanda") {
+                    showCloseButton = false
                     generateCreditNotes(forceGenerate: true)
                     sendInvoices()
                 }
@@ -428,6 +456,7 @@ struct PreProdStep1:View{
             
             .confirmationDialog("Ya existen suficientes documentos completados. ¿Desea generar una nueva tanda de todos los tipos de todas formas?", isPresented: $showForceAllDialog, titleVisibility: .visible) {
                 Button("Sí, generar nueva tanda de todos") {
+                    showCloseButton = false
                     processAllDocuments(forceGenerate: true)
                 }
                 Button("No, cancelar", role: .cancel) {}
@@ -437,6 +466,7 @@ struct PreProdStep1:View{
                 loadAllInvoices()
             }
         }
+        
     }
     
     // Function to show the appropriate confirmation dialog based on document type
@@ -481,7 +511,8 @@ struct PreProdStep1:View{
         let size = $0.size
         PreProdStep1(
             company: company,
-            size: size
+            size: size,
+            showCloseButton: .constant(false)
         )
     }
      

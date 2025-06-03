@@ -29,7 +29,7 @@ extension AddInvoiceView {
         
         var details:[InvoiceDetail] = []
         var invoiceTypes :[InvoiceType] = [.Factura,.CCF]
-        var invoiceStatuses :[InvoiceStatus] = [.Nueva,.Completada,.Cancelada]
+        var invoiceStatuses :[InvoiceStatus] = [.Nueva,.Completada,.Anulada]
         
         var productName :String = ""
         var unitPrice :Decimal = 0.0
@@ -141,8 +141,26 @@ extension AddInvoiceView {
         } else {
             viewModel.invoiceNumber = "00001"
         }
+    }
+    func getNextInoviceOrCCFNumber(invoiceType:InvoiceType){
+       let _type =  Extensions.documentTypeFromInvoiceType(invoiceType)
+        let descriptor = FetchDescriptor<Invoice>(
+            predicate: #Predicate<Invoice>{
+                $0.customer.companyOwnerId == companyIdentifier &&
+                $0.documentType == _type
+            },
+            sortBy: [SortDescriptor(\.date, order: .reverse)]
+        )
         
-        
+        if let latestInvoice = try? modelContext.fetch(descriptor).first {
+            if let currentNumber = Int(latestInvoice.invoiceNumber) {
+                viewModel.invoiceNumber = String(format: "%05d", currentNumber + 1)
+            } else {
+                viewModel.invoiceNumber = "00001"
+            }
+        } else {
+            viewModel.invoiceNumber = "00001"
+        }
     }
     
 }
@@ -155,7 +173,7 @@ extension InvoiceEditView {
         var showingProductPicker = false
         var showAddProductSection = false
         var invoiceTypes :[InvoiceType] = [.Factura,.CCF]
-        var invoiceStatuses :[InvoiceStatus] = [.Nueva,.Completada,.Cancelada]
+        var invoiceStatuses :[InvoiceStatus] = [.Nueva,.Completada,.Anulada]
         
         var productName :String = ""
         var unitPrice :Decimal = 0.0
