@@ -12,283 +12,305 @@ extension InvoicesView{
         var showAddTestInvoices: Bool = false
          
     }
-}
-
-extension AddInvoiceView {
+    // MARK: - Helper Methods
     
-    @Observable
-    class AddInvoiceViewModel{
-        var customer: Customer?
-        var displayPickerSheet: Bool = false
-        var displayProductPickerSheet: Bool = false
-        var showAddProductSection = false
-        var invoiceNumber : String = ""
-        var date: Date = Date()
-        var invoiceType : InvoiceType = .Factura
-        
-        
-        var details:[InvoiceDetail] = []
-        var invoiceTypes :[InvoiceType] = [.Factura,.CCF]
-        var invoiceStatuses :[InvoiceStatus] = [.Nueva,.Completada,.Anulada]
-        
-        var productName :String = ""
-        var unitPrice :Decimal = 0.0
-        var newProductHasTax: Bool = true
-       
-        var disableAddInvoice : Bool {
-            return invoiceNumber.isEmpty || details.isEmpty || customer == nil
+    func getColorForScope(_ scope: InvoiceSearchScope) -> Color {
+        switch scope {
+        case .nombre:
+            return .blue
+        case .nit:
+            return .green
+        case .dui:
+            return .orange
+        case .nrc:
+            return .purple
+        case .factura:
+            return .teal
+        case .ccf:
+            return .pink
         }
-        
-        var isDisabledAddProduct: Bool {
-            return productName.isEmpty && unitPrice.isZero
-        }
-        
-        private var tax: Decimal {
-            return (unitPrice - (unitPrice / Constants.includedTax)).rounded()
-        }
-        
-        var productPlusTax: Decimal {
-            return  ((unitPrice * Constants.includedTax) - unitPrice ).rounded()
-        }
-        
-        var productTax: Decimal {
-            return newProductHasTax ? tax:  productPlusTax
-        }
-        
-        var productWithoutTax: Decimal {
-            return unitPrice - productTax
-        }
-        var productUnitPricePlusTax: Decimal {
-            return unitPrice + productPlusTax
-        }
-       
-       
     }
     
-    func addInvoice()
-    {
-        withAnimation{
-            let invoice = Invoice(invoiceNumber: viewModel.invoiceNumber,
-                                  date: viewModel.date,
-                                  status: .Nueva,
-                                  customer: viewModel.customer!,
-                                  invoiceType: viewModel.invoiceType)
-            invoice.items = viewModel.details
-        
-            if invoice.documentType.isEmpty{
-                invoice.documentType = Extensions.documentTypeFromInvoiceType(viewModel.invoiceType)
-            }
-            
-            
-            modelContext.insert(invoice)
-            try? modelContext.save()
-            
-            selectedInvoice = invoice
-            dismiss()
+    func getIconForScope(_ scope: InvoiceSearchScope) -> String {
+        switch scope {
+        case .nombre:
+            return "person.fill"
+        case .nit:
+            return "number.circle.fill"
+        case .dui:
+            return "doc.text.fill"
+        case .nrc:
+            return "building.2.fill"
+        case .factura:
+            return "doc.plaintext.fill"
+        case .ccf:
+            return "doc.badge.plus"
         }
     }
-    func deleteDetail(detail:InvoiceDetail){
-        withAnimation{
-            let index = viewModel.details.firstIndex(of: detail)
-            
-            viewModel.details.remove(at: index!)
-        }
-    }
-    func deleteProduct(at offsets: IndexSet) {
-        withAnimation{
-            viewModel.details.remove(atOffsets: offsets)
-        }
-    }
-    func SearchProduct(){
-        withAnimation(.bouncy(duration: 2.3)) {
-            viewModel.displayProductPickerSheet=true;
-        }
-    }
-    func ShowAddProductSection(){
-        withAnimation(.easeInOut(duration: 2.34)) {
-            viewModel.showAddProductSection.toggle()
-        }
-    }
-    func AddNewProduct(){
-        withAnimation(.easeInOut(duration: 2.34)) {
-            
-            let _price = viewModel.newProductHasTax ? viewModel.unitPrice : viewModel.productUnitPricePlusTax
-            
-            let product = Product(productName: viewModel.productName, unitPrice: _price)
-            product.companyId = companyIdentifier
-            viewModel.productName="";
-            viewModel.unitPrice=0.0;
-            let detail = InvoiceDetail(quantity: 1, product: product)
-            viewModel.details.append(detail)
-            viewModel.showAddProductSection.toggle()
-        }
-    }
-    func getNextInoviceNumber(){
+    
+    func getRecentSuggestions() async -> [SearchSuggestion] {
+        let companyId = selectedCompanyId.isEmpty ? companyIdentifier : selectedCompanyId
         
         let descriptor = FetchDescriptor<Invoice>(
-            predicate: #Predicate<Invoice>{
-                $0.customer.companyOwnerId == companyIdentifier
-            },
+            predicate: InvoiceSearchUtils.getRecentItemsPredicate(scope: searchScope, companyId: companyId),
             sortBy: [SortDescriptor(\.date, order: .reverse)]
         )
         
-        if let latestInvoice = try? modelContext.fetch(descriptor).first {
-            if let currentNumber = Int(latestInvoice.invoiceNumber) {
-                viewModel.invoiceNumber = String(format: "%05d", currentNumber + 1)
-            } else {
-                viewModel.invoiceNumber = "00001"
-            }
-        } else {
-            viewModel.invoiceNumber = "00001"
-        }
-    }
-    func getNextInoviceOrCCFNumber(invoiceType:InvoiceType){
-       let _type =  Extensions.documentTypeFromInvoiceType(invoiceType)
-        let descriptor = FetchDescriptor<Invoice>(
-            predicate: #Predicate<Invoice>{
-                $0.customer.companyOwnerId == companyIdentifier &&
-                $0.documentType == _type
-            },
-            sortBy: [SortDescriptor(\.date, order: .reverse)]
-        )
-        
-        if let latestInvoice = try? modelContext.fetch(descriptor).first {
-            if let currentNumber = Int(latestInvoice.invoiceNumber) {
-                viewModel.invoiceNumber = String(format: "%05d", currentNumber + 1)
-            } else {
-                viewModel.invoiceNumber = "00001"
-            }
-        } else {
-            viewModel.invoiceNumber = "00001"
-        }
-    }
-    
-}
-
-extension InvoiceEditView {
-    
-    @Observable
-    class InvoiceEditViewModel{
-        
-        var showingProductPicker = false
-        var showAddProductSection = false
-        var invoiceTypes :[InvoiceType] = [.Factura,.CCF]
-        var invoiceStatuses :[InvoiceStatus] = [.Nueva,.Completada,.Anulada]
-        
-        var productName :String = ""
-        var unitPrice :Decimal = 0.0
-        var newProductHasTax: Bool = true 
-        
-        // 1. Formatter for our value to show as currency
-         var currencyFormater: NumberFormatter = {
-             var formatter = NumberFormatter()
-             
-             formatter.numberStyle = .currency
-             formatter.currencySymbol = "$"
-             
-             return formatter
-         }()
-        
-        var isDisabledAddProduct: Bool {
-            return productName.isEmpty && unitPrice.isZero
-        }
-        
-        private var tax: Decimal {
-            return (unitPrice - (unitPrice / Constants.includedTax)).rounded()
-        }
-        
-        var productPlusTax: Decimal {
-            return  ((unitPrice * Constants.includedTax) - unitPrice ).rounded()
-        }
-        
-        var productTax: Decimal {
-            return newProductHasTax ? tax:  productPlusTax
-        }
-        
-        var productWithoutTax: Decimal {
-            return unitPrice - productTax
-        }
-        var productUnitPricePlusTax: Decimal {
-            return unitPrice + productPlusTax
-        }
-        var total : Decimal = 0.0
-        
-        var showErrorAlert: Bool = false
-        var errorMessage: String = ""
-    }
-    
-    func SearchProduct(){
-        withAnimation(.easeInOut(duration: 2.5)) {
-            viewModel.showingProductPicker=true;
-        }
-    }
-    func ShowAddProductSection(){
-        withAnimation(.easeInOut(duration:2.5)) {
-            viewModel.showAddProductSection.toggle()
-        }
-    }
-    
-    func AddNewProduct(){
-        
-        let _price = viewModel.newProductHasTax ? viewModel.unitPrice : viewModel.productUnitPricePlusTax
-        
-        let product = Product(productName: viewModel.productName, unitPrice: _price)
-         
-        viewModel.productName="";
-        viewModel.unitPrice=0.0;
-        let detail = InvoiceDetail(quantity: 1, product: product)
-        invoice.items.append(detail)
-        viewModel.showAddProductSection.toggle()
-    }
-    
-    func saveInvoice() {
         do {
+            let recentInvoices = try modelContext.fetch(descriptor).prefix(15)
+            var suggestions: [SearchSuggestion] = []
             
-            invoice.items = invoice.items.map { detail -> InvoiceDetail in
-                
-                if(detail.product.companyId.isEmpty){
-                    detail.product.companyId = companyIdentifier
+            switch searchScope {
+            case .nombre:
+                for invoice in recentInvoices {
+                    let fullName = "\(invoice.customer.firstName) \(invoice.customer.lastName)".trimmingCharacters(in: .whitespaces)
+                    if !fullName.isEmpty {
+                        suggestions.append(SearchSuggestion(
+                            text: fullName,
+                            icon: "person.fill",
+                            category: "Reciente",
+                            secondaryText: "Cliente"
+                        ))
+                    }
                 }
-                
-                return detail
+            case .nit:
+                for invoice in recentInvoices {
+                    if !invoice.customer.nit.isEmpty {
+                        suggestions.append(SearchSuggestion(
+                            text: invoice.customer.nit,
+                            icon: "number.circle.fill",
+                            category: "Reciente",
+                            secondaryText: invoice.customer.firstName
+                        ))
+                    }
+                }
+            case .dui:
+                for invoice in recentInvoices {
+                    if !invoice.customer.nationalId.isEmpty {
+                        suggestions.append(SearchSuggestion(
+                            text: invoice.customer.nationalId,
+                            icon: "doc.text.fill",
+                            category: "Reciente",
+                            secondaryText: invoice.customer.firstName
+                        ))
+                    }
+                }
+            case .nrc:
+                for invoice in recentInvoices {
+                    if !invoice.customer.nrc.isEmpty {
+                        suggestions.append(SearchSuggestion(
+                            text: invoice.customer.nrc,
+                            icon: "building.2.fill",
+                            category: "Reciente",
+                            secondaryText: invoice.customer.company
+                        ))
+                    }
+                }
+            case .factura:
+                for invoice in recentInvoices.filter({ $0.invoiceType == .Factura }) {
+                    suggestions.append(SearchSuggestion(
+                        text: invoice.invoiceNumber,
+                        icon: "doc.plaintext.fill",
+                        category: "Reciente",
+                        secondaryText: "Factura - \(invoice.customer.firstName)"
+                    ))
+                }
+            case .ccf:
+                for invoice in recentInvoices.filter({ $0.invoiceType == .CCF }) {
+                    suggestions.append(SearchSuggestion(
+                        text: invoice.invoiceNumber,
+                        icon: "doc.badge.plus",
+                        category: "Reciente",
+                        secondaryText: "CCF - \(invoice.customer.firstName)"
+                    ))
+                }
             }
             
-            invoice.documentType  = Extensions.documentTypeFromInvoiceType(invoice.invoiceType)
-            
-            if invoice.totalAmount >  viewModel.total, disableIfInvoiceTypeIsNotAvailableInOptions()  {
-                viewModel.showErrorAlert = true
-                let errorMessage = invoice.relatedInvoiceType == .Factura ?
-                "El Total no puede ser mayor al total de la factura" :
-                "El Total no puede ser mayor al total del crédito fiscal"
-                viewModel.errorMessage  =  errorMessage
-                return
-            }
-            
-             
-            try modelContext.save()
-            dismiss()
+            return Array(Set(suggestions.map(\.text))).prefix(15).map { text in
+                suggestions.first { $0.text == text }!
+            }.map { $0 }
             
         } catch {
-            print("Error saving invoice: \(error)")
+            return []
         }
-    }
-    func deleteProduct(at offsets: IndexSet) {
-        invoice.items.remove(atOffsets: offsets)
-    }
-    
-    func disableIfInvoiceTypeIsNotAvailableInOptions() -> Bool{
-        return !viewModel.invoiceTypes.contains(where: { $0.rawValue == invoice.invoiceType.id })
-    }
-    
-    func setDefaultsForCreditNote(){
-        
-        let isRequiredtrack = disableIfInvoiceTypeIsNotAvailableInOptions()
-        
-        if isRequiredtrack {
-            viewModel.total = invoice.totalAmount
-        }
-    }
 }
+    
+    func fetchSuggestionsFromData(searchText: String, scope: InvoiceSearchScope, companyId: String) async -> [SearchSuggestion] {
+        // Use optimized predicate for better performance
+        let descriptor = FetchDescriptor<Invoice>(
+            predicate: InvoiceSearchUtils.getSuggestionsSearchPredicate(scope: scope, searchText: searchText, companyId: companyId),
+            sortBy: [SortDescriptor(\.date, order: .reverse)]
+        )
+        
+        do {
+            let invoices = try modelContext.fetch(descriptor).prefix(50) // Limit to 50 for performance
+            var suggestions: [SearchSuggestion] = []
+            
+            // Process results based on scope for better suggestion generation
+            switch scope {
+            case .nombre:
+                suggestions = generateNameSuggestions(from: Array(invoices), searchText: searchText)
+            case .nit:
+                suggestions = generateNITSuggestions(from: Array(invoices))
+            case .dui:
+                suggestions = generateDUISuggestions(from: Array(invoices))
+            case .nrc:
+                suggestions = generateNRCSuggestions(from: Array(invoices))
+            case .factura:
+                suggestions = generateFacturaSuggestions(from: Array(invoices))
+            case .ccf:
+                suggestions = generateCCFSuggestions(from: Array(invoices))
+            }
+            
+            // Remove duplicates and limit to 8 suggestions
+            let uniqueSuggestions = Array(Set(suggestions.map(\.text))).prefix(8).compactMap { text in
+                suggestions.first { $0.text == text }
+            }
+            
+            return uniqueSuggestions.sorted { $0.text < $1.text }
+            
+        } catch {
+            return []
+        }
+    }
+    
+    // MARK: - Private Suggestion Generators
+    
+    private func generateNameSuggestions(from invoices: [Invoice], searchText: String) -> [SearchSuggestion] {
+        var suggestions: [SearchSuggestion] = []
+        let searchLower = searchText.lowercased()
+        
+        for invoice in invoices {
+            let firstName = invoice.customer.firstName
+            let lastName = invoice.customer.lastName
+            let fullName = "\(firstName) \(lastName)".trimmingCharacters(in: .whitespaces)
+            
+            if firstName.lowercased().contains(searchLower) && !firstName.isEmpty {
+                suggestions.append(SearchSuggestion(
+                    text: firstName,
+                    icon: "person.fill",
+                    category: "Nombre",
+                    secondaryText: "Cliente"
+                ))
+            }
+            
+            if lastName.lowercased().contains(searchLower) && !lastName.isEmpty {
+                suggestions.append(SearchSuggestion(
+                    text: lastName,
+                    icon: "person.fill",
+                    category: "Apellido", 
+                    secondaryText: "Cliente"
+                ))
+            }
+            
+            if fullName.lowercased().contains(searchLower) && !fullName.isEmpty && fullName != firstName && fullName != lastName {
+                suggestions.append(SearchSuggestion(
+                    text: fullName,
+                    icon: "person.fill",
+                    category: "Completo",
+                    secondaryText: "Cliente"
+                ))
+            }
+        }
+        
+        return suggestions
+    }
+    
+    private func generateNITSuggestions(from invoices: [Invoice]) -> [SearchSuggestion] {
+        return invoices.compactMap { invoice in
+            let nit = invoice.customer.nit
+            guard !nit.isEmpty else { return nil }
+            return SearchSuggestion(
+                text: nit,
+                icon: "number.circle.fill",
+                category: "NIT",
+                secondaryText: invoice.customer.firstName
+            )
+        }
+    }
+    
+    private func generateDUISuggestions(from invoices: [Invoice]) -> [SearchSuggestion] {
+        return invoices.compactMap { invoice in
+            let dui = invoice.customer.nationalId
+            guard !dui.isEmpty else { return nil }
+            return SearchSuggestion(
+                text: dui,
+                icon: "doc.text.fill",
+                category: "DUI",
+                secondaryText: invoice.customer.firstName
+            )
+        }
+    }
+    
+    private func generateNRCSuggestions(from invoices: [Invoice]) -> [SearchSuggestion] {
+        return invoices.compactMap { invoice in
+            let nrc = invoice.customer.nrc
+            guard !nrc.isEmpty else { return nil }
+            return SearchSuggestion(
+                text: nrc,
+                icon: "building.2.fill",
+                category: "NRC",
+                secondaryText: invoice.customer.company.isEmpty ? invoice.customer.firstName : invoice.customer.company
+            )
+        }
+    }
+    
+    private func generateFacturaSuggestions(from invoices: [Invoice]) -> [SearchSuggestion] {
+        var suggestions: [SearchSuggestion] = []
+        
+        for invoice in invoices {
+            // Add invoice number suggestion
+            suggestions.append(SearchSuggestion(
+                text: invoice.invoiceNumber,
+                icon: "doc.plaintext.fill",
+                category: "Factura",
+                secondaryText: "\(invoice.customer.firstName) - \(DateFormatter.shortDate.string(from: invoice.date))"
+            ))
+            
+            // Add control number suggestion if available
+            if let controlNumber = invoice.controlNumber, !controlNumber.isEmpty {
+                suggestions.append(SearchSuggestion(
+                    text: controlNumber,
+                    icon: "doc.plaintext.fill",
+                    category: "Control",
+                    secondaryText: "Factura \(invoice.invoiceNumber)"
+                ))
+            }
+        }
+        
+        return suggestions
+    }
+    
+    private func generateCCFSuggestions(from invoices: [Invoice]) -> [SearchSuggestion] {
+        var suggestions: [SearchSuggestion] = []
+        
+        for invoice in invoices {
+            // Add invoice number suggestion
+            suggestions.append(SearchSuggestion(
+                text: invoice.invoiceNumber,
+                icon: "doc.badge.plus",
+                category: "CCF",
+                secondaryText: "\(invoice.customer.firstName) - \(DateFormatter.shortDate.string(from: invoice.date))"
+            ))
+            
+            // Add control number suggestion if available
+            if let controlNumber = invoice.controlNumber, !controlNumber.isEmpty {
+                suggestions.append(SearchSuggestion(
+                    text: controlNumber,
+                    icon: "doc.badge.plus",
+                    category: "Control",
+                    secondaryText: "CCF \(invoice.invoiceNumber)"
+                ))
+            }
+        }
+        
+        return suggestions
+    }
+   
+}
+
+
+
 
 
 

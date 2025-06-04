@@ -8,6 +8,21 @@
 import SwiftUI
 import SwiftData
 
+struct SearchSuggestion: Identifiable, Hashable {
+    let id = UUID()
+    let text: String
+    let icon: String
+    let category: String
+    let secondaryText: String?
+    
+    init(text: String, icon: String, category: String, secondaryText: String? = nil) {
+        self.text = text
+        self.icon = icon
+        self.category = category
+        self.secondaryText = secondaryText
+    }
+}
+
 enum InvoiceSearchScope: String, CaseIterable {
     case nombre = "Nombre"
     case nit = "NIT"
@@ -23,9 +38,11 @@ struct InvoicesView: View {
     @State private var selection: Invoice?
     @State private var searchText: String = ""
     @State  var searchScope: InvoiceSearchScope = .nombre
+    @State private var searchSuggestions: [SearchSuggestion] = []
+    @Environment(\.modelContext)   var modelContext
+    @AppStorage("selectedCompanyIdentifier") var companyIdentifier: String = ""
   
     @State var viewModel = InvoicesViewModel()
-   
     var body: some View {
         
         NavigationSplitView{
@@ -65,12 +82,93 @@ struct InvoicesView: View {
             }
         } 
         .searchable(text: $searchText, placement: .navigationBarDrawer, prompt: "Buscar por \(searchScope.rawValue)")
+        .searchSuggestions {
+            if !searchSuggestions.isEmpty {
+                ForEach(searchSuggestions) { suggestion in
+                    HStack(spacing: 12) {
+                        // Icon with background
+                        ZStack {
+                            Circle()
+                                .fill(getColorForScope(searchScope).opacity(0.15))
+                                .frame(width: 32, height: 32)
+                            
+                            Image(systemName: suggestion.icon)
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(getColorForScope(searchScope))
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(suggestion.text)
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundColor(.primary)
+                            
+                            if let secondaryText = suggestion.secondaryText {
+                                Text(secondaryText)
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        
+                        Spacer()
+                        
+                        // Category badge
+                        Text(suggestion.category)
+                            .font(.system(size: 10, weight: .medium))
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(getColorForScope(searchScope).opacity(0.1))
+                            .foregroundColor(getColorForScope(searchScope))
+                            .clipShape(Capsule())
+                    }
+                    .padding(.vertical, 4)
+                    .searchCompletion(suggestion.text)
+                }
+            }
+        }
         .searchScopes($searchScope) {
             ForEach(InvoiceSearchScope.allCases, id: \.self) { scope in
                 Text(scope.rawValue).tag(scope)
             }
         }
+        .onChange(of: searchText) { oldValue, newValue in
+            Task {
+                await loadSearchSuggestions()
+            }
+        }
+        .onChange(of: searchScope) { oldValue, newValue in
+            Task {
+                await loadSearchSuggestions()
+            }
+        }
+        .task {
+            await loadSearchSuggestions()
+        }
     }
+    
+   
+    
+    @MainActor
+    private func loadSearchSuggestions() async {
+        guard !searchText.trimmingCharacters(in: .whitespaces).isEmpty else {
+            searchSuggestions = await getRecentSuggestions()
+            return
+        }
+        
+        let companyId = selectedCompanyId.isEmpty ? companyIdentifier : selectedCompanyId
+        searchSuggestions = await fetchSuggestionsFromData(searchText: searchText, scope: searchScope, companyId: companyId)
+    }
+    
+   
+    
+
+}
+
+extension DateFormatter {
+    static let shortDate: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .short
+        return formatter
+    }()
 }
 
 #Preview (traits: .sampleInvoices){
