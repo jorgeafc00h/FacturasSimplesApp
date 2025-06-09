@@ -348,7 +348,7 @@ struct CompanyDetailsView : View {
             }
         }
         .background(Color(UIColor.secondarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous), corners: [.bottomLeft, .bottomRight])
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 }
 

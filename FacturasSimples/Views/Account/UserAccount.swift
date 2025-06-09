@@ -4,6 +4,7 @@ import SwiftData
 struct UserAccountView: View {
     
     @Environment(\.modelContext) var modelContext
+    @Environment(\.colorScheme) var colorScheme
     @State private var showDeactivateAlert = false
     @State private var showDeactivationSuccessAlert = false
     @State private var showDeleteAlert = false
@@ -29,54 +30,46 @@ struct UserAccountView: View {
         _companies = Query(descriptor)
     }
     
+    // MARK: - Color Palette
+    private var colors: UserAccountColors {
+        UserAccountColors(colorScheme: colorScheme)
+    }
+    
     var body: some View {
         ScrollView {
-            VStack(spacing: 0) {
+            VStack(spacing: 24) {
                 // Header
                 headerView
                 
                 // User Info Card
                 userInfoCard
-                    .padding(.horizontal)
-                    .padding(.top, 20)
+                    .padding(.horizontal, 20)
                 
                 // Company Data Section
                 companySectionView
-                    .padding(.horizontal)
-                    .padding(.top, 25)
+                    .padding(.horizontal, 20)
                 
-                Spacer(minLength: 30)
+                // Action Buttons Section
+                actionButtonsSection
+                    .padding(.horizontal, 20)
                 
-                // Delete account button
-                deactivateButton
-                    .padding(.horizontal, 30)
-                
-                // Deactivate account button
-                deleteButton
-                    .padding(.horizontal, 30)
-                    .padding(.top, 15)
-                    .padding(.bottom, 20)
+                Spacer(minLength: 40)
             }
         }
-        .background(Color(UIColor.systemGroupedBackground))
-        .edgesIgnoringSafeArea(.bottom)
+        .background(colors.background)
         .onAppear {
             loadInvoiceCounts()
         }
-        // Success alert after deactivation
         .alert("Cuenta Desactivada", isPresented: $showDeactivationSuccessAlert) {
             Button("Entendido", role: .destructive) {
-                // Clear user data and return to login
                 clearUserData()
                 dismiss()
             }
         } message: {
             Text("Su cuenta ha sido desactivada correctamente. Para volver a usar esta increíble aplicación, necesitará reiniciar la app e iniciar sesión nuevamente.")
         }
-        // Success alert after deletion
         .alert("Cuenta Eliminada", isPresented: $showDeletionSuccessAlert) {
             Button("Entendido", role: .destructive) {
-                // Clear user data and return to login
                 clearUserData()
                 dismiss()
             }
@@ -86,320 +79,496 @@ struct UserAccountView: View {
     }
     
     private var headerView: some View {
-        ZStack(alignment: .bottom) {
-            Rectangle()
-                .fill(Color(red: 18/255, green: 31/255, blue: 61/255))
-                .frame(height: 120)
+        VStack(spacing: 0) {
+            // Gradient Background
+            LinearGradient(
+                gradient: Gradient(colors: [colors.primaryGradientStart, colors.primaryGradientEnd]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .frame(height: 160)
+            .overlay(
+                VStack(spacing: 12) {
+                    // Profile Icon
+                    ZStack {
+                        Circle()
+                            .fill(colors.headerIconBackground)
+                            .frame(width: 70, height: 70)
+                        
+                        Image(systemName: "person.crop.circle.fill")
+                            .font(.system(size: 35, weight: .medium))
+                            .foregroundColor(colors.headerIconForeground)
+                    }
+                    .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
+                    
+                    // Title
+                    Text("Mi Cuenta")
+                        .font(.system(size: 32, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
+                        .shadow(color: .black.opacity(0.2), radius: 2, x: 0, y: 1)
+                }
+                .padding(.top, 40)
+            )
             
-            HStack {
-                Text("Información de la cuenta")
-                    .font(.system(size: 28, weight: .bold))
-                    .foregroundColor(.white)
-                    .padding(.bottom, 20)
-                    .padding(.leading, 20)
-                
-                Spacer()
+            // Curved bottom edge
+            Path { path in
+                path.move(to: CGPoint(x: 0, y: 0))
+                path.addLine(to: CGPoint(x: UIScreen.main.bounds.width, y: 0))
+                path.addLine(to: CGPoint(x: UIScreen.main.bounds.width, y: 40))
+                path.addQuadCurve(
+                    to: CGPoint(x: 0, y: 40),
+                    control: CGPoint(x: UIScreen.main.bounds.width / 2, y: 0)
+                )
+                path.closeSubpath()
             }
+            .fill(colors.background)
+            .frame(height: 40)
+            .offset(y: -1)
         }
     }
     
     private var userInfoCard: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text("Información del usuario")
-                .font(.headline)
-                .padding(.vertical, 15)
-                .padding(.horizontal)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color(UIColor.secondarySystemGroupedBackground))
-            
-            Divider()
-            
-            VStack(alignment: .leading, spacing: 16) {
-                HStack(spacing: 15) {
-                    Image(systemName: "person.circle.fill")
-                        .resizable()
-                        .frame(width: 24, height: 24)
-                        .foregroundColor(Color(red: 18/255, green: 31/255, blue: 61/255))
-                    
-                    Text(storedName)
-                        .font(.body)
-                }
+        VStack(spacing: 0) {
+            // Header
+            HStack {
+                Image(systemName: "person.text.rectangle.fill")
+                    .font(.system(size: 20, weight: .medium))
+                    .foregroundColor(colors.primary)
                 
-                HStack(spacing: 15) {
-                    Image(systemName: "envelope.fill")
-                        .resizable()
-                        .frame(width: 24, height: 18)
-                        .foregroundColor(Color(red: 18/255, green: 31/255, blue: 61/255))
-                    
-                    Text(storedEmail)
-                        .font(.body)
-                }
+                Text("Información Personal")
+                    .font(.system(size: 20, weight: .semibold, design: .rounded))
+                    .foregroundColor(colors.textPrimary)
                 
-//                HStack(spacing: 15) {
-//                    Image(systemName: "person.badge.key.fill")
-//                        .resizable()
-//                        .frame(width: 24, height: 24)
-//                        .foregroundColor(Color(red: 18/255, green: 31/255, blue: 61/255))
-//
-//                    Text(userID)
-//                        .font(.body)
-//                        .lineLimit(1)
-//                        .truncationMode(.middle)
-//                }
+                Spacer()
             }
-            .padding()
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color(UIColor.secondarySystemGroupedBackground))
+            .padding(.horizontal, 20)
+            .padding(.vertical, 18)
+            .background(colors.cardHeader)
+            
+            // Content
+            VStack(spacing: 20) {
+                // Name Row
+                HStack(spacing: 16) {
+                    ZStack {
+                        Circle()
+                            .fill(colors.iconBackground)
+                            .frame(width: 44, height: 44)
+                        
+                        Image(systemName: "person.fill")
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundColor(colors.primary)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Nombre completo")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(colors.textSecondary)
+                        
+                        Text(storedName.isEmpty ? "No especificado" : storedName)
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(colors.textPrimary)
+                    }
+                    
+                    Spacer()
+                }
+                
+                // Email Row
+                HStack(spacing: 16) {
+                    ZStack {
+                        Circle()
+                            .fill(colors.iconBackground)
+                            .frame(width: 44, height: 44)
+                        
+                        Image(systemName: "envelope.fill")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(colors.primary)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Correo electrónico")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(colors.textSecondary)
+                        
+                        Text(storedEmail.isEmpty ? "No especificado" : storedEmail)
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(colors.textPrimary)
+                            .lineLimit(1)
+                    }
+                    
+                    Spacer()
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 24)
+            .background(colors.cardBackground)
         }
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .shadow(color: colors.shadowColor, radius: 8, x: 0, y: 4)
+        .offset(y: -20)
     }
 
-    private var deleteButton: some View {
-        Button(action: {
-            // Call the delete account function
-            deleteAccount()
-        }) {
-            HStack {
-                Spacer()
-                Image(systemName: "trash.fill")
-                    .font(.headline)
-                Text("Eliminar cuenta")
-                    .font(.headline)
-                Spacer()
+    private var actionButtonsSection: some View {
+        VStack(spacing: 16) {
+            // Deactivate Button
+            Button(action: {
+                showDeactivateAlert = true
+            }) {
+                HStack(spacing: 12) {
+                    Image(systemName: "person.crop.circle.badge.minus")
+                        .font(.system(size: 18, weight: .medium))
+                    
+                    Text("Desactivar Cuenta")
+                        .font(.system(size: 16, weight: .semibold))
+                    
+                    Spacer()
+                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 16)
+                .background(
+                    LinearGradient(
+                        gradient: Gradient(colors: [colors.warningGradientStart, colors.warningGradientEnd]),
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .shadow(color: colors.warningGradientStart.opacity(0.3), radius: 8, x: 0, y: 4)
             }
-            .padding()
-            .foregroundColor(.white)
-            .background(Color.red)
-            .cornerRadius(12)
-        }
-        .alert(isPresented: $showDeleteAlert) {
-            Alert(
-                title: Text("Confirmación"),
-                message: Text("¿Estás seguro de que deseas eliminar tu cuenta?"),
-                primaryButton: .destructive(Text("Eliminar")) {
-                    deleteAccount()
-                },
-                secondaryButton: .cancel(Text("Cancelar"))
-            )
+            .alert(isPresented: $showDeactivateAlert) {
+                Alert(
+                    title: Text("Confirmación"),
+                    message: Text("¿Estás seguro de que deseas desactivar tu cuenta?"),
+                    primaryButton: .destructive(Text("Desactivar")) {
+                        deactivateAccount()
+                    },
+                    secondaryButton: .cancel(Text("Cancelar"))
+                )
+            }
+            
+            // Delete Button
+            Button(action: {
+                showDeleteAlert = true
+            }) {
+                HStack(spacing: 12) {
+                    Image(systemName: "trash.fill")
+                        .font(.system(size: 18, weight: .medium))
+                    
+                    Text("Eliminar Cuenta")
+                        .font(.system(size: 16, weight: .semibold))
+                    
+                    Spacer()
+                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 16)
+                .background(
+                    LinearGradient(
+                        gradient: Gradient(colors: [colors.dangerGradientStart, colors.dangerGradientEnd]),
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .shadow(color: colors.dangerGradientStart.opacity(0.3), radius: 8, x: 0, y: 4)
+            }
+            .alert(isPresented: $showDeleteAlert) {
+                Alert(
+                    title: Text("Confirmación"),
+                    message: Text("¿Estás seguro de que deseas eliminar tu cuenta?"),
+                    primaryButton: .destructive(Text("Eliminar")) {
+                        deleteAccount()
+                    },
+                    secondaryButton: .cancel(Text("Cancelar"))
+                )
+            }
         }
     }
     
     private var companySectionView: some View {
         VStack(spacing: 0) {
-            Text("Facturas por empresa")
-                .font(.headline)
-                .padding(.vertical, 15)
-                .padding(.horizontal)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color(UIColor.secondarySystemGroupedBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous), corners: [.topLeft, .topRight])
+            // Header
+            HStack {
+                Image(systemName: "building.2.fill")
+                    .font(.system(size: 20, weight: .medium))
+                    .foregroundColor(colors.primary)
+                
+                Text("Mis Empresas")
+                    .font(.system(size: 20, weight: .semibold, design: .rounded))
+                    .foregroundColor(colors.textPrimary)
+                
+                Spacer()
+                
+                // Company count badge
+                if !companies.isEmpty {
+                    Text("\(companies.count)")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(.white)
+                        .frame(width: 24, height: 24)
+                        .background(colors.primary)
+                        .clipShape(Circle())
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 18)
+            .background(colors.cardHeader)
             
-            Divider()
-            
+            // Content
             if companies.isEmpty {
                 emptyCompaniesView
             } else {
                 companiesListView
             }
         }
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .shadow(color: colors.shadowColor, radius: 8, x: 0, y: 4)
     }
     
     private var emptyCompaniesView: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "building.2.crop.circle")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 60, height: 60)
-                .foregroundColor(.gray)
-                .padding(.top, 20)
+        VStack(spacing: 16) {
+            ZStack {
+                Circle()
+                    .fill(colors.iconBackground)
+                    .frame(width: 80, height: 80)
+                
+                Image(systemName: "building.2")
+                    .font(.system(size: 36, weight: .light))
+                    .foregroundColor(colors.textSecondary)
+            }
             
-            Text("No hay empresas registradas")
-                .font(.system(size: 18, weight: .medium))
-                .foregroundColor(.secondary)
-            
-            Text("Las empresas que registres aparecerán aquí")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.bottom, 20)
-                .padding(.horizontal)
+            VStack(spacing: 8) {
+                Text("No hay empresas registradas")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(colors.textPrimary)
+                
+                Text("Las empresas que registres aparecerán aquí con el resumen de facturas creadas")
+                    .font(.system(size: 15))
+                    .foregroundColor(colors.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(3)
+            }
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 20)
-        .background(Color(UIColor.secondarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous), corners: [.bottomLeft, .bottomRight])
+        .padding(.vertical, 40)
+        .padding(.horizontal, 20)
+        .background(colors.cardBackground)
     }
     
     private var companiesListView: some View {
         VStack(spacing: 0) {
             ForEach(Array(companies.enumerated()), id: \.element.id) { index, company in
-                VStack(spacing: 0) {
-                    CompanyInvoiceSummary(
-                        company: company,
-                        invoicesCreated: invoiceCountsByCompany[company.id] ?? 0
-                    )
-                    .padding(.vertical, 15)
-                    .padding(.horizontal)
-                    
-                    if index < companies.count - 1 {
-                        Divider()
-                            .padding(.horizontal)
-                    }
+                CompanyInvoiceSummary(
+                    company: company,
+                    invoicesCreated: invoiceCountsByCompany[company.id] ?? 0,
+                    colors: colors
+                )
+                .padding(.horizontal, 20)
+                .padding(.vertical, 16)
+                
+                if index < companies.count - 1 {
+                    Divider()
+                        .padding(.horizontal, 20)
+                        .background(colors.cardBackground)
                 }
             }
         }
-        .background(Color(UIColor.secondarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous), corners: [.bottomLeft, .bottomRight])
-    }
-    
-    private var deactivateButton: some View {
-        Button(action: {
-            showDeactivateAlert = true
-        }) {
-            HStack {
-                Spacer()
-                Image(systemName: "person.crop.circle.badge.minus")
-                    .font(.headline)
-                Text("Desactivar cuenta")
-                    .font(.headline)
-                Spacer()
-            }
-            .padding()
-            .foregroundColor(.white)
-            .background(Color.amarello)
-            .cornerRadius(12)
-        }
-        .alert(isPresented: $showDeactivateAlert) {
-            Alert(
-                title: Text("Confirmación"),
-                message: Text("¿Estás seguro de que deseas desactivar tu cuenta?"),
-                primaryButton: .destructive(Text("Desactivar")) {
-                    deactivateAccount()
-                },
-                secondaryButton: .cancel(Text("Cancelar"))
-            )
-        }
+        .background(colors.cardBackground)
     }
     
     func loadInvoiceCounts() {
-        // This would typically query SwiftData for invoice counts
-        // For now we'll use mock data, but you'd replace this with actual SwiftData queries
         for company in companies {
-            // Only getting created invoices, removed completed
-            
             let id = company.id
-        
             let descriptor = FetchDescriptor<Invoice>(predicate: #Predicate { $0.customer.companyOwnerId == id  })
-            
             let createdCount = try? modelContext.fetchCount(descriptor)
-            
-            //let completed = FetchDescriptor<Invoice>(predicate: #Predicate { $0.customer.companyOwnerId == id && $0.status == .completed })
-             
             invoiceCountsByCompany[company.id] = createdCount
         }
     }
     
     func deactivateAccount() {
-        // Implement account deactivation logic here
         print("Cuenta desactivada")
-        
         Task{
             try? await invoiceSerivce.deactivateAccount(email: storedEmail, userId: userID, isProduction: true)
         }
-        
-        // After successful deactivation, show the success alert
         showDeactivationSuccessAlert = true
     }
     
     func deleteAccount() {
-        // Implement account deletion logic here
         print("Cuenta eliminada")
-        
         Task {
             try? await invoiceSerivce.deleteAccount(email: storedEmail, userId: userID, isProduction: true)
         }
-        
-        // After successful deletion, show the success alert
         showDeletionSuccessAlert = true
     }
     
     func clearUserData() {
-        // Clear user data from AppStorage
-        //storedName = ""
-        //storedEmail = ""
         userID = ""
-        
-        // You might want to clear other user-specific data as well
     }
 }
 
-// Component for displaying company invoice summary
+// MARK: - Company Invoice Summary Component
 struct CompanyInvoiceSummary: View {
     let company: Company
     let invoicesCreated: Int
+    let colors: UserAccountColors
+    
+    private var companyInitials: String {
+        let words = company.nombre.split(separator: " ")
+        if words.count >= 2 {
+            return String(words[0].prefix(1) + words[1].prefix(1)).uppercased()
+        } else {
+            return String(company.nombre.prefix(2)).uppercased()
+        }
+    }
     
     var body: some View {
-        HStack(alignment: .center, spacing: 12) {
-            // Company icon
+        HStack(spacing: 16) {
+            // Company Avatar
             ZStack {
-                Circle()
-                    .fill(Color(red: 18/255, green: 31/255, blue: 61/255, opacity: 0.9))
-                Text(String(company.nombre.prefix(1)))
-                    .font(.system(size: 22, weight: .semibold))
+                LinearGradient(
+                    gradient: Gradient(colors: [colors.primaryGradientStart, colors.primaryGradientEnd]),
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .frame(width: 56, height: 56)
+                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                
+                Text(companyInitials)
+                    .font(.system(size: 18, weight: .bold, design: .rounded))
                     .foregroundColor(.white)
             }
-            .frame(width: 50, height: 50)
+            .shadow(color: colors.primaryGradientStart.opacity(0.3), radius: 4, x: 0, y: 2)
             
-            // Company info
-            VStack(alignment: .leading, spacing: 4) {
+            // Company Info
+            VStack(alignment: .leading, spacing: 6) {
                 Text(company.nombre)
                     .font(.system(size: 17, weight: .semibold))
+                    .foregroundColor(colors.textPrimary)
+                    .lineLimit(1)
                 
-                Text("NIT: \(company.nit)")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+                HStack(spacing: 8) {
+                    Text("NIT:")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(colors.textSecondary)
+                    
+                    Text(company.nit)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(colors.textPrimary)
+                }
+                
+                // Status Badge
+                HStack(spacing: 6) {
+                    Circle()
+                        .fill(company.isProduction ? Color.green : Color.orange)
+                        .frame(width: 8, height: 8)
+                    
+                    Text(company.isProduction ? "Producción" : "Pruebas")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(colors.textSecondary)
+                }
             }
             
             Spacer()
             
-            // Invoice count
-            VStack(alignment: .trailing, spacing: 2) {
+            // Invoice Count Display
+            VStack(alignment: .trailing, spacing: 4) {
                 Text("\(invoicesCreated)")
-                    .font(.system(size: 24, weight: .bold))
-                    .foregroundColor(Color(red: 18/255, green: 31/255, blue: 61/255))
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundColor(colors.primary)
                 
                 Text("Facturas")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(colors.textSecondary)
             }
         }
     }
 }
 
-// Helper extension for rounded specific corners
-extension View {
-    func clipShape<S: Shape>(_ shape: S, corners: UIRectCorner) -> some View {
-        clipShape(RoundedCornerShape(corners: corners, radius: (shape as? RoundedRectangle)?.cornerSize.width ?? 0))
-    }
-}
-
-struct RoundedCornerShape: Shape {
-    var corners: UIRectCorner
-    var radius: CGFloat
+// MARK: - Color System
+struct UserAccountColors {
+    let colorScheme: ColorScheme
     
-    func path(in rect: CGRect) -> Path {
-        let path = UIBezierPath(roundedRect: rect,
-                                byRoundingCorners: corners,
-                                cornerRadii: CGSize(width: radius, height: radius))
-        return Path(path.cgPath)
+    // Primary Colors
+    var primary: Color {
+        colorScheme == .dark ? Color(red: 0.4, green: 0.6, blue: 1.0) : Color(red: 0.2, green: 0.4, blue: 0.8)
+    }
+    
+    // Background Colors
+    var background: Color {
+        colorScheme == .dark ? Color.black : Color(UIColor.systemGroupedBackground)
+    }
+    
+    var cardBackground: Color {
+        colorScheme == .dark ? Color(UIColor.systemGray6) : Color.white
+    }
+    
+    var cardHeader: Color {
+        colorScheme == .dark ? Color(UIColor.systemGray5) : Color(UIColor.systemGray6)
+    }
+    
+    var iconBackground: Color {
+        colorScheme == .dark ? Color(UIColor.systemGray4) : Color(UIColor.systemGray5)
+    }
+    
+    // Text Colors
+    var textPrimary: Color {
+        colorScheme == .dark ? Color.white : Color.primary
+    }
+    
+    var textSecondary: Color {
+        colorScheme == .dark ? Color(UIColor.systemGray2) : Color.secondary
+    }
+    
+    // Header Colors
+    var headerIconBackground: Color {
+        Color.white.opacity(0.2)
+    }
+    
+    var headerIconForeground: Color {
+        Color.white
+    }
+    
+    // Gradient Colors
+    var primaryGradientStart: Color {
+        colorScheme == .dark ? Color(red: 0.3, green: 0.5, blue: 0.9) : Color(red: 0.2, green: 0.4, blue: 0.8)
+    }
+    
+    var primaryGradientEnd: Color {
+        colorScheme == .dark ? Color(red: 0.5, green: 0.3, blue: 0.9) : Color(red: 0.4, green: 0.2, blue: 0.6)
+    }
+    
+    var warningGradientStart: Color {
+        Color(red: 1.0, green: 0.6, blue: 0.0)
+    }
+    
+    var warningGradientEnd: Color {
+        Color(red: 1.0, green: 0.8, blue: 0.2)
+    }
+    
+    var dangerGradientStart: Color {
+        Color(red: 0.9, green: 0.2, blue: 0.3)
+    }
+    
+    var dangerGradientEnd: Color {
+        Color(red: 1.0, green: 0.4, blue: 0.4)
+    }
+    
+    // Shadow Color
+    var shadowColor: Color {
+        colorScheme == .dark ? Color.black.opacity(0.3) : Color.black.opacity(0.1)
     }
 }
 
+// MARK: - Preview
 struct UserAccountView_Previews: PreviewProvider {
     static var previews: some View {
-        UserAccountView()
+        Group {
+            UserAccountView()
+                .preferredColorScheme(.light)
+                .previewDisplayName("Light Mode")
+            
+            UserAccountView()
+                .preferredColorScheme(.dark)
+                .previewDisplayName("Dark Mode")
+        }
     }
 }

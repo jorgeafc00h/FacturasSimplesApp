@@ -17,25 +17,27 @@ struct InAppPurchaseView: View {
     var body: some View {
         NavigationView {
             ScrollView {
-                VStack(spacing: 24) {
+                VStack(spacing: 32) {
                     headerSection
                     
                     if storeManager.isLoading {
                         ProgressView("Cargando productos...")
                             .frame(maxWidth: .infinity, minHeight: 200)
-                    } else {                    creditsSection
+                    } else {
+                        creditsSection
                     
-                    if storeManager.promoCodeService.userPromoBenefits.hasActivePromoBenefits || storeManager.promoCodeService.getCurrentDiscountPercentage() != nil {
-                        promoBenefitsSection
-                    }
+                        if storeManager.promoCodeService.userPromoBenefits.hasActivePromoBenefits || storeManager.promoCodeService.getCurrentDiscountPercentage() != nil {
+                            promoBenefitsSection
+                        }
                     
-                    purchaseOptionsSection
-                    promoCodeSection
+                        purchaseOptionsSection
+                        promoCodeSection
                     }
                     
                     restoreSection
                 }
-                .padding()
+                .padding(.horizontal, 20)
+                .padding(.vertical, 16)
             }
             .navigationTitle("Paquetes de Facturas")
             .navigationBarTitleDisplayMode(.large)
@@ -142,17 +144,15 @@ struct InAppPurchaseView: View {
     
     // MARK: - Purchase Options Section
     private var purchaseOptionsSection: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 20) {
             HStack {
                 Text("Elige Tu Paquete")
-                    .font(.headline)
+                    .font(.title2)
+                    .fontWeight(.bold)
                 Spacer()
             }
             
-            LazyVGrid(columns: [
-                GridItem(.flexible()),
-                GridItem(.flexible())
-            ], spacing: 16) {
+            VStack(spacing: 12) {
                 ForEach(InvoiceBundle.allBundles, id: \.id) { bundle in
                     PurchaseBundleCard(
                         bundle: bundle,
@@ -278,7 +278,7 @@ struct InAppPurchaseView: View {
             }
             .buttonStyle(.plain)
             
-            Text("Obtén facturas gratuitas, descuentos especiales o acceso premium")
+            Text("Obtén facturas gratuitas, descuentos especiales o acceso premium, al comprar de subscripciones anuales")
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
@@ -296,103 +296,146 @@ struct PurchaseBundleCard: View {
     @ObservedObject var storeManager: StoreKitManager
     
     var body: some View {
-        VStack(spacing: 12) {
-            // Popular badge or subscription badge
-            if bundle.isSubscription {
+        HStack(spacing: 16) {
+            // Left side - Icon and info
+            VStack(spacing: 8) {
+                // Badge
                 HStack {
+                    if let specialOffer = bundle.specialOfferText {
+                        Text(specialOffer)
+                            .font(.caption2)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 4)
+                            .background(
+                                LinearGradient(
+                                    colors: [Color.green, Color.green.opacity(0.8)],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .cornerRadius(12)
+                    } else if bundle.isSubscription {
+                        Text("SUSCRIPCIÓN")
+                            .font(.caption2)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 4)
+                            .background(
+                                LinearGradient(
+                                    colors: [Color.purple, Color.purple.opacity(0.8)],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .cornerRadius(12)
+                    } else if bundle.isPopular {
+                        Text("POPULAR")
+                            .font(.caption2)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 4)
+                            .background(
+                                LinearGradient(
+                                    colors: [Color.orange, Color.red.opacity(0.8)],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .cornerRadius(12)
+                    }
                     Spacer()
-                    Text("SUSCRIPCIÓN")
-                        .font(.caption2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Color.purple)
-                        .cornerRadius(4)
                 }
-            } else if bundle.isPopular {
-                HStack {
+                
+                // Icon and count
+                HStack(spacing: 12) {
+                    Image(systemName: bundle.isSubscription ? "crown.fill" : "doc.text.fill")
+                        .font(.title)
+                        .foregroundColor(bundle.isSubscription ? .purple : (bundle.isPopular ? .orange : .blue))
+                        .frame(width: 40, height: 40)
+                        .background(
+                            Circle()
+                                .fill(bundle.isSubscription ? Color.purple.opacity(0.1) : (bundle.isPopular ? Color.orange.opacity(0.1) : Color.blue.opacity(0.1)))
+                        )
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(bundle.invoiceCountText)
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundColor(.primary)
+                        
+                        if !bundle.isSubscription {
+                            Text("Facturas")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        } else {
+                            Text("Ilimitadas")
+                                .font(.caption)
+                                .foregroundColor(.purple)
+                        }
+                    }
+                    
                     Spacer()
-                    Text("POPULAR")
-                        .font(.caption2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Color.orange)
-                        .cornerRadius(4)
                 }
-            }
-            
-            // Icon and count
-            VStack(spacing: 4) {
-                Image(systemName: bundle.isSubscription ? "crown.fill" : "doc.text.fill")
-                    .font(.title)
-                    .foregroundColor(bundle.isSubscription ? .purple : (bundle.isPopular ? .orange : .blue))
                 
-                Text(bundle.invoiceCountText)
-                    .font(bundle.isSubscription ? .headline : .title)
-                    .fontWeight(.bold)
-                    .foregroundColor(bundle.isSubscription ? .purple : (bundle.isPopular ? .orange : .blue))
-                
-                if !bundle.isSubscription {
-                    Text("Facturas")
+                // Bundle name and description
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(bundle.name)
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    Text(bundle.description)
                         .font(.caption)
                         .foregroundColor(.secondary)
+                        .lineLimit(2)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
             
-            // Bundle name
-            Text(bundle.name)
-                .font(.headline)
-                .multilineTextAlignment(.center)
-            
-            // Description
-            Text(bundle.description)
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .lineLimit(3)
-            
-            Spacer()
-            
-            // Price and purchase button
-            VStack(spacing: 8) {
-                VStack(spacing: 4) {
+            // Right side - Price and purchase button
+            VStack(spacing: 12) {
+                // Price display
+                VStack(alignment: .trailing, spacing: 4) {
                     if let product = product {
                         let priceInfo = storeManager.getDiscountedPrice(for: product)
                         
                         if let discountedPrice = priceInfo.discountedPrice, let discountPercent = priceInfo.discountPercent {
                             // Show discounted price
-                            HStack {
-                                VStack(alignment: .leading) {
-                                    Text(bundle.formattedPrice)
-                                        .font(.caption)
-                                        .strikethrough()
-                                        .foregroundColor(.secondary)
-                                    
-                                    Text("$\(String(format: "%.2f", NSDecimalNumber(decimal: discountedPrice).doubleValue))")
-                                        .font(.title2)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.green)
-                                }
+                            VStack(alignment: .trailing, spacing: 2) {
+                                Text(bundle.formattedPrice)
+                                    .font(.caption)
+                                    .strikethrough()
+                                    .foregroundColor(.secondary)
                                 
-                                Spacer()
+                                Text("$\(String(format: "%.2f", NSDecimalNumber(decimal: discountedPrice).doubleValue))")
+                                    .font(.title3)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.green)
                                 
                                 Text("\(discountPercent)% OFF")
                                     .font(.caption2)
                                     .fontWeight(.bold)
                                     .foregroundColor(.white)
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 2)
-                                    .background(Color.green)
-                                    .cornerRadius(4)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 3)
+                                    .background(
+                                        LinearGradient(
+                                            colors: [Color.green, Color.green.opacity(0.8)],
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        )
+                                    )
+                                    .cornerRadius(8)
                             }
                         } else {
                             // Show regular price
-                            HStack {
+                            VStack(alignment: .trailing, spacing: 2) {
                                 Text(bundle.formattedPrice)
-                                    .font(.title2)
+                                    .font(.title3)
                                     .fontWeight(.bold)
                                     .foregroundColor(.primary)
                                 
@@ -405,44 +448,74 @@ struct PurchaseBundleCard: View {
                         }
                     } else {
                         Text(bundle.formattedPrice)
-                            .font(.title2)
+                            .font(.title3)
                             .fontWeight(.bold)
                             .foregroundColor(.secondary)
                     }
                 }
                 
+                // Purchase button
                 Button(action: onPurchase) {
-                    Group {
+                    HStack {
                         if isPurchasing && isSelected {
                             ProgressView()
                                 .scaleEffect(0.8)
+                                .foregroundColor(.white)
                         } else {
                             Text(bundle.isSubscription ? "Suscribirse" : "Comprar")
+                                .fontWeight(.semibold)
                         }
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
-                    .background(bundle.isSubscription ? Color.purple : (bundle.isPopular ? Color.orange : Color.blue))
+                    .frame(width: 100, height: 40)
+                    .background(
+                        LinearGradient(
+                            colors: bundle.isSubscription ? 
+                                [Color.purple, Color.purple.opacity(0.8)] : 
+                                (bundle.isPopular ? 
+                                    [Color.orange, Color.red.opacity(0.8)] : 
+                                    [Color.blue, Color.blue.opacity(0.8)]
+                                ),
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
                     .foregroundColor(.white)
-                    .cornerRadius(8)
+                    .cornerRadius(12)
+                    .shadow(color: (bundle.isSubscription ? Color.purple : (bundle.isPopular ? Color.orange : Color.blue)).opacity(0.3), radius: 4, x: 0, y: 2)
                 }
                 .disabled(product == nil || isPurchasing)
             }
         }
-        .padding()
+        .padding(20)
+        .frame(maxWidth: .infinity)
         .background(
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: 20)
                 .fill(Color(UIColor.secondarySystemBackground))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16)
+                    RoundedRectangle(cornerRadius: 20)
                         .stroke(
-                            bundle.isSubscription ? Color.purple : (bundle.isPopular ? Color.orange : Color.blue.opacity(0.3)),
-                            lineWidth: (bundle.isSubscription || bundle.isPopular) ? 2 : 1
+                            LinearGradient(
+                                colors: bundle.isSubscription ? 
+                                    [Color.purple.opacity(0.6), Color.purple.opacity(0.3)] : 
+                                    (bundle.isPopular ? 
+                                        [Color.orange.opacity(0.6), Color.red.opacity(0.3)] : 
+                                        [Color.blue.opacity(0.3), Color.blue.opacity(0.1)]
+                                    ),
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: bundle.isSubscription || bundle.isPopular ? 2 : 1
                         )
                 )
+                .shadow(
+                    color: Color.black.opacity(0.05),
+                    radius: bundle.isSubscription || bundle.isPopular ? 8 : 4,
+                    x: 0,
+                    y: bundle.isSubscription || bundle.isPopular ? 4 : 2
+                )
         )
-        .scaleEffect(isSelected ? 0.95 : 1.0)
-        .animation(.easeInOut(duration: 0.1), value: isSelected)
+        .scaleEffect(isSelected ? 0.98 : 1.0)
+        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isSelected)
     }
 }
 

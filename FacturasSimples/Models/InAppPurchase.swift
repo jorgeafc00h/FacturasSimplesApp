@@ -25,6 +25,7 @@ struct InvoiceBundle: Identifiable, Hashable {
     let isPopular: Bool
     let productType: ProductType
     let subscriptionPeriod: String? // For subscriptions: "monthly", "yearly", etc.
+    let specialOfferText: String? // For special discount offers like "AHORRA $200"
     
     // Helper property to check if this is an unlimited bundle
     var isUnlimited: Bool {
@@ -70,7 +71,8 @@ struct InvoiceBundle: Identifiable, Hashable {
         formattedPrice: "$9.99",
         isPopular: false,
         productType: .consumable,
-        subscriptionPeriod: nil
+        subscriptionPeriod: nil,
+        specialOfferText: nil
     )
     
     static let bundle100 = InvoiceBundle(
@@ -82,7 +84,8 @@ struct InvoiceBundle: Identifiable, Hashable {
         formattedPrice: "$15.00",
         isPopular: true,
         productType: .consumable,
-        subscriptionPeriod: nil
+        subscriptionPeriod: nil,
+        specialOfferText: nil
     )
     
     static let bundle250 = InvoiceBundle(
@@ -94,7 +97,8 @@ struct InvoiceBundle: Identifiable, Hashable {
         formattedPrice: "$29.99",
         isPopular: false,
         productType: .consumable,
-        subscriptionPeriod: nil
+        subscriptionPeriod: nil,
+        specialOfferText: nil
     )
     
     static let enterpriseProUnlimited = InvoiceBundle(
@@ -106,10 +110,24 @@ struct InvoiceBundle: Identifiable, Hashable {
         formattedPrice: "$99.99",
         isPopular: false,
         productType: .subscription,
-        subscriptionPeriod: "monthly"
+        subscriptionPeriod: "monthly",
+        specialOfferText: nil
+    )
+
+    static let enterpriseProAnual = InvoiceBundle(
+        id: "com.kandangalabs.facturas.enterprise_pro_unlimited_anual",
+        name: "Enterprise Pro Unlimited Anual",
+        description: "Suscripción anual con facturación ilimitada para empresas grandes",
+        invoiceCount: -1, // -1 indicates unlimited
+        price: 999.99,
+        formattedPrice: "$999.99",
+        isPopular: false,
+        productType: .subscription,
+        subscriptionPeriod: "yearly",
+        specialOfferText: "AHORRA HASTA $200"
     )
     
-    static let allBundles: [InvoiceBundle] = [bundle50, bundle100, bundle250, enterpriseProUnlimited]
+    static let allBundles: [InvoiceBundle] = [bundle50, bundle100, bundle250, enterpriseProUnlimited, enterpriseProAnual]
     static let allProductIDs: Set<String> = Set(allBundles.map { $0.id })
 }
 

@@ -38,8 +38,90 @@ import SwiftData
     
     var isTestAccount : Bool = true
     
+    // Subscription and Purchase Tracking (only for production accounts)
+    var hasActiveSubscription: Bool = false
+    var subscriptionProductId: String = ""
+    var subscriptionExpiryDate: Date?
+    var availableInvoiceCredits: Int = 0
+    var totalPurchasedCredits: Int = 0
+    var lastPurchaseDate: Date?
+    
     var isProduction : Bool {
         return isTestAccount == false
+    }
+    
+    // Helper property to check if company requires paid services
+    var requiresPaidServices: Bool {
+        return isProduction && !isTestAccount
+    }
+    
+    // Helper property to check if company can create invoices
+    var canCreateInvoices: Bool {
+        // Test accounts can always create invoices
+        if isTestAccount {
+            return true
+        }
+        
+        // Production accounts need either active subscription or available credits
+        return hasActiveSubscription || availableInvoiceCredits > 0
+    }
+    
+    // Helper property to check if subscription is still active
+    var isSubscriptionActive: Bool {
+        guard hasActiveSubscription else { return false }
+        
+        if let expiryDate = subscriptionExpiryDate {
+            return Date() < expiryDate
+        }
+        
+        return hasActiveSubscription
+    }
+    
+    // Helper method to use invoice credit
+    func useInvoiceCredit() -> Bool {
+        // Test accounts don't consume credits
+        if isTestAccount {
+            return true
+        }
+        
+        // For production accounts, check if they have active subscription or credits
+        if isSubscriptionActive {
+            return true
+        }
+        
+        guard availableInvoiceCredits > 0 else {
+            return false
+        }
+        
+        availableInvoiceCredits -= 1
+        return true
+    }
+    
+    // Helper method to add purchased credits
+    func addPurchasedCredits(_ count: Int) {
+        // Only production accounts track credits
+        if requiresPaidServices {
+            availableInvoiceCredits += count
+            totalPurchasedCredits += count
+            lastPurchaseDate = Date()
+        }
+    }
+    
+    // Helper method to activate subscription
+    func activateSubscription(productId: String, expiryDate: Date?) {
+        // Only production accounts can have subscriptions
+        if requiresPaidServices {
+            hasActiveSubscription = true
+            subscriptionProductId = productId
+            subscriptionExpiryDate = expiryDate
+        }
+    }
+    
+    // Helper method to deactivate subscription
+    func deactivateSubscription() {
+        hasActiveSubscription = false
+        subscriptionProductId = ""
+        subscriptionExpiryDate = nil
     }
     
     var actividadEconomicaLabel: String {
@@ -95,7 +177,15 @@ import SwiftData
         self.certificatePath = certificatePath  
         self.certificatePassword = certificatePassword
         self.credentials = credentials
-        self.isTestAccount = isTestAccount 
+        self.isTestAccount = isTestAccount
+        
+        // Initialize subscription/purchase properties
+        self.hasActiveSubscription = false
+        self.subscriptionProductId = ""
+        self.subscriptionExpiryDate = nil
+        self.availableInvoiceCredits = 0
+        self.totalPurchasedCredits = 0
+        self.lastPurchaseDate = nil
     }
 }
 

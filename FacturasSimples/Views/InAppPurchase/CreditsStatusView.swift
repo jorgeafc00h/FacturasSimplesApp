@@ -13,25 +13,63 @@ struct CreditsStatusView: View {
     let company: Company?
     
     var showPurchaseOptions: Bool {
-        return company?.isProduction ?? false
+        return company?.requiresPaidServices ?? false
+    }
+    
+    var hasAvailableCredits: Bool {
+        guard let company = company else { return false }
+        
+        // Test accounts always have "unlimited" credits
+        if company.isTestAccount {
+            return true
+        }
+        
+        // Production accounts need subscription or credits
+        return company.canCreateInvoices || storeManager.hasAvailableCredits()
+    }
+    
+    var creditsText: String {
+        guard let company = company else { return "0 disponibles" }
+        
+        if company.isTestAccount {
+            return "Ilimitadas (Pruebas)"
+        }
+        
+        if company.isSubscriptionActive {
+            return "Ilimitadas"
+        }
+        
+        // Combine company credits with global promo benefits
+        var totalCredits = company.availableInvoiceCredits
+        
+        if storeManager.promoCodeService.userPromoBenefits.freeInvoicesFromPromos > 0 {
+            totalCredits += storeManager.promoCodeService.userPromoBenefits.freeInvoicesFromPromos
+        }
+        
+        if storeManager.promoCodeService.hasActivePromotionalSubscription() {
+            return "Ilimitadas"
+        }
+        
+        return "\(totalCredits) disponibles"
     }
     
     var body: some View {
-        HStack(spacing: 12) {
-            // Credits icon
-            Image(systemName: "creditcard.fill")
-                .foregroundColor(storeManager.hasAvailableCredits() ? .green : .orange)
-                .font(.title2)
+        HStack(spacing: 8) {
+            // Credits icon - smaller
+            Image(systemName: company?.isTestAccount == true ? "infinity" : "creditcard.fill")
+                .foregroundColor(hasAvailableCredits ? .green : .orange)
+                .font(.subheadline)
             
-            // Credits info
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Créditos de Factura")
-                    .font(.caption)
+            // Credits info - more compact
+            VStack(alignment: .leading, spacing: 1) {
+                Text("Disponibles")
+                    .font(.caption2)
                     .foregroundColor(.secondary)
                 
-                Text("\(storeManager.userCredits.availableInvoices) disponibles")
-                    .font(.headline)
-                    .foregroundColor(storeManager.hasAvailableCredits() ? .green : .primary)
+                Text(creditsText)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundColor(hasAvailableCredits ? .green : .primary)
             }
             
             Spacer()
@@ -41,33 +79,34 @@ struct CreditsStatusView: View {
                 Button(action: {
                     showPurchaseView = true
                 }) {
-                    Text(storeManager.hasAvailableCredits() ? "Comprar Más" : "Obtener Créditos")
-                        .font(.caption)
+                    Text(hasAvailableCredits ? "Comprar Más" : "Obtener Créditos")
+                        .font(.caption2)
                         .fontWeight(.medium)
                         .foregroundColor(.white)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(storeManager.hasAvailableCredits() ? Color.blue : Color.orange)
-                        .cornerRadius(8)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(hasAvailableCredits ? Color.blue : Color.orange)
+                        .cornerRadius(6)
                 }
             } else {
                 // For test accounts, show test mode indicator
-                Text("Modo Prueba")
+                Text("Pruebas")
                     .font(.caption2)
                     .fontWeight(.medium)
                     .foregroundColor(.secondary)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 3)
                     .background(Color.gray.opacity(0.2))
-                    .cornerRadius(6)
+                    .cornerRadius(4)
             }
         }
-        .padding()
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
         .background(Color(UIColor.secondarySystemBackground))
-        .cornerRadius(12)
+        .cornerRadius(8)
         .sheet(isPresented: $showPurchaseView) {
             if showPurchaseOptions {
-                InAppPurchaseView()
+                CompanyInAppPurchaseView(company: company!)
             }
         }
     }

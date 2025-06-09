@@ -55,7 +55,7 @@ struct PromoCodeView: View {
                 .font(.title2)
                 .fontWeight(.bold)
             
-            Text("Ingresa un código promocional para obtener facturas gratuitas, descuentos o acceso premium")
+            Text("Ingresa un código promocional para obtener facturas gratuitas, descuentos o acceso premium al comprar subscripciones anuales")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
