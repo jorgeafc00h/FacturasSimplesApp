@@ -75,6 +75,20 @@ extension AddInvoiceView {
             dismiss()
         }
     }
+    
+    func handleCreateInvoice(storeKitManager: StoreKitManager, showCreditsGate: Binding<Bool>) {
+        // Check if user has sufficient credits
+        
+        
+//        guard storeKitManager.hasAvailableCredits() else {
+//            showCreditsGate.wrappedValue = true
+//            return
+//        }
+        
+        // Proceed with invoice creation and consume credit
+        addInvoice()
+        //_ = storeKitManager.useInvoiceCredit()
+    }
     func deleteDetail(detail:InvoiceDetail){
         withAnimation{
             let index = viewModel.details.firstIndex(of: detail)

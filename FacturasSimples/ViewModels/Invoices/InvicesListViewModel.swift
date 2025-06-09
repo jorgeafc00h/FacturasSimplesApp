@@ -6,6 +6,7 @@ extension  InvoicesListView{
     @Observable
     class InvoicesListViewModel{
         var isShowingAddInvoiceSheet : Bool = false
+        var showCreditsAlert: Bool = false
         var invocesCount: Int = 0
        
         var offsets: IndexSet = []

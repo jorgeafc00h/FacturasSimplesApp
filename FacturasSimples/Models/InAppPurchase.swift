@@ -8,6 +8,12 @@
 import Foundation
 import StoreKit
 
+// MARK: - Product Types
+enum ProductType {
+    case consumable
+    case subscription
+}
+
 // MARK: - Invoice Bundle Product
 struct InvoiceBundle: Identifiable, Hashable {
     let id: String
@@ -17,50 +23,119 @@ struct InvoiceBundle: Identifiable, Hashable {
     let price: Decimal
     let formattedPrice: String
     let isPopular: Bool
+    let productType: ProductType
+    let subscriptionPeriod: String? // For subscriptions: "monthly", "yearly", etc.
+    
+    // Helper property to check if this is an unlimited bundle
+    var isUnlimited: Bool {
+        return invoiceCount == -1
+    }
+    
+    // Helper property to check if this is a subscription
+    var isSubscription: Bool {
+        return productType == .subscription
+    }
+    
+    // Display text for invoice count
+    var invoiceCountText: String {
+        if isSubscription && isUnlimited {
+            return "Facturas ilimitadas"
+        } else if isUnlimited {
+            return "Ilimitadas"
+        } else {
+            return "\(invoiceCount) facturas"
+        }
+    }
+    
+    // Display text for subscription period
+    var subscriptionText: String {
+        guard let period = subscriptionPeriod else { return "" }
+        switch period {
+        case "monthly":
+            return "/mes"
+        case "yearly":
+            return "/año"
+        default:
+            return ""
+        }
+    }
     
     // Product identifiers - these should match your App Store Connect configuration
     static let bundle50 = InvoiceBundle(
         id: "com.kandangalabs.facturas.bundle50",
-        name: "Starter Bundle",
-        description: "Perfect for small businesses",
+        name: "Paquete Inicial",
+        description: "Perfecto para pequeñas empresas",
         invoiceCount: 50,
         price: 9.99,
         formattedPrice: "$9.99",
-        isPopular: false
+        isPopular: false,
+        productType: .consumable,
+        subscriptionPeriod: nil
     )
     
     static let bundle100 = InvoiceBundle(
         id: "com.kandangalabs.facturas.bundle100",
-        name: "Professional Bundle",
-        description: "Best value for growing businesses",
+        name: "Paquete Profesional",
+        description: "La mejor opción para empresas en crecimiento",
         invoiceCount: 100,
         price: 15.00,
         formattedPrice: "$15.00",
-        isPopular: true
+        isPopular: true,
+        productType: .consumable,
+        subscriptionPeriod: nil
     )
     
     static let bundle250 = InvoiceBundle(
         id: "com.kandangalabs.facturas.bundle250",
-        name: "Enterprise Bundle",
-        description: "For high-volume businesses",
+        name: "Paquete Empresarial",
+        description: "Para empresas de alto volumen",
         invoiceCount: 250,
         price: 29.99,
         formattedPrice: "$29.99",
-        isPopular: false
+        isPopular: false,
+        productType: .consumable,
+        subscriptionPeriod: nil
     )
     
-    static let allBundles: [InvoiceBundle] = [bundle50, bundle100, bundle250]
+    static let enterpriseProUnlimited = InvoiceBundle(
+        id: "com.kandangalabs.facturas.enterprise_pro_unlimited_monthly",
+        name: "Enterprise Pro Unlimited",
+        description: "Suscripción mensual con facturación ilimitada para empresas grandes",
+        invoiceCount: -1, // -1 indicates unlimited
+        price: 99.99,
+        formattedPrice: "$99.99",
+        isPopular: false,
+        productType: .subscription,
+        subscriptionPeriod: "monthly"
+    )
+    
+    static let allBundles: [InvoiceBundle] = [bundle50, bundle100, bundle250, enterpriseProUnlimited]
     static let allProductIDs: Set<String> = Set(allBundles.map { $0.id })
 }
 
 // MARK: - Purchase State
-enum PurchaseState {
+enum PurchaseState: Equatable {
     case unknown
     case purchasing
     case purchased
     case failed(Error)
     case restored
     case deferred
+    
+    static func == (lhs: PurchaseState, rhs: PurchaseState) -> Bool {
+        switch (lhs, rhs) {
+        case (.unknown, .unknown),
+             (.purchasing, .purchasing),
+             (.purchased, .purchased),
+             (.restored, .restored),
+             (.deferred, .deferred):
+            return true
+        case (.failed, .failed):
+            return true // Consider all failed states as equal for UI purposes
+        default:
+            return false
+        }
+    }
 }
 
 // MARK: - Purchase Transaction
@@ -76,12 +151,64 @@ struct PurchaseTransaction {
 struct UserPurchaseCredits: Codable {
     var availableInvoices: Int
     var totalPurchased: Int
+    var hasActiveSubscription: Bool
+    var subscriptionExpiryDate: Date?
+    var subscriptionProductId: String?
     var transactions: [StoredTransaction]
     
     init() {
         self.availableInvoices = 0
         self.totalPurchased = 0
+        self.hasActiveSubscription = false
+        self.subscriptionExpiryDate = nil
+        self.subscriptionProductId = nil
         self.transactions = []
+    }
+    
+    // Helper to check if user can create invoices
+    var canCreateInvoices: Bool {
+        return hasActiveSubscription || availableInvoices > 0
+    }
+    
+    // Helper to check if subscription is still active
+    var isSubscriptionActive: Bool {
+        guard hasActiveSubscription else { return false }
+        
+        if let expiryDate = subscriptionExpiryDate {
+            return Date() < expiryDate
+        }
+        
+        return hasActiveSubscription
+    }
+    
+    // Helper to get remaining credits text
+    var creditsText: String {
+        if isSubscriptionActive {
+            return "Facturas ilimitadas (Suscripción activa)"
+        } else if hasActiveSubscription {
+            return "Suscripción expirada"
+        } else {
+            return "\(availableInvoices) facturas disponibles"
+        }
+    }
+    
+    // Helper to get subscription status text
+    var subscriptionStatusText: String {
+        guard hasActiveSubscription else { return "Sin suscripción" }
+        
+        if let expiryDate = subscriptionExpiryDate {
+            let formatter = DateFormatter()
+            formatter.dateStyle = .medium
+            formatter.timeStyle = .none
+            
+            if isSubscriptionActive {
+                return "Activa hasta \(formatter.string(from: expiryDate))"
+            } else {
+                return "Expiró el \(formatter.string(from: expiryDate))"
+            }
+        }
+        
+        return "Activa"
     }
 }
 

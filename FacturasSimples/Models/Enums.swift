@@ -124,7 +124,12 @@ enum TipoDocumento: Int, CaseIterable {
     
     
 }
-
+enum CustomerSearchScope: String, CaseIterable {
+    case name = "Nombre"
+    case dui = "DUI"
+    case nit = "NIT"
+    case nrc = "NRC"
+}
 
 
 //enum DTEValidationErrors: LocalizedError {

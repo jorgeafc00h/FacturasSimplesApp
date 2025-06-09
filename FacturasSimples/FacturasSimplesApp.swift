@@ -11,6 +11,8 @@ import SwiftData
 @main
 struct FacturasSimplesApp: App {
     let modelContainer = DataModel.shared.modelContainer
+    @StateObject private var storeManager = StoreKitManager()
+    
     init() {
         let attrs = [
             //Arial Rounded MT Bold
@@ -19,9 +21,11 @@ struct FacturasSimplesApp: App {
  
         UINavigationBar.appearance().largeTitleTextAttributes = attrs as [NSAttributedString.Key : Any]
     }
+    
     var body: some Scene {
         WindowGroup {
             Home()
+                .environmentObject(storeManager)
         }
         .modelContainer(modelContainer)
     }

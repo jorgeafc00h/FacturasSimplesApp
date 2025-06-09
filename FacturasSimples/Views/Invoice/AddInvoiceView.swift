@@ -13,23 +13,36 @@ struct AddInvoiceView: View {
     @Environment(\.calendar) private var calendar
     @Environment(\.dismiss)  var dismiss
     @Environment(\.timeZone) private var timeZone
+    @EnvironmentObject var storeKitManager: StoreKitManager
     
     @AppStorage("selectedCompanyIdentifier")  var companyIdentifier : String = ""
+    @Query var companies: [Company]
     
     @State var viewModel = AddInvoiceViewModel()
+    @State var showCreditsGate = false
     
     // just to set as selected when the invoice is created.!!
     @Binding var selectedInvoice : Invoice?
+    
+    var selectedCompany: Company? {
+        companies.first { $0.id == companyIdentifier }
+    }
     
     var body: some View {
         
         NavigationStack { 
             Form{
+                // Credits Status Section
+                Section {
+                    CreditsStatusView(company: selectedCompany)
+                        .environmentObject(storeKitManager)
+                }
+                
                 CustomerSection
                 InvoiceDataSection
                 ProductDetailsSection
                 Section {
-                    Button(action: addInvoice, label: {
+                    Button(action: { handleCreateInvoice(storeKitManager: storeKitManager, showCreditsGate: $showCreditsGate) }, label: {
                         HStack {
                             Image(systemName: "checkmark.circle")
                             Text("Crear Factura")
@@ -41,6 +54,13 @@ struct AddInvoiceView: View {
                     .padding()
                     .background(.darkCyan)
                     .cornerRadius(10)
+                    
+                    if !storeKitManager.hasAvailableCredits() {
+                        Text("Necesitas créditos para crear facturas")
+                            .font(.caption)
+                            .foregroundColor(.red)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                    }
                 }
             }
             .frame(idealWidth: LayoutConstants.sheetIdealWidth,
@@ -52,6 +72,13 @@ struct AddInvoiceView: View {
             .sheet(isPresented: $viewModel.displayProductPickerSheet){
                 ProductPicker(details: $viewModel.details)
             }
+            .sheet(isPresented: $showCreditsGate) {
+                CreditsGateView {
+                    // When user proceeds after getting credits, dismiss the gate
+                    showCreditsGate = false
+                }
+                .environmentObject(storeKitManager)
+            }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancelar") {
@@ -59,8 +86,8 @@ struct AddInvoiceView: View {
                     }
                 }
                 ToolbarItem(placement: .primaryAction) {
-                    Button("Guardar",action: addInvoice)
-                    .disabled(viewModel.disableAddInvoice)
+                    Button("Guardar", action: { handleCreateInvoice(storeKitManager: storeKitManager, showCreditsGate: $showCreditsGate) })
+                    .disabled(viewModel.disableAddInvoice || !storeKitManager.hasAvailableCredits())
                 }
             }.accentColor(.darkCyan)
         }

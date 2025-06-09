@@ -19,15 +19,10 @@ struct CustomerPicker :View {
     @Binding var selection : Customer?
     
     @State private var searchText: String = ""
-    @State private var searchScope: SearchScope = .name
+    @State private var searchScope: CustomerSearchScope = .name
     @AppStorage("selectedCompanyIdentifier")  var companyIdentifier : String = ""
     
-    enum SearchScope: String, CaseIterable {
-        case name = "Nombre"
-        case dui = "DUI"
-        case nit = "NIT"
-        case nrc = "NRC"
-    }
+   
     
     var filteredCustomers: [Customer] {
         if searchText.isEmpty {
@@ -98,7 +93,7 @@ struct CustomerPicker :View {
         }
         .searchable(text: $searchText, prompt: "Buscar Cliente")
         .searchScopes($searchScope, scopes: {
-            ForEach(SearchScope.allCases, id: \.self) { scope in
+            ForEach(CustomerSearchScope.allCases, id: \.self) { scope in
                 Text(scope.rawValue).tag(scope)
             }
         })

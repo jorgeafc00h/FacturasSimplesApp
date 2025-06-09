@@ -8,6 +8,7 @@ struct ProfileView: View {
 //    @State var email: String = "@id.com"
 //
     @Environment(\.modelContext) var modelContext
+    @EnvironmentObject var storeKitManager: StoreKitManager
     
   
     
@@ -30,6 +31,7 @@ struct ProfileView: View {
     @AppStorage("showTestEnvironments") var testAccounts: Bool = true
     
     @State var viewModel = ProfileViewModel()
+    @State private var showPurchaseView = false
     
     @Binding var selectedCompanyId: String 
     
@@ -154,6 +156,24 @@ struct ProfileView: View {
                                     .symbolEffect(.breathe)
             }) .background(Color("Blue-Gray"))
                 .clipShape(RoundedRectangle(cornerRadius: 1.0)).padding(.horizontal, 8.0)
+            
+            Button(action: {showPurchaseView = true}, label: {
+                HStack {
+                    Image(systemName: "creditcard.fill").padding(.horizontal, 5.0)
+                        .foregroundColor(Color.white)
+                    VStack(alignment: .leading) {
+                        Text("Comprar Créditos")
+                            .foregroundColor(Color.white)
+                        Text("\(storeKitManager.userCredits.availableInvoices) créditos disponibles")
+                            .font(.caption)
+                            .foregroundColor(Color.white.opacity(0.8))
+                    }
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(Color.white)
+                }.padding()
+            }) .background(Color("Blue-Gray"))
+                .clipShape(RoundedRectangle(cornerRadius: 1.0)).padding(.horizontal, 8.0)
         }
         .sheet(isPresented: $viewModel.showOnboardingSheet) {
              
@@ -164,6 +184,10 @@ struct ProfileView: View {
         .sheet(isPresented: $viewModel.showAccountSummary){
             UserAccountView();
             }
+        .sheet(isPresented: $showPurchaseView) {
+            InAppPurchaseView()
+                .environmentObject(storeKitManager)
+        }
         
         
     }

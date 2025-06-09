@@ -41,8 +41,10 @@ struct InvoicesView: View {
     @State private var searchSuggestions: [SearchSuggestion] = []
     @Environment(\.modelContext)   var modelContext
     @AppStorage("selectedCompanyIdentifier") var companyIdentifier: String = ""
+    @EnvironmentObject var storeManager: StoreKitManager
   
     @State var viewModel = InvoicesViewModel()
+    
     var body: some View {
         
         NavigationSplitView{
@@ -72,7 +74,9 @@ struct InvoicesView: View {
                     
                 }
                 .sheet(isPresented: $viewModel.showAddInvoiceSheet) {
-                    AddInvoiceView(selectedInvoice: $selection).interactiveDismissDisabled()
+                    AddInvoiceView(selectedInvoice: $selection)
+                        .environmentObject(storeManager)
+                        .interactiveDismissDisabled()
                 }
                 .sheet(isPresented: $viewModel.showAddCustomerSheet) {
                     NavigationStack{

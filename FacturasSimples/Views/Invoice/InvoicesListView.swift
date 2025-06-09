@@ -4,6 +4,7 @@ import SwiftData
  
 struct InvoicesListView: View {
     @Environment(\.modelContext) var modelContext
+    @EnvironmentObject var storeKitManager: StoreKitManager
     
     @Binding var selection: Invoice?
     
@@ -17,6 +18,11 @@ struct InvoicesListView: View {
     var syncService = InvoiceServiceClient()
     
     @Query var invoices: [Invoice]
+    @Query var companies: [Company]
+    
+    var selectedCompany: Company? {
+        companies.first { $0.id == companyIdentifier }
+    }
     
     init(selection: Binding<Invoice?>, selectedCompanyId: String, searchText: String, searchScope: InvoiceSearchScope) {
         _selection = selection
@@ -36,25 +42,36 @@ struct InvoicesListView: View {
         }
         .sheet(isPresented: $viewModel.isShowingAddInvoiceSheet) {
             AddInvoiceView(selectedInvoice: $selection)
+                .environmentObject(storeKitManager)
         }
         .toolbar{
+            ToolbarItem(placement: .navigationBarLeading) {
+                CreditsStatusView(company: selectedCompany)
+                    .environmentObject(storeKitManager)
+            }
+            
             ToolbarItemGroup(placement: .primaryAction) {
                 Button("Nueva Factura", systemImage: "plus"){
+//                    if storeKitManager.hasAvailableCredits() {
+//                        viewModel.isShowingAddInvoiceSheet.toggle()
+//                    } else {
+//                        // Show purchase view or alert
+//                        viewModel.showCreditsAlert = true
+//                    }
                     viewModel.isShowingAddInvoiceSheet.toggle()
                 }
                 .buttonStyle(BorderlessButtonStyle()) 
             }
             
             
-            ToolbarItem(placement: .automatic){
-                Menu{
-                    
-                    Toggle("Filtros De busqueda", isOn: .constant(false))
-                    
-                }label: {
-                    Image(systemName: "line.3.horizontal.decrease.circle")
-                }
-            }
+//            ToolbarItem(placement: .automatic){
+//                Menu{
+//                    
+//                    
+//                }label: {
+//                    Image(systemName: "line.3.horizontal.decrease.circle")
+//                }
+//            }
         }
         .overlay {
             if invoices.isEmpty {
