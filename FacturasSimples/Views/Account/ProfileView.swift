@@ -116,6 +116,32 @@ struct ProfileView: View {
                 NavigationLabel(title:"Configuración Empresas",imagename: "widget.small")
             }
             
+            NavigationLink {
+                CloudKitSettingsView()
+            }
+            label: {
+                HStack {
+                    Image(systemName: "icloud.fill").padding(.horizontal, 5.0)
+                        .foregroundColor(Color.white)
+                    VStack(alignment: .leading) {
+                        Text("iCloud Sync")
+                            .foregroundColor(Color.white)
+                        HStack {
+                            CloudKitSyncStatusView()
+                            Text("Sincronización automática")
+                                .font(.caption)
+                                .foregroundColor(Color.white.opacity(0.8))
+                        }
+                    }
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(Color.white)
+                }.padding()
+            }
+            .background(Color("Blue-Gray"))
+            .clipShape(RoundedRectangle(cornerRadius: 1.0))
+            .padding(.horizontal, 8.0)
+            
             Button(action: { testAccounts.toggle() }, label: {
                 HStack {
                     Image(systemName: "testtube.2").padding(.horizontal, 5.0)
@@ -129,23 +155,10 @@ struct ProfileView: View {
                 }.padding()
             }) .background(Color("Blue-Gray"))
                 .clipShape(RoundedRectangle(cornerRadius: 1.0)).padding(.horizontal, 8.0)
-            Button(action: { isToggleOn.toggle() }, label: {
-                HStack {
-                    Image(systemName: "bell.fill").padding(.horizontal, 5.0)
-                        .foregroundColor(Color.white)
-                    Text("Notificaciones")
-                        .foregroundColor(Color.white)
-                    Spacer()
-                    
-                    Toggle("", isOn: $isToggleOn)
-                    
-                }.padding()
-            }) .background(Color("Blue-Gray"))
-                .clipShape(RoundedRectangle(cornerRadius: 1.0)).padding(.horizontal, 8.0)
-            
+           
             
             Button(action: {viewModel.showAccountSummary.toggle()}, label: {
-                NavigationLabel(title:"resumen cuenta",imagename: "person.2.badge.gearshape.fill")
+                NavigationLabel(title:"Resumen Cuenta",imagename: "person.2.badge.gearshape.fill")
                                    .foregroundColor(.darkCyan)
                                     .symbolEffect(.breathe)
             }) .background(Color("Blue-Gray"))
@@ -172,7 +185,10 @@ struct ProfileView: View {
                     Image(systemName: "chevron.right")
                         .foregroundColor(Color.white)
                 }.padding()
-            }) .background(Color("Blue-Gray"))
+            })
+            .disabled(defaultSectedCompany?.isTestAccount ?? false)
+                .foregroundColor(storeKitManager.userCredits.availableInvoices > 0 ? Color.white : Color.gray)
+            .background(Color("Blue-Gray"))
                 .clipShape(RoundedRectangle(cornerRadius: 1.0)).padding(.horizontal, 8.0)
         }
         .sheet(isPresented: $viewModel.showOnboardingSheet) {

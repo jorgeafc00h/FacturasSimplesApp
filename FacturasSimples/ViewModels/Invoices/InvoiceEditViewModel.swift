@@ -75,17 +75,20 @@ extension InvoiceEditView {
         viewModel.productName="";
         viewModel.unitPrice=0.0;
         let detail = InvoiceDetail(quantity: 1, product: product)
-        invoice.items.append(detail)
+        if invoice.items == nil {
+            invoice.items = []
+        }
+        invoice.items?.append(detail)
         viewModel.showAddProductSection.toggle()
     }
     
     func saveInvoice() {
         do {
             
-            invoice.items = invoice.items.map { detail -> InvoiceDetail in
+            invoice.items = (invoice.items ?? []).map { detail -> InvoiceDetail in
                 
-                if(detail.product.companyId.isEmpty){
-                    detail.product.companyId = companyIdentifier
+                if(detail.product?.companyId.isEmpty == true){
+                    detail.product?.companyId = companyIdentifier
                 }
                 
                 return detail
@@ -111,7 +114,9 @@ extension InvoiceEditView {
         }
     }
     func deleteProduct(at offsets: IndexSet) {
-        invoice.items.remove(atOffsets: offsets)
+        if invoice.items != nil {
+            invoice.items?.remove(atOffsets: offsets)
+        }
     }
     
     func disableIfInvoiceTypeIsNotAvailableInOptions() -> Bool{

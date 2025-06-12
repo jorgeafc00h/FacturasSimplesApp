@@ -9,7 +9,7 @@ struct SearchPicker :View {
     var catalogId: String
      
     
-    @Query(filter: #Predicate<CatalogOption> { $0.catalog.id == ""})
+    @Query(filter: #Predicate<CatalogOption> { $0.catalog?.id == ""})
     private var options : [CatalogOption]
     
     @Binding var selection : String?
@@ -43,8 +43,8 @@ struct SearchPicker :View {
         
         let predicate = #Predicate<CatalogOption> {
             searchText.isEmpty ?
-            $0.catalog.id == catalogId :
-            $0.catalog.id == catalogId &&
+            $0.catalog?.id == catalogId :
+            $0.catalog?.id == catalogId &&
             $0.details.localizedStandardContains(searchText)
             
         }
@@ -113,7 +113,7 @@ struct SearchPickerFromCatalogView :View {
     var catalogId: String
      
     
-    @Query(filter: #Predicate<CatalogOption> { $0.catalog.id == ""})
+    @Query(filter: #Predicate<CatalogOption> { $0.catalog?.id == ""})
      var options : [CatalogOption]
     
     @Binding var selection : String

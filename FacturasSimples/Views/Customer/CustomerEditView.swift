@@ -14,10 +14,10 @@ struct CustomerEditView: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.modelContext) var modelContext
     
-    @Query(filter: #Predicate<CatalogOption> { $0.catalog.id == "CAT-012"})
+    @Query(filter: #Predicate<CatalogOption> { $0.catalog?.id == "CAT-012"})
     var departamentos : [CatalogOption]
     
-    @Query(filter: #Predicate<CatalogOption> { $0.catalog.id == "CAT-013"})
+    @Query(filter: #Predicate<CatalogOption> { $0.catalog?.id == "CAT-013"})
     var municipios : [CatalogOption]
       
     @State var viewModel = CustomerEditViewModel()

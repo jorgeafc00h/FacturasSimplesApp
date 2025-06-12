@@ -247,22 +247,6 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "5EE6FB4B-79E3-45EC-8F61-A2B98CBB9ABA"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FacturasSimples/Shared/DataModel.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "31"
-            endingLineNumber = "31"
-            landmarkName = "modelContainer"
-            landmarkType = "24">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
             uuid = "C6DF9D79-CD09-463C-BA1F-86DDB3A5B684"
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
@@ -376,7 +360,7 @@
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "3A2815DF-9229-4DF9-9881-ACE86A18CC6E"
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FacturasSimples/ViewModels/Account/RequestProductionAccessViewModel.swift"
@@ -386,36 +370,6 @@
             endingLineNumber = "179"
             landmarkName = "generateFacturas(forceGenerate:)"
             landmarkType = "7">
-            <Locations>
-               <Location
-                  uuid = "3A2815DF-9229-4DF9-9881-ACE86A18CC6E - 52151ec6bb8f3607"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "FacturasSimples.PreProdStep1.generateFacturas(forceGenerate: Swift.Bool) -&gt; ()"
-                  moduleName = "FacturasSimples.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/ViewModels/Account/RequestProductionAccessViewModel.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "179"
-                  endingLineNumber = "179">
-               </Location>
-               <Location
-                  uuid = "3A2815DF-9229-4DF9-9881-ACE86A18CC6E - 88a5788710c52879"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "closure #1 (FacturasSimples.Invoice) -&gt; Swift.Bool in implicit closure #1 () throws -&gt; Swift.Bool in FacturasSimples.PreProdStep1.generateFacturas(forceGenerate: Swift.Bool) -&gt; ()"
-                  moduleName = "FacturasSimples.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/ViewModels/Account/RequestProductionAccessViewModel.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "179"
-                  endingLineNumber = "179">
-               </Location>
-            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -587,6 +541,54 @@
             startingLineNumber = "19"
             endingLineNumber = "19"
             landmarkName = "body"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "88982572-1360-47D7-81DE-D1C052A28A92"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FacturasSimples/Shared/DataModel.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "75"
+            endingLineNumber = "75"
+            landmarkName = "modelContainer"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "FADDB198-4F42-4E84-B200-71B949681383"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FacturasSimples/Shared/DataModel.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "74"
+            endingLineNumber = "74"
+            landmarkName = "modelContainer"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "A9F65250-B81C-4778-87C4-2FC51968F861"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FacturasSimples/Shared/DataModel.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "47"
+            endingLineNumber = "47"
+            landmarkName = "modelContainer"
             landmarkType = "24">
          </BreakpointContent>
       </BreakpointProxy>

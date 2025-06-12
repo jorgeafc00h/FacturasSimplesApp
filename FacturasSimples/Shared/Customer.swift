@@ -7,42 +7,47 @@
 import Foundation
 import SwiftUI
 import SwiftData
+import CloudKit
 
-@Model class Customer : Identifiable
+@Model class Customer: Identifiable
 {
-     
-   // #Unique<Customer>([\.nationalId])
+    // CloudKit-compatible structure - all attributes have default values
+    var companyOwnerId: String = ""
     
-    var companyOwnerId: String
-    
-    var firstName: String
-    var lastName: String
-    var company: String
-    var address: String
+    var firstName: String = ""
+    var lastName: String = ""
+    var company: String = ""
+    var address: String = ""
     var city: String?
     var state: String?
-    var email: String
+    var email: String = ""
     var zipcode: Int?
-    var phone: String
+    var phone: String = ""
     
-    var nationalId: String
+    // CloudKit can encrypt sensitive data
+    @Attribute(.allowsCloudEncryption)
+    var nationalId: String = ""
+    
     var contributorId: String?
+    
+    @Attribute(.allowsCloudEncryption)
     var nit: String = ""
+    
     var documentType: String?
     var codActividad: String?
     var descActividad: String?
     var departamentoCode: String = ""
     var municipioCode: String = ""
     var departamento: String = ""
-    var municipio: String
-    //var color: Color
+    var municipio: String = ""
     
     var nrc: String = ""
     var hasInvoiceSettings: Bool = false
     var hasContributorRetention: Bool = false
     
-    @Relationship(deleteRule: .deny,inverse: \Invoice.customer)
-    var invoices: [Invoice] = []
+    // CloudKit handles relationships - change to nullify delete rule and make optional
+    @Relationship(deleteRule: .nullify, inverse: \Invoice.customer)
+    var invoices: [Invoice]?
     
     init(firstName: String,lastName: String, nationalId: String,
          email: String,

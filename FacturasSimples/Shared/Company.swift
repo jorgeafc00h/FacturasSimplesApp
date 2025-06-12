@@ -1,42 +1,61 @@
 import Foundation
 import SwiftData
+import CloudKit
 
 @Model class Company {
     
-    @Attribute(.unique)
+    // Remove @Attribute(.unique) for CloudKit compatibility
     var id: String = UUID().uuidString
-    var nit: String
-    var nrc: String
-    var nombre: String
-    var codActividad: String
-    var descActividad: String
-    var nombreComercial: String
-    var tipoEstablecimiento: String
+    
+    // CloudKit can encrypt sensitive business data
+    @Attribute(.allowsCloudEncryption)
+    var nit: String = ""
+    
+    @Attribute(.allowsCloudEncryption)
+    var nrc: String = ""
+    
+    var nombre: String = ""
+    var codActividad: String = ""
+    var descActividad: String = ""
+    var nombreComercial: String = ""
+    var tipoEstablecimiento: String = ""
     var establecimiento: String = ""
     
-    var telefono: String
-    var correo: String
-    var codEstableMH: String
-    var codEstable: String
-    var codPuntoVentaMH: String
-    var codPuntoVenta: String
+    var telefono: String = ""
+    var correo: String = ""
+    var codEstableMH: String = ""
+    var codEstable: String = ""
+    var codPuntoVentaMH: String = ""
+    var codPuntoVenta: String = ""
     
     // Dirección
-    var departamento: String
-    var departamentoCode: String
-    var municipio: String
-    var municipioCode: String
-    var complemento: String
+    var departamento: String = ""
+    var departamentoCode: String = ""
+    var municipio: String = ""
+    var municipioCode: String = ""
+    var complemento: String = ""
     
-    var invoiceLogo: String
-    var logoWidht : Double = 100
+    // CloudKit handles large text data well
+    var invoiceLogo: String = ""
+    var logoWidht: Double = 100
     var logoHeight: Double = 100
-    var certificatePath : String = ""
+    
+    // Sensitive certificate data - encrypt in CloudKit
+    @Attribute(.allowsCloudEncryption)
+    var certificatePath: String = ""
+    
+    @Attribute(.allowsCloudEncryption)
     var certificatePassword: String = ""
     
+    @Attribute(.allowsCloudEncryption)
     var credentials: String = ""
     
-    var isTestAccount : Bool = true
+    var isTestAccount: Bool = true
+    
+    // CloudKit sync indicator - only production companies sync to CloudKit
+    var shouldSyncToCloudKit: Bool {
+        return !isTestAccount
+    }
     
     // Subscription and Purchase Tracking (only for production accounts)
     var hasActiveSubscription: Bool = false
@@ -46,7 +65,7 @@ import SwiftData
     var totalPurchasedCredits: Int = 0
     var lastPurchaseDate: Date?
     
-    var isProduction : Bool {
+    var isProduction: Bool {
         return isTestAccount == false
     }
     

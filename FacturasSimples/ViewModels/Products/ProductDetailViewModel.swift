@@ -16,7 +16,7 @@ extension ProductDetailView {
         
         let productId = product.productId
         
-        let descriptor = FetchDescriptor<InvoiceDetail>(predicate: #Predicate { $0.product.productId ==  productId })
+        let descriptor = FetchDescriptor<InvoiceDetail>(predicate: #Predicate { $0.product?.productId ==  productId })
         
         let count = (try? modelContext.fetchCount(descriptor)) ?? 0
         
@@ -26,7 +26,7 @@ extension ProductDetailView {
         
         
         let completedInvocesDescriptor = FetchDescriptor<InvoiceDetail>(predicate: #Predicate{
-            $0.product.productId == productId
+            $0.product?.productId == productId
             && $0.invoice != nil
             && $0.invoice!.generationCode != ""
             && $0.invoice!.receptionSeal != ""

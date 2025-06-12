@@ -63,7 +63,7 @@ extension InvoicesView{
             switch searchScope {
             case .nombre:
                 for invoice in recentInvoices {
-                    let fullName = "\(invoice.customer.firstName) \(invoice.customer.lastName)".trimmingCharacters(in: .whitespaces)
+                    let fullName = "\(invoice.customer?.firstName ?? "") \(invoice.customer?.lastName ?? "")".trimmingCharacters(in: .whitespaces)
                     if !fullName.isEmpty {
                         suggestions.append(SearchSuggestion(
                             text: fullName,
@@ -75,34 +75,34 @@ extension InvoicesView{
                 }
             case .nit:
                 for invoice in recentInvoices {
-                    if !invoice.customer.nit.isEmpty {
+                    if let nit = invoice.customer?.nit, !nit.isEmpty {
                         suggestions.append(SearchSuggestion(
-                            text: invoice.customer.nit,
+                            text: nit,
                             icon: "number.circle.fill",
                             category: "Reciente",
-                            secondaryText: invoice.customer.firstName
+                            secondaryText: invoice.customer?.firstName
                         ))
                     }
                 }
             case .dui:
                 for invoice in recentInvoices {
-                    if !invoice.customer.nationalId.isEmpty {
+                    if let nationalId = invoice.customer?.nationalId, !nationalId.isEmpty {
                         suggestions.append(SearchSuggestion(
-                            text: invoice.customer.nationalId,
+                            text: nationalId,
                             icon: "doc.text.fill",
                             category: "Reciente",
-                            secondaryText: invoice.customer.firstName
+                            secondaryText: invoice.customer?.firstName
                         ))
                     }
                 }
             case .nrc:
                 for invoice in recentInvoices {
-                    if !invoice.customer.nrc.isEmpty {
+                    if let nrc = invoice.customer?.nrc, !nrc.isEmpty {
                         suggestions.append(SearchSuggestion(
-                            text: invoice.customer.nrc,
+                            text: nrc,
                             icon: "building.2.fill",
                             category: "Reciente",
-                            secondaryText: invoice.customer.company
+                            secondaryText: invoice.customer?.company
                         ))
                     }
                 }
@@ -112,7 +112,7 @@ extension InvoicesView{
                         text: invoice.invoiceNumber,
                         icon: "doc.plaintext.fill",
                         category: "Reciente",
-                        secondaryText: "Factura - \(invoice.customer.firstName)"
+                        secondaryText: "Factura - \(invoice.customer?.firstName ?? "Unknown")"
                     ))
                 }
             case .ccf:
@@ -121,7 +121,7 @@ extension InvoicesView{
                         text: invoice.invoiceNumber,
                         icon: "doc.badge.plus",
                         category: "Reciente",
-                        secondaryText: "CCF - \(invoice.customer.firstName)"
+                        secondaryText: "CCF - \(invoice.customer?.firstName ?? "Unknown")"
                     ))
                 }
             }
@@ -181,8 +181,8 @@ extension InvoicesView{
         let searchLower = searchText.lowercased()
         
         for invoice in invoices {
-            let firstName = invoice.customer.firstName
-            let lastName = invoice.customer.lastName
+            let firstName = invoice.customer?.firstName ?? ""
+            let lastName = invoice.customer?.lastName ?? ""
             let fullName = "\(firstName) \(lastName)".trimmingCharacters(in: .whitespaces)
             
             if firstName.lowercased().contains(searchLower) && !firstName.isEmpty {
@@ -218,39 +218,39 @@ extension InvoicesView{
     
     private func generateNITSuggestions(from invoices: [Invoice]) -> [SearchSuggestion] {
         return invoices.compactMap { invoice in
-            let nit = invoice.customer.nit
+            let nit = invoice.customer?.nit ?? ""
             guard !nit.isEmpty else { return nil }
             return SearchSuggestion(
                 text: nit,
                 icon: "number.circle.fill",
                 category: "NIT",
-                secondaryText: invoice.customer.firstName
+                secondaryText: invoice.customer?.firstName
             )
         }
     }
     
     private func generateDUISuggestions(from invoices: [Invoice]) -> [SearchSuggestion] {
         return invoices.compactMap { invoice in
-            let dui = invoice.customer.nationalId
+            let dui = invoice.customer?.nationalId ?? ""
             guard !dui.isEmpty else { return nil }
             return SearchSuggestion(
                 text: dui,
                 icon: "doc.text.fill",
                 category: "DUI",
-                secondaryText: invoice.customer.firstName
+                secondaryText: invoice.customer?.firstName
             )
         }
     }
     
     private func generateNRCSuggestions(from invoices: [Invoice]) -> [SearchSuggestion] {
         return invoices.compactMap { invoice in
-            let nrc = invoice.customer.nrc
+            let nrc = invoice.customer?.nrc ?? ""
             guard !nrc.isEmpty else { return nil }
             return SearchSuggestion(
                 text: nrc,
                 icon: "building.2.fill",
                 category: "NRC",
-                secondaryText: invoice.customer.company.isEmpty ? invoice.customer.firstName : invoice.customer.company
+                secondaryText: (invoice.customer?.company.isEmpty == false) ? (invoice.customer?.company ?? "") : (invoice.customer?.firstName ?? "")
             )
         }
     }
@@ -264,7 +264,7 @@ extension InvoicesView{
                 text: invoice.invoiceNumber,
                 icon: "doc.plaintext.fill",
                 category: "Factura",
-                secondaryText: "\(invoice.customer.firstName) - \(DateFormatter.shortDate.string(from: invoice.date))"
+                secondaryText: "\(invoice.customer?.firstName ?? "Unknown") - \(DateFormatter.shortDate.string(from: invoice.date))"
             ))
             
             // Add control number suggestion if available
@@ -290,7 +290,7 @@ extension InvoicesView{
                 text: invoice.invoiceNumber,
                 icon: "doc.badge.plus",
                 category: "CCF",
-                secondaryText: "\(invoice.customer.firstName) - \(DateFormatter.shortDate.string(from: invoice.date))"
+                secondaryText: "\(invoice.customer?.firstName ?? "Unknown") - \(DateFormatter.shortDate.string(from: invoice.date))"
             ))
             
             // Add control number suggestion if available

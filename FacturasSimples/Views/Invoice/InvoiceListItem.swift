@@ -24,14 +24,14 @@ struct InvoiceListItem: View {
                 VStack{
                     HStack {
                         Circle()
-                            .fill(invoice.customer.color)
+                            .fill(invoice.customer?.color ?? Color.gray)
                             .frame(width: 30, height: 30)
                             .overlay {
-                                Text(String(invoice.customer.initials))
+                                Text(String(invoice.customer?.initials ?? ""))
                                     .font(.system(size: 14))
                                     .foregroundStyle(.background)
                             }
-                        Text(invoice.customer.fullName)
+                        Text(invoice.customer?.fullName ?? "Unknown Customer")
                             .font(.headline)
                         
                         Spacer()

@@ -176,17 +176,17 @@ struct InvoiceDetailView: View {
             HStack {
                 Text("Cliente")
                 Spacer()
-                Text(invoice.customer.fullName)
+                Text(invoice.customer?.fullName ?? "Unknown Customer")
             }
             HStack {
                 Text("Identificación")
                 Spacer()
-                Text(invoice.customer.nationalId)
+                Text(invoice.customer?.nationalId ?? "N/A")
             }
             HStack {
                 Text("Email")
                 Spacer()
-                Text(invoice.customer.email)
+                Text(invoice.customer?.email ?? "N/A")
             }
             HStack {
                 Text("Estado")
@@ -297,7 +297,7 @@ struct InvoiceDetailView: View {
     
     private var productsSection: some View {
         Section(header: Text("Productos")) {
-            ForEach($invoice.items){ $detail in
+            ForEach(invoice.items ?? [], id: \.self) { detail in
                 ProductDetailItemView(detail: detail)
                 
             }
@@ -373,7 +373,7 @@ struct InvoiceDetailView: View {
                         .cornerRadius(8)
                  }
                     .confirmationDialog(
-                        "¿Desea enviar nuevamente esta factura via email : \(invoice.customer.email)?",
+                        "¿Desea enviar nuevamente esta factura via email : \(invoice.customer?.email ?? "unknown@email.com")?",
                         isPresented: $viewModel.showingConfirmAutoEmail,
                         titleVisibility: .visible
                     ) {

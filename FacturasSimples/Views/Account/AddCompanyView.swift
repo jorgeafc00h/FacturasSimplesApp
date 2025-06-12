@@ -112,10 +112,10 @@ struct AddCompanyView2: View {
     @Binding var company : Company
     @Binding var intro: PageIntro
       
-    @Query(filter: #Predicate<CatalogOption> { $0.catalog.id == "CAT-012"})
+    @Query(filter: #Predicate<CatalogOption> { $0.catalog?.id == "CAT-012"})
     var departamentos : [CatalogOption]
     
-    @Query(filter: #Predicate<CatalogOption> { $0.catalog.id == "CAT-013"})
+    @Query(filter: #Predicate<CatalogOption> { $0.catalog?.id == "CAT-013"})
     var municipios : [CatalogOption]
     
     @State var viewModel = AddcompnayStep2ViewModel()
@@ -294,13 +294,13 @@ struct AddCompanyView4: View {
     @AppStorage("selectedCompanyIdentifier") var companyId: String = ""
     @AppStorage("selectedCompanyName")  var selectedCompanyName : String = ""
     
-    @Query(filter: #Predicate<CatalogOption> { $0.catalog.id == "CAT-012"})
+    @Query(filter: #Predicate<CatalogOption> { $0.catalog?.id == "CAT-012"})
     var departamentos : [CatalogOption]
     
-    @Query(filter: #Predicate<CatalogOption> { $0.catalog.id == "CAT-013"})
+    @Query(filter: #Predicate<CatalogOption> { $0.catalog?.id == "CAT-013"})
     var municipios : [CatalogOption]
     
-    @Query(filter: #Predicate<CatalogOption> { $0.catalog.id == "CAT-008"})
+    @Query(filter: #Predicate<CatalogOption> { $0.catalog?.id == "CAT-008"})
     var tipo_establecimientos : [CatalogOption]
     
     @State var viewModel = AddCompanyViewModel()

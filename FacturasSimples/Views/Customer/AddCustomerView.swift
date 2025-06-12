@@ -16,10 +16,10 @@ struct AddCustomerView: View {
     
     
     
-    @Query(filter: #Predicate<CatalogOption> { $0.catalog.id == "CAT-012"})
+    @Query(filter: #Predicate<CatalogOption> { $0.catalog?.id == "CAT-012"})
     var departamentos : [CatalogOption]
     
-    @Query(filter: #Predicate<CatalogOption> { $0.catalog.id == "CAT-013"})
+    @Query(filter: #Predicate<CatalogOption> { $0.catalog?.id == "CAT-013"})
     var municipios : [CatalogOption]
     
     @AppStorage("selectedCompanyIdentifier")  var selectedCompanyId : String = ""

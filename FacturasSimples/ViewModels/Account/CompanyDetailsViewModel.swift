@@ -141,14 +141,14 @@ extension CompanyDetailsView{
     
     func hasNoInvoicesToRequestAccess() -> Bool {
         let id = company.id
-        let fetchRequest = FetchDescriptor<Invoice>(predicate: #Predicate { $0.customer.companyOwnerId == id })
+        let fetchRequest = FetchDescriptor<Invoice>(predicate: #Predicate { $0.customer?.companyOwnerId == id })
         let count = (try? modelContext.fetchCount(fetchRequest)) ?? 0
         return count < 100
     }
     
     func hasInvoices() -> Bool {
         let id = company.id
-        let fetchRequest = FetchDescriptor<Invoice>(predicate: #Predicate {  $0.customer.companyOwnerId == id })
+        let fetchRequest = FetchDescriptor<Invoice>(predicate: #Predicate {  $0.customer?.companyOwnerId == id })
         let count = (try? modelContext.fetchCount(fetchRequest)) ?? 0
          
         return count > 0
@@ -188,7 +188,7 @@ extension CompanyDetailsView{
 //
         let id = company.id
         // ALL COUNT
-        let fetchRequest = FetchDescriptor<Invoice>(predicate: #Predicate { $0.customer.companyOwnerId == id })
+        let fetchRequest = FetchDescriptor<Invoice>(predicate: #Predicate { $0.customer?.companyOwnerId == id })
         let count = (try? modelContext.fetchCount(fetchRequest)) ?? 0
         let summary = InvoiceSummary(total: count, invoiceType:  "Total Documentos Generados")
         viewModel.summary.append(summary)

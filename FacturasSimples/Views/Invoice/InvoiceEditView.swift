@@ -12,6 +12,14 @@ struct InvoiceEditView: View {
     
     @State var viewModel = InvoiceEditViewModel()
     
+    // Computed binding to handle optional items array
+    private var itemsBinding: Binding<[InvoiceDetail]> {
+        Binding(
+            get: { invoice.items ?? [] },
+            set: { invoice.items = $0 }
+        )
+    }
+    
     var body: some View {
         NavigationStack {
             Form {
@@ -34,7 +42,7 @@ struct InvoiceEditView: View {
                 }
             }
             .sheet(isPresented: $viewModel.showingProductPicker) {
-                ProductPicker(details: $invoice.items)
+                ProductPicker(details: itemsBinding)
             }
             .navigationTitle(invoice.invoiceType.stringValue())
             .navigationBarTitleDisplayMode(.inline)
@@ -47,7 +55,7 @@ struct InvoiceEditView: View {
     private var customerSection: some View {
         Section(header: Text("Cliente")) {
             HStack {
-                Text(invoice.customer.fullName)
+                Text(invoice.customer?.fullName ?? "Unknown Customer")
                 Spacer()
                 
                     .foregroundColor(accentColor)
@@ -84,7 +92,7 @@ struct InvoiceEditView: View {
     private var productsSection: some View {
         
         Section(header: Text("Productos")) {
-            ForEach($invoice.items) { $item in
+            ForEach(itemsBinding) { $item in
                 ProductDetailEditView(item: $item)
             }
             .onDelete(perform: deleteProduct)

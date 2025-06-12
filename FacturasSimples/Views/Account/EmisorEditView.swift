@@ -9,115 +9,41 @@ import SwiftUI
 import SwiftData
 
 struct EmisorEditView: View {
-    @Environment(\.modelContext)   var modelContext
+    @Environment(\.modelContext) var modelContext
+    @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) var colorScheme
     
-    @Environment(\.dismiss)   var dismiss
+    @Query(filter: #Predicate<CatalogOption> { $0.catalog?.id == "CAT-012"})
+    var departamentos: [CatalogOption]
     
-    @Query(filter: #Predicate<CatalogOption> { $0.catalog.id == "CAT-012"})
-    var departamentos : [CatalogOption]
+    @Query(filter: #Predicate<CatalogOption> { $0.catalog?.id == "CAT-013"})
+    var municipios: [CatalogOption]
     
-    @Query(filter: #Predicate<CatalogOption> { $0.catalog.id == "CAT-013"})
-    var municipios : [CatalogOption]
+    @Query(filter: #Predicate<CatalogOption> { $0.catalog?.id == "CAT-008"})
+    var tipo_establecimientos: [CatalogOption]
     
-    @Query(filter: #Predicate<CatalogOption> { $0.catalog.id == "CAT-008"})
-    var tipo_establecimientos : [CatalogOption]
+    @State var company: Company
+    @State var viewModel = CompanyEditViewModel()
     
-    @State var company : Company
-    
-    @State var viewModel   = CompanyEditViewModel()
+    @AppStorage("selectedCompanyName")  var selectedCompanyName : String = ""
     
     var body: some View {
         NavigationStack {
             EditEmisorForm
+                .background(Color(.systemGroupedBackground))
         }
     }
     
     
     private var EditEmisorForm: some View {
         Form {
-            Section("Información General") {
-                TextField("Nombre", text: $company.nombre)
-                TextField("Nombre o Razón Social", text: $company.nombreComercial)
-                TextField("NIT", text: $company.nit)
-                    .keyboardType(.numberPad)
-                TextField("NRC", text: $company.nrc)
-            }
-            
-            Section("Dirección") {
-                Picker("Departamento", selection: $company.departamentoCode) {
-                    ForEach(departamentos, id: \.self) { dep in
-                        Text(dep.details).tag(dep.code)
-                    }
-                }
-                .onChange(of: company.departamentoCode) {
-                    onDepartamentoChange()
-                }
-                
-                Picker("Municipio", selection: $company.municipioCode) {
-                    ForEach(filteredMunicipios, id: \.self) { munic in
-                        Text(munic.details).tag(munic.code)
-                    }
-                }
-                .onChange(of: company.municipioCode) {
-                    onMunicipioChange()
-                }
-                
-                TextField("Dirección", text: $company.complemento)
-            }
-            
-            Section("Contacto") {
-                TextField("Correo Electrónico", text: $company.correo)
-                    .keyboardType(.emailAddress)
-                TextField("Teléfono", text: $company.telefono)
-                    .keyboardType(.phonePad)
-            }
-            
-            Section("Actividad Económica") {
-                Button(company.actividadEconomicaLabel) {
-                    viewModel.displayCategoryPicker.toggle()
-                }
-                
-                Picker("Tipo Establecimiento", selection: $company.tipoEstablecimiento) {
-                    ForEach(tipo_establecimientos, id: \.self) { dep in
-                        Text(dep.details).tag(dep.code)
-                    }
-                }
-                .onChange(of: company.tipoEstablecimiento) {
-                    onDepartamentoChange()
-                }
-            }
-
-            Section("Certificado Hacienda") {
-                Button(action: {
-                    viewModel.isCertificateImporterPresented = true
-                    viewModel.isFileImporterPresented = true
-                }) {
-                    HStack {
-                        if viewModel.isBusy {
-                            ProgressView()
-                                .tint(.darkCyan)
-                            Text("Actualizando...")
-                        } else {
-                            Text("Actualizar Certificado")
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .foregroundColor(.darkCyan)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(Color.darkCyan, lineWidth: 2)
-                    )
-                }
-                .disabled(viewModel.isBusy)
-                
-                if company.certificatePath != "" {
-                    Label("Certificado Activo", systemImage: "checkmark.circle.fill")
-                        .foregroundColor(.green)
-                }
-            }
+            GeneralInformationSection
+            AddressSection
+            ContactSection
+            EconomicActivitySection
+            CertificateSection
         }
-        .scrollContentBackground(.hidden)
+        .formStyle(.grouped)
         .navigationTitle("Editar Información")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -128,8 +54,12 @@ struct EmisorEditView: View {
             }
             ToolbarItem(placement: .confirmationAction) {
                 Button("Guardar") {
-                    saveChanges()
+                    // Save the changes using the view model
+                    Task {
+                        await saveChanges()
+                    }
                 }
+                .fontWeight(.semibold)
             }
         }
         .sheet(isPresented: $viewModel.displayCategoryPicker) {
@@ -142,20 +72,18 @@ struct EmisorEditView: View {
             )
         }
         .alert(viewModel.message, isPresented: $viewModel.showAlertMessage) {
-            Button("Ok", role: .cancel) { }
+            Button("OK", role: .cancel) { }
         }
         .confirmationDialog(
             "¿Desea actualizar el certificado?",
             isPresented: $viewModel.showConfirmSyncSheet,
             titleVisibility: .visible
         ) {
-            Button {
+            Button("Guardar Cambios") {
                 viewModel.isBusy = true
                 Task {
                     _ = await uploadAsync()
                 }
-            } label: {
-                Text("Guardar Cambios")
             }
             Button("Cancelar", role: .cancel) { }
         }
@@ -176,29 +104,149 @@ struct EmisorEditView: View {
             company.codActividad = viewModel.codActividad ?? ""
         }
     }
+}
+
+extension EmisorEditView {
+    // MARK: - Form Sections
     
-    private var SyncCertButonLabel: some View {
-        VStack{
-            if viewModel.isBusy{
-                HStack {
-                    Image(systemName: "circle.hexagonpath")
-                        .symbolEffect(.rotate, options: .repeat(.continuous))
-                    Text(" Actualizando.....")
-                }
-            }
-            else{
-                Text("Actualizar Certificado")
-                    .foregroundColor(.darkCyan)
-                    
-            }
-        }.fontWeight(.bold)
-            .foregroundColor(.blueGray)
-            .frame( maxWidth: .infinity, alignment: .center)
-            .padding(EdgeInsets(top: 11, leading: 18, bottom: 11, trailing: 18))
-            .overlay(RoundedRectangle(cornerRadius: 6)
-                .stroke(Color("Dark-Cyan"), lineWidth: 3).shadow(color: .white, radius: 6))
+    private var GeneralInformationSection: some View {
+        Section("Información General") {
+            TextField("Nombre", text: $company.nombre)
+                 
+            TextField("Nombre o Razón Social", text: $company.nombreComercial)
+               
+            TextField("NIT", text: $company.nit)
+                .keyboardType(.numberPad)
+            
+            TextField("NRC", text: $company.nrc)
+                .keyboardType(.numberPad)
+        }
     }
     
+    private var AddressSection: some View {
+        Section("Dirección") {
+            Picker("Departamento", selection: $company.departamentoCode) {
+                Text("Seleccionar").tag("")
+                ForEach(departamentos, id: \.self) { dep in
+                    Text(dep.details).tag(dep.code)
+                }
+            }
+            .pickerStyle(.menu)
+            .onChange(of: company.departamentoCode) {
+                onDepartamentoChange()
+            }
+            
+            Picker("Municipio", selection: $company.municipioCode) {
+                Text("Seleccionar").tag("")
+                ForEach(filteredMunicipios, id: \.self) { munic in
+                    Text(munic.details).tag(munic.code)
+                }
+            }
+            .pickerStyle(.menu)
+            .onChange(of: company.municipioCode) {
+                onMunicipioChange()
+            }
+            
+            TextField("Dirección", text: $company.complemento)
+        }
+    }
+    
+    private var ContactSection: some View {
+        Section("Contacto") {
+            TextField("Correo Electrónico", text: $company.correo)
+                .keyboardType(.emailAddress)
+                .autocapitalization(.none)
+            
+            TextField("Teléfono", text: $company.telefono)
+                .keyboardType(.phonePad)
+        }
+    }
+    
+    private var EconomicActivitySection: some View {
+        Section("Actividad Económica") {
+            Button(action: {
+                viewModel.displayCategoryPicker.toggle()
+            }) {
+                HStack {
+                    Text(company.actividadEconomicaLabel.isEmpty ? "Seleccionar Actividad Económica" : company.actividadEconomicaLabel)
+                        .foregroundColor(company.actividadEconomicaLabel.isEmpty ? .secondary : .primary)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(.secondary)
+                        .font(.caption)
+                }
+                .padding(.vertical, 8)
+            }
+            .buttonStyle(.plain)
+            
+            Picker("Tipo Establecimiento", selection: $company.tipoEstablecimiento) {
+                Text("Seleccionar").tag("")
+                ForEach(tipo_establecimientos, id: \.self) { tipo in
+                    Text(tipo.details).tag(tipo.code)
+                }
+            }
+            .pickerStyle(.menu)
+            .onChange(of: company.tipoEstablecimiento) {
+                onTipoEstablecimientoChange()
+            }
+        }
+    }
+
+    private var CertificateSection: some View {
+        Section("Certificado Hacienda") {
+            Button(action: {
+                viewModel.isCertificateImporterPresented = true
+                viewModel.isFileImporterPresented = true
+            }) {
+                HStack {
+                    if viewModel.isBusy {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                        Text("Actualizando...")
+                    } else {
+                        Image(systemName: "doc.badge.plus")
+                        Text("Actualizar Certificado")
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .foregroundColor(.white)
+                .background(Color.accentColor)
+                .cornerRadius(10)
+            }
+            .disabled(viewModel.isBusy)
+            .buttonStyle(.plain)
+            
+            if !company.certificatePath.isEmpty {
+                Label("Certificado Activo", systemImage: "checkmark.circle.fill")
+                    .foregroundColor(.green)
+                    .font(.caption)
+            }
+        }
+    }
+}
+
+extension EmisorEditView {
+    // MARK: - Methods
+    
+    @MainActor
+    func saveChanges() async {
+        let id = company.id
+        
+        let descriptor = FetchDescriptor<Company>(predicate: #Predicate { $0.id == id })
+        let count = (try? modelContext.fetchCount(descriptor)) ?? 0
+        
+        if count == 0 {
+            modelContext.insert(company)
+        }
+        
+        try? modelContext.save()
+        
+        // Notify that company data has been updated
+        NotificationCenter.default.post(name: .companyDataUpdated, object: company)
+        selectedCompanyName = company.nombreComercial
+        dismiss()
+    }
 }
 
 #Preview {

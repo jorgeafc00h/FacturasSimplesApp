@@ -32,37 +32,37 @@ class InvoiceSearchUtils {
         switch scope {
         case .nombre:
             return #Predicate<Invoice> {
-                ($0.customer.firstName.localizedStandardContains(key1) &&
-                 $0.customer.lastName.localizedStandardContains(key2)) &&
-                $0.customer.companyOwnerId == companyId
+                ($0.customer?.firstName.localizedStandardContains(key1) == true &&
+                 $0.customer?.lastName.localizedStandardContains(key2) == true) &&
+                $0.customer?.companyOwnerId == companyId
             }
         case .nit:
             return #Predicate<Invoice> {
-                $0.customer.nit.contains(key1) &&
-                $0.customer.companyOwnerId == companyId
+                $0.customer?.nit.contains(key1) == true &&
+                $0.customer?.companyOwnerId == companyId
             }
         case .dui:
             return #Predicate<Invoice> {
-                $0.customer.nationalId.contains(key1) &&
-                $0.customer.companyOwnerId == companyId
+                $0.customer?.nationalId.contains(key1) == true &&
+                $0.customer?.companyOwnerId == companyId
             }
         case .nrc:
             return #Predicate<Invoice> {
-                $0.customer.nrc.contains(key1) &&
-                $0.customer.companyOwnerId == companyId
+                $0.customer?.nrc.contains(key1) == true &&
+                $0.customer?.companyOwnerId == companyId
             }
         case .factura:
             let _type = Extensions.documentTypeFromInvoiceType(InvoiceType.Factura)
             return #Predicate<Invoice> {
                 $0.documentType == _type &&
-                $0.customer.companyOwnerId == companyId &&
+                $0.customer?.companyOwnerId == companyId &&
                 $0.invoiceNumber.contains(key1)
             }
         case .ccf:
             let _type = Extensions.documentTypeFromInvoiceType(InvoiceType.CCF)
             return #Predicate<Invoice> {
                 $0.documentType == _type &&
-                $0.customer.companyOwnerId == companyId &&
+                $0.customer?.companyOwnerId == companyId &&
                 $0.invoiceNumber.contains(key1)
             }
         }
@@ -75,30 +75,30 @@ class InvoiceSearchUtils {
         switch scope {
         case .nombre:
             return #Predicate<Invoice> {
-                ($0.customer.firstName.localizedStandardContains(searchText) ||
-                 $0.customer.lastName.localizedStandardContains(searchText)) &&
-                $0.customer.companyOwnerId == companyId
+                ($0.customer?.firstName.localizedStandardContains(searchText) == true ||
+                 $0.customer?.lastName.localizedStandardContains(searchText) == true) &&
+                $0.customer?.companyOwnerId == companyId
             }
         case .nit:
             return #Predicate<Invoice> {
-                $0.customer.nit.contains(searchText) &&
-                $0.customer.companyOwnerId == companyId
+                $0.customer?.nit.contains(searchText) == true &&
+                $0.customer?.companyOwnerId == companyId
             }
         case .dui:
             return #Predicate<Invoice> {
-                $0.customer.nationalId.contains(searchText) &&
-                $0.customer.companyOwnerId == companyId
+                $0.customer?.nationalId.contains(searchText) == true &&
+                $0.customer?.companyOwnerId == companyId
             }
         case .nrc:
             return #Predicate<Invoice> {
-                $0.customer.nrc.localizedStandardContains(searchText) &&
-                $0.customer.companyOwnerId == companyId
+                $0.customer?.nrc.localizedStandardContains(searchText) == true &&
+                $0.customer?.companyOwnerId == companyId
             }
         case .factura:
             let _type = Extensions.documentTypeFromInvoiceType(InvoiceType.Factura)
             return #Predicate<Invoice> {
                 $0.documentType == _type &&
-                $0.customer.companyOwnerId == companyId &&
+                $0.customer?.companyOwnerId == companyId &&
                 ($0.invoiceNumber.contains(searchText) || 
                  ($0.controlNumber != nil && $0.controlNumber!.contains(searchText)))
             }
@@ -106,7 +106,7 @@ class InvoiceSearchUtils {
             let _type = Extensions.documentTypeFromInvoiceType(InvoiceType.CCF)
             return #Predicate<Invoice> {
                 $0.documentType == _type &&
-                $0.customer.companyOwnerId == companyId &&
+                $0.customer?.companyOwnerId == companyId &&
                 ($0.invoiceNumber.contains(searchText) || 
                  ($0.controlNumber != nil && $0.controlNumber!.contains(searchText)))
             }
@@ -119,18 +119,18 @@ class InvoiceSearchUtils {
         case .factura:
             let _type = Extensions.documentTypeFromInvoiceType(InvoiceType.Factura)
             return #Predicate<Invoice> {
-                $0.customer.companyOwnerId == companyId &&
+                $0.customer?.companyOwnerId == companyId &&
                 $0.documentType == _type
             }
         case .ccf:
             let _type = Extensions.documentTypeFromInvoiceType(InvoiceType.CCF)
             return #Predicate<Invoice> {
-                $0.customer.companyOwnerId == companyId &&
+                $0.customer?.companyOwnerId == companyId &&
                 $0.documentType == _type
             }
         default:
             return #Predicate<Invoice> {
-                $0.customer.companyOwnerId == companyId
+                $0.customer?.companyOwnerId == companyId
             }
         }
     }
@@ -142,18 +142,18 @@ class InvoiceSearchUtils {
         case .factura:
             let _type = Extensions.documentTypeFromInvoiceType(InvoiceType.Factura)
             return #Predicate<Invoice> {
-                $0.customer.companyOwnerId == companyId &&
+                $0.customer?.companyOwnerId == companyId &&
                 $0.documentType == _type
             }
         case .ccf:
             let _type = Extensions.documentTypeFromInvoiceType(InvoiceType.CCF)
             return #Predicate<Invoice> {
-                $0.customer.companyOwnerId == companyId &&
+                $0.customer?.companyOwnerId == companyId &&
                 $0.documentType == _type
             }
         default:
             return #Predicate<Invoice> {
-                $0.customer.companyOwnerId == companyId
+                $0.customer?.companyOwnerId == companyId
             }
         }
     }
@@ -162,37 +162,37 @@ class InvoiceSearchUtils {
         switch scope {
         case .nombre:
             return #Predicate<Invoice> {
-                ($0.customer.firstName.localizedStandardContains(searchText) ||
-                 $0.customer.lastName.localizedStandardContains(searchText)) &&
-                $0.customer.companyOwnerId == companyId
+                ($0.customer?.firstName.localizedStandardContains(searchText) == true ||
+                 $0.customer?.lastName.localizedStandardContains(searchText) == true) &&
+                $0.customer?.companyOwnerId == companyId
             }
         case .nit:
             return #Predicate<Invoice> {
-                $0.customer.nit.contains(searchText) &&
-                $0.customer.companyOwnerId == companyId
+                $0.customer?.nit.contains(searchText) == true &&
+                $0.customer?.companyOwnerId == companyId
             }
         case .dui:
             return #Predicate<Invoice> {
-                $0.customer.nationalId.contains(searchText) &&
-                $0.customer.companyOwnerId == companyId
+                $0.customer?.nationalId.contains(searchText) == true &&
+                $0.customer?.companyOwnerId == companyId
             }
         case .nrc:
             return #Predicate<Invoice> {
-                $0.customer.nrc.localizedStandardContains(searchText) &&
-                $0.customer.companyOwnerId == companyId
+                $0.customer?.nrc.localizedStandardContains(searchText) == true &&
+                $0.customer?.companyOwnerId == companyId
             }
         case .factura:
             let _type = Extensions.documentTypeFromInvoiceType(InvoiceType.Factura)
             return #Predicate<Invoice> {
                 $0.documentType == _type &&
-                $0.customer.companyOwnerId == companyId &&
+                $0.customer?.companyOwnerId == companyId &&
                 $0.invoiceNumber.contains(searchText)
             }
         case .ccf:
             let _type = Extensions.documentTypeFromInvoiceType(InvoiceType.CCF)
             return #Predicate<Invoice> {
                 $0.documentType == _type &&
-                $0.customer.companyOwnerId == companyId &&
+                $0.customer?.companyOwnerId == companyId &&
                 $0.invoiceNumber.contains(searchText)
             }
         }

@@ -41,7 +41,7 @@ extension PreProdStep1{
     func loadAllInvoices() {
         let id = company.id
         let _fetchAll = FetchDescriptor<Invoice>(predicate: #Predicate{
-            $0.customer.companyOwnerId == id
+            $0.customer?.companyOwnerId == id
         })
         
         let _invoices = try? modelContext.fetch(_fetchAll)
@@ -318,7 +318,7 @@ extension PreProdStep1{
         
         Extensions.generateControlNumberAndCode(note)
         
-        let items = invoice.items.map { detail -> InvoiceDetail in
+        let items = (invoice.items ?? []).map { detail -> InvoiceDetail in
             return InvoiceDetail(quantity: detail.quantity, product: detail.product)
             
         }
@@ -502,7 +502,7 @@ extension PreProdStep1{
         let id = company.id
         let descriptor = FetchDescriptor<Invoice>(
             predicate: #Predicate<Invoice>{
-                $0.customer.companyOwnerId == id
+                $0.customer?.companyOwnerId == id
             },
             sortBy: [SortDescriptor(\.date, order: .reverse)]
         )

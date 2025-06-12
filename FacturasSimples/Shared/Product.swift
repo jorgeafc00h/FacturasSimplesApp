@@ -12,18 +12,20 @@ import SwiftData
 @Model class Product
 {
  
-    @Attribute(.unique)
+    // Remove unique constraint for CloudKit compatibility
     var productId: String = UUID().uuidString
     
-    var productName:String
-    var unitPrice:Decimal
+    // Provide default values for CloudKit
+    var productName: String = ""
+    var unitPrice: Decimal = 0.0
     
-    var productDescription: String
+    var productDescription: String = ""
     
-    @Relationship(deleteRule: .cascade, inverse: \ InvoiceDetail.product)
-    var invoiceDetails : [InvoiceDetail] = []
+    // Make relationship optional for CloudKit
+    @Relationship(deleteRule: .nullify, inverse: \ InvoiceDetail.product)
+    var invoiceDetails: [InvoiceDetail]?
     
-    var companyId: String
+    var companyId: String = ""
     
     
     var priceWithoutTax: Decimal {

@@ -5,12 +5,13 @@ import SwiftData
 @Model
 class Catalog : Identifiable
 {
-    @Attribute(.unique)
+    // Remove unique constraint for CloudKit compatibility
     var id: String = ""
     var name: String = ""
     
+    // Make relationship optional for CloudKit
     @Relationship(deleteRule: .cascade,inverse: \CatalogOption.catalog)
-    var options: [CatalogOption] = []
+    var options: [CatalogOption]?
     
     init(id: String, name: String,
         options: [CatalogOption] = []) {
@@ -23,15 +24,13 @@ class Catalog : Identifiable
 @Model
 class CatalogOption : Identifiable{
 
-
     var code: String = ""
     var details: String = ""
     var departamento: String = ""
 
+    var catalog : Catalog?
 
-    var catalog : Catalog
-
-    init(code: String, description: String, departamento: String, catalog: Catalog) {
+    init(code: String, description: String, departamento: String, catalog: Catalog? = nil) {
         self.code = code
         self.details = description
         self.departamento = departamento

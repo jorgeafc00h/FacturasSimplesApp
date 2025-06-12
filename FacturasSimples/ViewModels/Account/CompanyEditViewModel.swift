@@ -100,6 +100,10 @@ extension EmisorEditView {
         }
         
         try? modelContext.save()
+        
+        // Notify that company data has been updated
+        NotificationCenter.default.post(name: .companyDataUpdated, object: nil)
+        
         dismiss()
     }
     

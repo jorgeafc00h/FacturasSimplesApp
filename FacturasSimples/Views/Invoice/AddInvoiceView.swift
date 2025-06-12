@@ -28,6 +28,35 @@ struct AddInvoiceView: View {
         companies.first { $0.id == companyIdentifier }
     }
     
+    var shouldDisableForCredits: Bool {
+        guard let company = selectedCompany else { return false }
+        
+        // Test accounts don't need credit validation
+        if company.isTestAccount {
+            return false
+        }
+        
+        // Production accounts need credits
+        return !storeKitManager.hasAvailableCredits(for: company)
+    }
+    
+    var shouldShowCreditsWarning: Bool {
+        guard let company = selectedCompany else { return false }
+        
+        // Only show warning for production accounts that lack credits
+        return company.requiresPaidServices && shouldDisableForCredits
+    }
+    
+    var creditsWarningMessage: String {
+        guard let company = selectedCompany else { return "" }
+        
+        if company.requiresPaidServices {
+            return "Esta empresa requiere créditos para crear facturas en producción"
+        }
+        
+        return ""
+    }
+    
     var body: some View {
         
         NavigationStack { 
@@ -55,8 +84,8 @@ struct AddInvoiceView: View {
                     .background(.darkCyan)
                     .cornerRadius(10)
                     
-                    if !storeKitManager.hasAvailableCredits() {
-                        Text("Necesitas créditos para crear facturas")
+                    if shouldShowCreditsWarning {
+                        Text(creditsWarningMessage)
                             .font(.caption)
                             .foregroundColor(.red)
                             .frame(maxWidth: .infinity, alignment: .center)
@@ -87,7 +116,7 @@ struct AddInvoiceView: View {
                 }
                 ToolbarItem(placement: .primaryAction) {
                     Button("Guardar", action: { handleCreateInvoice(storeKitManager: storeKitManager, showCreditsGate: $showCreditsGate) })
-                    .disabled(viewModel.disableAddInvoice || !storeKitManager.hasAvailableCredits())
+                    .disabled(viewModel.disableAddInvoice || shouldDisableForCredits)
                 }
             }.accentColor(.darkCyan)
         }

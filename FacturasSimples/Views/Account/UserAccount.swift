@@ -41,13 +41,15 @@ struct UserAccountView: View {
                 // Header
                 headerView
                 
-                // User Info Card
-                userInfoCard
-                    .padding(.horizontal, 20)
-                
+               
                 // Company Data Section
                 companySectionView
                     .padding(.horizontal, 20)
+                
+                // User Info Card
+                userInfoCard
+                    .padding(.horizontal, 20)
+                    .padding(.top, 7)
                 
                 // Action Buttons Section
                 actionButtonsSection
@@ -378,7 +380,7 @@ struct UserAccountView: View {
     func loadInvoiceCounts() {
         for company in companies {
             let id = company.id
-            let descriptor = FetchDescriptor<Invoice>(predicate: #Predicate { $0.customer.companyOwnerId == id  })
+            let descriptor = FetchDescriptor<Invoice>(predicate: #Predicate { $0.customer?.companyOwnerId == id  })
             let createdCount = try? modelContext.fetchCount(descriptor)
             invoiceCountsByCompany[company.id] = createdCount
         }

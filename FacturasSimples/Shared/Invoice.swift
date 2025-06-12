@@ -7,48 +7,49 @@
 import Foundation
 import SwiftUI
 import SwiftData
+import CloudKit
 
 @Model class Invoice
 {
-    
-    
-    @Attribute(.unique)
+    // CloudKit-compatible identifier - remove unique constraint
     var inoviceId: String = UUID().uuidString
-    //    @Relationship(deleteRule: .cascade, inverse: \Product.inv)
-    //    var products: [Product] = [Product]()
     
-    
+    // CloudKit requires default values for non-optional attributes
     @Attribute(.preserveValueOnDeletion)
-    var invoiceNumber: String
-    var date: Date
+    var invoiceNumber: String = ""
     
-    //var customerId: Int
+    // CloudKit automatically handles Date types - provide default
+    var date: Date = Date()
     
-    var status: InvoiceStatus
-    var statusRawValue : Int
+    var status: InvoiceStatus = InvoiceStatus.Nueva
+    var statusRawValue: Int = 0
     
-    var customer: Customer
-    var invoiceType: InvoiceType
+    // CloudKit handles relationships automatically
+    var customer: Customer?
+    var invoiceType: InvoiceType = InvoiceType.Factura
     
     var documentType: String = ""
     
+    // Optional strings work well with CloudKit
     var generationCode: String?
     var controlNumber: String?
     var receptionSeal: String?
     
-    var relatedDocumentNumber : String?
+    var relatedDocumentNumber: String?
     var relatedDocumentType: String?
     var relatedInvoiceType: InvoiceType?
     var relatedId: String?
     var relatedDocumentDate: Date?
     
     var invalidatedViaApi: Bool = false
-    @Relationship(deleteRule: .cascade, inverse: \ InvoiceDetail.invoice)
-    var items: [InvoiceDetail] = []
     
-    /// review this logic
+    // CloudKit handles cascade relationships - make optional
+    @Relationship(deleteRule: .cascade, inverse: \InvoiceDetail.invoice)
+    var items: [InvoiceDetail]?
+    
+    // Computed properties don't sync to CloudKit (which is what we want)
     var totalAmount: Decimal {
-        return items.reduce(0){
+        return (items ?? []).reduce(0){
             ($0 + $1.productTotal).rounded()
         }
     }
@@ -66,7 +67,7 @@ import SwiftData
     }
     
     var totalItems: Int {
-        return items.count
+        return items?.count ?? 0
     }
     
     
@@ -75,7 +76,7 @@ import SwiftData
     }
     
     var ivaRete1: Decimal{
-        return customer.hasContributorRetention ?
+        return customer?.hasContributorRetention == true ?
         (totalWithoutTax * 0.01).rounded() : 0
     }
   
@@ -88,7 +89,7 @@ import SwiftData
     
     init(invoiceNumber: String,
          date: Date,
-         status: InvoiceStatus, customer: Customer,
+         status: InvoiceStatus, customer: Customer? = nil,
          invoiceType: InvoiceType = .Factura,
          generationCode: String = "",
          controlNumber: String = "",
@@ -163,29 +164,26 @@ enum InvoiceType: Int, Codable, CaseIterable, Identifiable, Hashable {
 
 @Model class InvoiceDetail {
     
-    var quantity: Decimal
+    // Provide default value for CloudKit compatibility
+    var quantity: Decimal = 0.0
     var invoice : Invoice?
-    var product: Product
+    var product: Product?
     
     var productTotal: Decimal {
+        guard let product = product else { return 0 }
         return  quantity * product.unitPrice
     }
     
     var productTotalWithoutTax: Decimal{
-        
         return productTotal /  Constants.includedTax
-        
     }
     
     init(quantity: Decimal,
-         product: Product
+         product: Product? = nil
     ) {
-        
         self.quantity = quantity
         self.product = product
-        //self.invoice = invoice
     }
-    
 }
 
 
@@ -206,7 +204,7 @@ extension Invoice {
     
     var canCratenewInvoice: Bool {
         
-        return items.count > 0 && status == .Nueva && !invoiceNumber.isEmpty
+        return (items?.count ?? 0) > 0 && status == .Nueva && !invoiceNumber.isEmpty
     }
     
     static var previewInvoices: [Invoice] {

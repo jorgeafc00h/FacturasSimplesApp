@@ -167,12 +167,42 @@ class StoreKitManager: NSObject, ObservableObject {
         return true
     }
     
+    /// Use invoice credit with company awareness
+    func useInvoiceCredit(for company: Company?) -> Bool {
+        guard let company = company else {
+            return useInvoiceCredit()
+        }
+        
+        // Test accounts don't consume credits
+        if company.isTestAccount {
+            return true
+        }
+        
+        // For production accounts, try company credits first, then global credits
+        return company.useInvoiceCredit() || useInvoiceCredit()
+    }
+    
     /// Check if user has available invoice credits (including promo benefits)
     func hasAvailableCredits() -> Bool {
         return promoCodeService.hasActivePromotionalSubscription() ||
                userCredits.isSubscriptionActive || 
                promoCodeService.canCreateInvoicesWithPromo() ||
                userCredits.availableInvoices > 0
+    }
+    
+    /// Check if user has available credits for a specific company
+    func hasAvailableCredits(for company: Company?) -> Bool {
+        guard let company = company else {
+            return hasAvailableCredits()
+        }
+        
+        // Test accounts always have unlimited credits
+        if company.isTestAccount {
+            return true
+        }
+        
+        // Production accounts need either company credits or global credits
+        return company.canCreateInvoices || hasAvailableCredits()
     }
     
     /// Get total available credits text (including promo benefits)

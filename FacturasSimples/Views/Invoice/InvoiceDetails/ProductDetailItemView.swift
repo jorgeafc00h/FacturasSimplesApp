@@ -19,7 +19,7 @@ struct ProductDetailItemView: View {
             VStack(alignment: .leading) {
                 
                 HStack{
-                    Text(detail.product.productName)
+                    Text(detail.product?.productName ?? "Unknown Product")
                     Spacer()
                     Text(detail.productTotal.formatted(.currency(code: "USD")))
                         .contentTransition(.numericText(value: Double( 233  )))
@@ -29,10 +29,10 @@ struct ProductDetailItemView: View {
                     
                 }
             HStack{
-                Text(detail.product.unitPrice.formatted(.currency(code: "USD")))
+                Text((detail.product?.unitPrice ?? 0).formatted(.currency(code: "USD")))
                     //.contentTransition(.numericText(value: Double( 0.00  )))
                     .contentTransition(.numericText(countsDown: true))
-                    .contentTransition(.numericText(value: Double(truncating: detail.product.unitPrice as NSNumber)))
+                    .contentTransition(.numericText(value: Double(truncating: (detail.product?.unitPrice ?? 0) as NSNumber)))
                     .font(.footnote)
                 Spacer()
                 Text("\(detail.quantity)")
@@ -57,7 +57,7 @@ struct ProductDetailEditView: View {
     var body: some View {
         VStack{
             HStack {
-                Text(item.product.productName)
+                Text(item.product?.productName ?? "Unknown Product")
                 Spacer()
                 Stepper("", value: $item.quantity, in: 1...100)
             }
@@ -82,7 +82,9 @@ struct ProductDetailEditView: View {
 #Preview(traits: .sampleInvoices) {
     @Previewable @Query var invs: [Invoice]
     List {
-        ProductDetailItemView(detail: invs.first!.items.first!)
+        if let invoice = invs.first, let items = invoice.items, let firstItem = items.first {
+            ProductDetailItemView(detail: firstItem)
+        }
     }
 }
  

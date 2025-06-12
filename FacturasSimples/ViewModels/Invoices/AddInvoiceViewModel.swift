@@ -77,17 +77,32 @@ extension AddInvoiceView {
     }
     
     func handleCreateInvoice(storeKitManager: StoreKitManager, showCreditsGate: Binding<Bool>) {
-        // Check if user has sufficient credits
+        // Check if user has sufficient credits ONLY for production companies
+        guard let selectedCompany = getSelectedCompany() else {
+            // If no company found, proceed (fallback)
+            addInvoice()
+            return
+        }
         
+        // Test accounts don't need credit validation
+        if selectedCompany.isTestAccount {
+            addInvoice()
+            return
+        }
         
-//        guard storeKitManager.hasAvailableCredits() else {
-//            showCreditsGate.wrappedValue = true
-//            return
-//        }
+        // Production accounts need credit validation
+        guard storeKitManager.hasAvailableCredits(for: selectedCompany) else {
+            showCreditsGate.wrappedValue = true
+            return
+        }
         
         // Proceed with invoice creation and consume credit
         addInvoice()
-        //_ = storeKitManager.useInvoiceCredit()
+        
+        // Consume credit for production accounts
+        if selectedCompany.requiresPaidServices {
+            _ = storeKitManager.useInvoiceCredit(for: selectedCompany)
+        }
     }
     func deleteDetail(detail:InvoiceDetail){
         withAnimation{
@@ -129,7 +144,7 @@ extension AddInvoiceView {
         
         let descriptor = FetchDescriptor<Invoice>(
             predicate: #Predicate<Invoice>{
-                $0.customer.companyOwnerId == companyIdentifier
+                $0.customer?.companyOwnerId == companyIdentifier
             },
             sortBy: [SortDescriptor(\.date, order: .reverse)]
         )
@@ -148,7 +163,7 @@ extension AddInvoiceView {
        let _type =  Extensions.documentTypeFromInvoiceType(invoiceType)
         let descriptor = FetchDescriptor<Invoice>(
             predicate: #Predicate<Invoice>{
-                $0.customer.companyOwnerId == companyIdentifier &&
+                $0.customer?.companyOwnerId == companyIdentifier &&
                 $0.documentType == _type
             },
             sortBy: [SortDescriptor(\.date, order: .reverse)]
@@ -163,6 +178,16 @@ extension AddInvoiceView {
         } else {
             viewModel.invoiceNumber = "00001"
         }
+    }
+    
+    func getSelectedCompany() -> Company? {
+        let descriptor = FetchDescriptor<Company>(
+            predicate: #Predicate<Company> { company in
+                company.id == companyIdentifier
+            }
+        )
+        
+        return try? modelContext.fetch(descriptor).first
     }
     
 }

@@ -55,7 +55,7 @@ extension CustomersListView {
         
         let id = cust.persistentModelID
         
-        let descriptor = FetchDescriptor<Invoice>(predicate: #Predicate { $0.customer.persistentModelID ==  id })
+        let descriptor = FetchDescriptor<Invoice>(predicate: #Predicate { $0.customer?.persistentModelID ==  id })
         
         let count = (try? modelContext.fetchCount(descriptor)) ?? 0
         

@@ -176,24 +176,24 @@ class InvoicePDFGenerator {
             
             // Column 1
             "Nombre ó Razón Social:".draw(at: CGPoint(x: receptorCol1, y: receptorY), withAttributes: grayAttributes)
-            invoice.customer.company.draw(at: CGPoint(x: receptorCol1, y: receptorY + 10), withAttributes: regularAttributes)
+            (invoice.customer?.company ?? "N/A").draw(at: CGPoint(x: receptorCol1, y: receptorY + 10), withAttributes: regularAttributes)
             
             "NRC:".draw(at: CGPoint(x: receptorCol1, y: receptorY + receptorLabelSpacing), withAttributes: grayAttributes)
-            (invoice.customer.nrc).draw(at: CGPoint(x: receptorCol1, y: receptorY + receptorLabelSpacing +  CGFloat(10)), withAttributes: regularAttributes)
+            (invoice.customer?.nrc ?? "").draw(at: CGPoint(x: receptorCol1, y: receptorY + receptorLabelSpacing +  CGFloat(10)), withAttributes: regularAttributes)
             
             // Column 2
             "Tipo de Documento:".draw(at: CGPoint(x: receptorCol2, y: receptorY), withAttributes: grayAttributes)
             "DUI/NIT".draw(at: CGPoint(x: receptorCol2, y: receptorY + 10), withAttributes: regularAttributes)
             
             "Actividad Económica:".draw(at: CGPoint(x: receptorCol2, y: receptorY + receptorLabelSpacing), withAttributes: grayAttributes)
-            SplitText(invoice.customer.descActividad ?? "", 35).draw(at: CGPoint(x: receptorCol2, y: receptorY + receptorLabelSpacing + 10), withAttributes: regularAttributes)
+            SplitText(invoice.customer?.descActividad ?? "", 35).draw(at: CGPoint(x: receptorCol2, y: receptorY + receptorLabelSpacing + 10), withAttributes: regularAttributes)
             
             // Column 3
             "N° Documento:".draw(at: CGPoint(x: receptorCol3, y: receptorY), withAttributes: grayAttributes)
-            invoice.customer.nationalId.draw(at: CGPoint(x: receptorCol3, y: receptorY + 10), withAttributes: regularAttributes)
+            (invoice.customer?.nationalId ?? "").draw(at: CGPoint(x: receptorCol3, y: receptorY + 10), withAttributes: regularAttributes)
             
             "Dirección:".draw(at: CGPoint(x: receptorCol3, y: receptorY + receptorLabelSpacing), withAttributes: grayAttributes)
-            SplitText(invoice.customer.address, 40).draw(at: CGPoint(x: receptorCol3, y: receptorY + receptorLabelSpacing + 10), withAttributes: regularAttributes)
+            SplitText(invoice.customer?.address ?? "", 40).draw(at: CGPoint(x: receptorCol3, y: receptorY + receptorLabelSpacing + 10), withAttributes: regularAttributes)
             
             // Table Header with gray background
             let tableHeaderRect = CGRect(x: 0, y: 295, width: pageWidth, height: 20)
@@ -220,7 +220,7 @@ class InvoicePDFGenerator {
             
             // Draw items
             currentY = tableY + 25
-            for (index, item) in invoice.items.enumerated() {
+            for (index, item) in (invoice.items ?? []).enumerated() {
                 if index % 2 == 0 {
                     let rowRect = CGRect(x: 0, y: currentY - 3, width: pageWidth, height: 15)
                     context.cgContext.setFillColor(UIColor(white: 0.95, alpha: 1.0).cgColor)
@@ -239,16 +239,16 @@ class InvoicePDFGenerator {
                 "Unidad".draw(at: CGPoint(x: currentX + 2, y: currentY), withAttributes: regularAttributes)
                 currentX += columnWidths[2]
                 
-                item.product.productName.draw(at: CGPoint(x: currentX + 2, y: currentY), withAttributes: regularAttributes)
+                (item.product?.productName ?? "").draw(at: CGPoint(x: currentX + 2, y: currentY), withAttributes: regularAttributes)
                 currentX += columnWidths[3]
                 
                 
                 if(invoice.isCCF){
-                    item.product.priceWithoutTax.formatted(.currency(code: "USD")).draw(at: CGPoint(x: currentX + 2, y: currentY), withAttributes: regularAttributes)
+                    (item.product?.priceWithoutTax ?? 0).formatted(.currency(code: "USD")).draw(at: CGPoint(x: currentX + 2, y: currentY), withAttributes: regularAttributes)
                     currentX += columnWidths[4]
                 }
                 else{
-                    item.product.unitPrice.formatted(.currency(code: "USD")).draw(at: CGPoint(x: currentX + 2, y: currentY), withAttributes: regularAttributes)
+                    (item.product?.unitPrice ?? 0).formatted(.currency(code: "USD")).draw(at: CGPoint(x: currentX + 2, y: currentY), withAttributes: regularAttributes)
                     currentX += columnWidths[4]
                 }
                 "$0.00".draw(at: CGPoint(x: currentX + 2, y: currentY), withAttributes: regularAttributes)
@@ -306,7 +306,7 @@ class InvoicePDFGenerator {
             }
             
             let total =
-            invoice.customer.hasContributorRetention ?
+            invoice.customer?.hasContributorRetention == true ?
             (invoice.totalAmount.asDoubleRounded - invoice.ivaRete1.asDoubleRounded) :
             invoice.totalAmount.asDoubleRounded
             

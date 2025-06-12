@@ -10,7 +10,7 @@ struct RequestProductionView: View {
     
     
     @Environment(\.modelContext) var modelContext
-    @State private var showCloseButton: Bool = false
+    @State private var showCloseButton: Bool = true
     
     var body: some View {
         ZStack{
@@ -122,7 +122,7 @@ private struct SubPageView<ActionView:View> :View{
         .offset(y: hideHoleView ? 0 : 1)
         .opacity(hideHoleView ? 0 : 1)
         .overlay(alignment: .topLeading){
-            if intro != pagesIntros.first {
+            if intro != pagePreProdIntros.first {
                 Button{
                     changeIntro(true)
                 }
@@ -141,7 +141,7 @@ private struct SubPageView<ActionView:View> :View{
             }
         }
         .overlay(alignment: .topTrailing){
-            if !showCloseButton{
+            if showCloseButton{
                 Button{
                     dismiss()
                 }
@@ -192,13 +192,23 @@ private struct SubPageView<ActionView:View> :View{
         }
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: {
-            if let index = pagePreProdIntros.firstIndex(of: intro),
-               ( isPrevious ? index != 0 :  index != pagesIntros.count - 1 ){
-                print("page index \(index)")
-                intro = isPrevious ? pagePreProdIntros[index - 1] :  pagePreProdIntros[index + 1]
-            }
-            else{
-                intro = isPrevious ? pagePreProdIntros[0] : pagePreProdIntros[pagePreProdIntros.count - 1 ]
+            if let index = pagePreProdIntros.firstIndex(of: intro) {
+                if isPrevious {
+                    if index > 0 {
+                        intro = pagePreProdIntros[index - 1]
+                    } else {
+                        intro = pagePreProdIntros[0]
+                    }
+                } else {
+                    if index < pagePreProdIntros.count - 1 {
+                        intro = pagePreProdIntros[index + 1]
+                    } else {
+                        intro = pagePreProdIntros[pagePreProdIntros.count - 1]
+                    }
+                }
+            } else {
+                // Fallback if intro not found
+                intro = isPrevious ? pagePreProdIntros[0] : pagePreProdIntros[pagePreProdIntros.count - 1]
             }
             // Re animating as split page
             hideHoleView = false
@@ -272,17 +282,17 @@ struct PreProdStep1:View{
         GeometryReader { geometry in
             VStack(spacing:10){
                 
-                Link("ir al portal de Hacienda Facturación Electrónica", destination: URL(string: "https://admin.factura.gob.sv/login")!)
+                Link("ir al portal de Hacienda Facturación Electrónica", destination: URL(string: "https://admin.factura.gob.sv/login") ?? URL(string: "https://mh.gob.sv")!)
                     .foregroundColor(.darkBlue)
                 
                 if viewModel.isSyncing {
                     withAnimation{
                         VStack{
-                            ProgressView(value: viewModel.progress, total: 1.0)
+                            ProgressView(value: max(0, min(1, viewModel.progress.isNaN || viewModel.progress.isInfinite ? 0 : viewModel.progress)), total: 1.0)
                                 .padding()
                                 .tint(Color.marine)
                             
-                            Text("Progreso: \(Int(viewModel.progress * 100))%")
+                            Text("Progreso: \(viewModel.progress.isNaN || viewModel.progress.isInfinite ? 0 : Int(max(0, min(100, viewModel.progress * 100))))%")
                                 .foregroundColor(.primary)
                                 .padding(.bottom)
                         }
@@ -465,6 +475,12 @@ struct PreProdStep1:View{
             .onAppear {
                 loadAllInvoices()
             }
+            .onChange(of: viewModel.isSyncing) { oldValue, newValue in
+                // Reset showCloseButton when syncing completes
+                if oldValue && !newValue {
+                    showCloseButton = true
+                }
+            }
         }
         
     }
@@ -512,7 +528,7 @@ struct PreProdStep1:View{
         PreProdStep1(
             company: company,
             size: size,
-            showCloseButton: .constant(false)
+            showCloseButton: .constant(true)
         )
     }
      

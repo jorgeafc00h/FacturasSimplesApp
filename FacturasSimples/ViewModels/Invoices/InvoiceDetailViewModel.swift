@@ -249,7 +249,7 @@ extension InvoiceDetailView {
                     let typeCode = company.tipoEstablecimiento
                     
                     let _descriptor = FetchDescriptor<CatalogOption>(predicate: #Predicate {
-                        $0.catalog.id == "CAT-008" && $0.code == typeCode
+                        $0.catalog?.id == "CAT-008" && $0.code == typeCode
                     })
                     
                     if let _catalogOption = try? modelContext.fetch(_descriptor).first {
@@ -279,14 +279,14 @@ extension InvoiceDetailView {
                            status: invoice.status, customer: invoice.customer,
                            invoiceType: .NotaCredito)
         
-        let items = invoice.items.map { detail -> InvoiceDetail in
+        let items = (invoice.items ?? []).map { detail -> InvoiceDetail in
             return InvoiceDetail(quantity: detail.quantity, product: detail.product)
             
         }
         
         let descriptor = FetchDescriptor<Invoice>(
             predicate: #Predicate<Invoice>{
-                $0.customer.companyOwnerId == companyIdentifier
+                $0.customer?.companyOwnerId == companyIdentifier
             },
             sortBy: [SortDescriptor(\.date, order: .reverse)]
         )
