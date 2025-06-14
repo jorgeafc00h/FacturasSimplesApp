@@ -127,6 +127,19 @@ struct InvoiceBundle: Identifiable, Hashable {
         specialOfferText: "AHORRA HASTA $200"
     )
     
+    static let implementationFee = InvoiceBundle(
+        id: "com.kandangalabs.facturas.implementation_fee",
+        name: "Costo de Implementación",
+        description: "Tarifa única para activar cuenta de producción",
+        invoiceCount: 0, // Special case: doesn't add invoice credits
+        price: 250.00,
+        formattedPrice: "$250.00",
+        isPopular: false,
+        productType: .consumable,
+        subscriptionPeriod: nil,
+        specialOfferText: nil
+    )
+    
     static let allBundles: [InvoiceBundle] = [bundle50, bundle100, bundle250, enterpriseProUnlimited, enterpriseProAnual]
     static let allProductIDs: Set<String> = Set(allBundles.map { $0.id })
 }
@@ -173,6 +186,7 @@ struct UserPurchaseCredits: Codable {
     var subscriptionExpiryDate: Date?
     var subscriptionProductId: String?
     var transactions: [StoredTransaction]
+    var hasImplementationFeePaid: Bool
     
     init() {
         self.availableInvoices = 0
@@ -181,6 +195,7 @@ struct UserPurchaseCredits: Codable {
         self.subscriptionExpiryDate = nil
         self.subscriptionProductId = nil
         self.transactions = []
+        self.hasImplementationFeePaid = false
     }
     
     // Helper to check if user can create invoices

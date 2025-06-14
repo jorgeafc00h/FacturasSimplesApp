@@ -13,6 +13,7 @@ extension AddInvoiceView {
         var invoiceNumber : String = ""
         var date: Date = Date()
         var invoiceType : InvoiceType = .Factura
+        var showImplementationFee: Bool = false
         
         
         var details:[InvoiceDetail] = []
@@ -90,6 +91,13 @@ extension AddInvoiceView {
             return
         }
         
+        // For production accounts, check if implementation fee is required
+        if storeKitManager.requiresImplementationFee(for: selectedCompany) {
+            // Show implementation fee purchase flow
+            viewModel.showImplementationFee = true
+            return
+        }
+        
         // Production accounts need credit validation
         guard storeKitManager.hasAvailableCredits(for: selectedCompany) else {
             showCreditsGate.wrappedValue = true
@@ -104,6 +112,7 @@ extension AddInvoiceView {
             _ = storeKitManager.useInvoiceCredit(for: selectedCompany)
         }
     }
+    
     func deleteDetail(detail:InvoiceDetail){
         withAnimation{
             let index = viewModel.details.firstIndex(of: detail)

@@ -285,6 +285,32 @@ class StoreKitManager: NSObject, ObservableObject {
         }
     }
     
+    /// Check if implementation fee needs to be paid for a production company
+    func requiresImplementationFee(for company: Company?) -> Bool {
+        guard let company = company else { return false }
+        
+        // Test accounts don't need implementation fee
+        if company.isTestAccount {
+            return false
+        }
+        
+        // Production accounts need implementation fee if not paid yet
+        return !userCredits.hasImplementationFeePaid
+    }
+    
+    /// Check if user can create invoices for production company (including implementation fee check)
+    func canCreateProductionInvoice(for company: Company?) -> Bool {
+        guard let company = company else { return false }
+        
+        // Test accounts can always create invoices
+        if company.isTestAccount {
+            return true
+        }
+        
+        // Production accounts need implementation fee paid AND credits available
+        return userCredits.hasImplementationFeePaid && hasAvailableCredits(for: company)
+    }
+
     // MARK: - Private Methods
     
     private func listenForTransactions() -> Task<Void, Error> {
@@ -329,6 +355,10 @@ class StoreKitManager: NSObject, ObservableObject {
             }
             
             print("✅ Subscription activated: \(bundle.name) until \(userCredits.subscriptionExpiryDate?.description ?? "unknown")")
+        } else if bundle.id == InvoiceBundle.implementationFee.id {
+            // Handle implementation fee purchase
+            userCredits.hasImplementationFeePaid = true
+            print("✅ Implementation fee paid: \(bundle.name)")
         } else {
             // Handle consumable purchase
             userCredits.availableInvoices += bundle.invoiceCount

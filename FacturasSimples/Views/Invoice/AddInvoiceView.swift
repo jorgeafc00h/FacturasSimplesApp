@@ -36,14 +36,14 @@ struct AddInvoiceView: View {
             return false
         }
         
-        // Production accounts need credits
-        return !storeKitManager.hasAvailableCredits(for: company)
+        // Production accounts need implementation fee and credits
+        return storeKitManager.requiresImplementationFee(for: company) || !storeKitManager.hasAvailableCredits(for: company)
     }
     
     var shouldShowCreditsWarning: Bool {
         guard let company = selectedCompany else { return false }
         
-        // Only show warning for production accounts that lack credits
+        // Only show warning for production accounts that lack credits or implementation fee
         return company.requiresPaidServices && shouldDisableForCredits
     }
     
@@ -51,7 +51,11 @@ struct AddInvoiceView: View {
         guard let company = selectedCompany else { return "" }
         
         if company.requiresPaidServices {
-            return "Esta empresa requiere créditos para crear facturas en producción"
+            if storeKitManager.requiresImplementationFee(for: company) {
+                return "Esta empresa requiere pagar el costo de implementación para crear facturas en producción"
+            } else if !storeKitManager.hasAvailableCredits(for: company) {
+                return "Esta empresa requiere créditos para crear facturas en producción"
+            }
         }
         
         return ""
@@ -107,6 +111,12 @@ struct AddInvoiceView: View {
                     showCreditsGate = false
                 }
                 .environmentObject(storeKitManager)
+            }
+            .sheet(isPresented: $viewModel.showImplementationFee) {
+                if let company = selectedCompany {
+                    ImplementationFeeView(company: company)
+                        .environmentObject(storeKitManager)
+                }
             }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

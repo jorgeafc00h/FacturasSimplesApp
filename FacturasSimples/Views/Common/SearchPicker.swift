@@ -41,12 +41,8 @@ struct SearchPicker :View {
         self.title = title
         _selectedDescription = selectedDescription
         
-        let predicate = #Predicate<CatalogOption> {
-            searchText.isEmpty ?
-            $0.catalog?.id == catalogId :
-            $0.catalog?.id == catalogId &&
-            $0.details.localizedStandardContains(searchText)
-            
+        let predicate = #Predicate<CatalogOption> { catalogOption in
+            catalogOption.catalog?.id == catalogId
         }
         _options = Query(filter: predicate, sort: \CatalogOption.details)
     }
@@ -152,12 +148,8 @@ struct SearchPickerFromCatalogView :View {
         self.title = title
         _selectedDescription = selectedDescription
         
-        let predicate = #Predicate<CatalogOption> {
-            searchText.isEmpty ?
-            $0.catalog.id == catalogId :
-            $0.catalog.id == catalogId &&
-            $0.details.localizedStandardContains(searchText)
-            
+        let predicate = #Predicate<CatalogOption> { catalogOption in
+            catalogOption.catalog?.id == catalogId
         }
          
         _options = Query(filter: predicate, sort: \CatalogOption.details)
