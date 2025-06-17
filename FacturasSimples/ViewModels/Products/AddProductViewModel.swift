@@ -24,6 +24,13 @@ extension AddProductView {
                                  productDescription: viewModel.productDescription)
         
         newProduct.companyId = companyIdentifier
+        
+        // Set correct sync status based on company type
+        let isProductionCompany = !companyIdentifier.isEmpty && 
+                                DataSyncFilterManager.shared.getProductionCompanies(context: modelContext)
+                                    .contains { $0.id == companyIdentifier }
+        newProduct.shouldSyncToCloudKit = isProductionCompany
+        
         modelContext.insert(newProduct)
         
         try? modelContext.save()

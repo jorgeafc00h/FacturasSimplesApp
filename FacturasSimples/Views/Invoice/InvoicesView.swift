@@ -156,6 +156,7 @@ struct InvoicesView: View {
                 CloudKitSyncStatusView()
             }
         }
+       
             
     }
    

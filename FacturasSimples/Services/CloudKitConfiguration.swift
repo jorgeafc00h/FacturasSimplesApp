@@ -61,6 +61,87 @@ class CloudKitConfiguration {
         print("Manual CloudKit sync triggered")
     }
     
+    func forceCustomerSync(for companyId: String) async throws {
+        // This method can be called when customers aren't syncing properly
+        let modelContext = await DataModel.shared.getModelContext()
+        
+        // Fetch all customers for the production company
+        let descriptor = FetchDescriptor<Customer>(
+            predicate: #Predicate { customer in
+                customer.companyOwnerId == companyId
+            }
+        )
+        
+        let customers = try modelContext.fetch(descriptor)
+        
+        // Force a save to trigger CloudKit sync
+        for customer in customers {
+            // Make a minimal change to trigger sync
+            let currentId = customer.companyOwnerId
+            customer.companyOwnerId = currentId // No-op change to trigger sync
+        }
+        
+        try modelContext.save()
+        
+        print("Forced sync for \(customers.count) customers in company \(companyId)")
+    }
+    
+    func forceProductSync(for companyId: String) async throws {
+        // This method can be called when products aren't syncing properly
+        let modelContext = await DataModel.shared.getModelContext()
+        
+        // Fetch all products for the production company
+        let descriptor = FetchDescriptor<Product>(
+            predicate: #Predicate { product in
+                product.companyId == companyId
+            }
+        )
+        
+        let products = try modelContext.fetch(descriptor)
+        
+        // Force a save to trigger CloudKit sync
+        for product in products {
+            // Make a minimal change to trigger sync
+            let currentId = product.companyId
+            product.companyId = currentId // No-op change to trigger sync
+        }
+        
+        try modelContext.save()
+        
+        print("Forced sync for \(products.count) products in company \(companyId)")
+    }
+    
+    func forceInvoiceSync(for companyId: String) async throws {
+        // This method can be called when invoices aren't syncing properly
+        let modelContext = await DataModel.shared.getModelContext()
+        
+        // Fetch all invoices for the production company
+        let descriptor = FetchDescriptor<Invoice>(
+            predicate: #Predicate { invoice in
+                invoice.customer?.companyOwnerId == companyId
+            }
+        )
+        
+        let invoices = try modelContext.fetch(descriptor)
+        
+        // Force a save to trigger CloudKit sync
+        for invoice in invoices {
+            // Make a minimal change to trigger sync
+            let currentNumber = invoice.invoiceNumber
+            invoice.invoiceNumber = currentNumber // No-op change to trigger sync
+        }
+        
+        try modelContext.save()
+        
+        print("Forced sync for \(invoices.count) invoices in company \(companyId)")
+    }
+    
+    func forceAllDataSync(for companyId: String) async throws {
+        try await forceCustomerSync(for: companyId)
+        try await forceProductSync(for: companyId)
+        try await forceInvoiceSync(for: companyId)
+    }
+    
     // MARK: - CloudKit Status Monitoring
     
     func startMonitoring(completion: @escaping (CloudKitSyncStatus) -> Void) {

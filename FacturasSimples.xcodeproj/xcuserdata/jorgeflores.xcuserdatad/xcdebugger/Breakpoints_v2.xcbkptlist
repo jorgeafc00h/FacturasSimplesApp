@@ -368,7 +368,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "179"
             endingLineNumber = "179"
-            landmarkName = "generateFacturas(forceGenerate:)"
+            landmarkName = "validateCredentialsAsync()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -384,7 +384,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "198"
             endingLineNumber = "198"
-            landmarkName = "generateFacturas(forceGenerate:)"
+            landmarkName = "prepareCustomersAndProducts()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -400,7 +400,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "82"
             endingLineNumber = "82"
-            landmarkName = "generateInvoices()"
+            landmarkName = "loadAllInvoices()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -432,7 +432,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "464"
             endingLineNumber = "464"
-            landmarkName = "Sync(_:)"
+            landmarkName = "ValidateProductionAccount()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -440,7 +440,7 @@
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "7C447F10-B595-4E47-BC00-E1AA2D3FB2DB"
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FacturasSimples/ViewModels/Account/RequestProductionAccessViewModel.swift"
@@ -448,84 +448,8 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "360"
             endingLineNumber = "360"
-            landmarkName = "sendInvoices()"
-            landmarkType = "7">
-            <Locations>
-               <Location
-                  uuid = "7C447F10-B595-4E47-BC00-E1AA2D3FB2DB - f8fe64c1e5f21f94"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(4) suspend resume partial function for closure #1 () async -&gt; () in FacturasSimples.PreProdStep1.sendInvoices() -&gt; ()"
-                  moduleName = "FacturasSimples.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/ViewModels/Account/RequestProductionAccessViewModel.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "360"
-                  endingLineNumber = "360">
-               </Location>
-               <Location
-                  uuid = "7C447F10-B595-4E47-BC00-E1AA2D3FB2DB - 8b9ee2fc5a5d4392"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(6) suspend resume partial function for closure #1 () async -&gt; () in FacturasSimples.PreProdStep1.sendInvoices() -&gt; ()"
-                  moduleName = "FacturasSimples.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/ViewModels/Account/RequestProductionAccessViewModel.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "360"
-                  endingLineNumber = "360">
-               </Location>
-               <Location
-                  uuid = "7C447F10-B595-4E47-BC00-E1AA2D3FB2DB - 320eac056de82591"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(7) suspend resume partial function for closure #1 () async -&gt; () in FacturasSimples.PreProdStep1.sendInvoices() -&gt; ()"
-                  moduleName = "FacturasSimples.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/ViewModels/Account/RequestProductionAccessViewModel.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "360"
-                  endingLineNumber = "360">
-               </Location>
-            </Locations>
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "66A4BAE3-7163-4D28-B9DF-21EF91286D38"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FacturasSimples/ViewModels/Account/RequestProductionAccessViewModel.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "300"
-            endingLineNumber = "300"
-            landmarkName = "generateCreditNotes(forceGenerate:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "96283964-36FA-4F2A-80FC-19B9C7A7C184"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FacturasSimples/ViewModels/Account/RequestProductionAccessViewModel.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "371"
-            endingLineNumber = "371"
-            landmarkName = "sendInvoices()"
-            landmarkType = "7">
+            landmarkName = "PreProdStep1"
+            landmarkType = "21">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy

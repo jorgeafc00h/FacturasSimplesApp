@@ -68,6 +68,15 @@ extension AddInvoiceView {
                 invoice.documentType = Extensions.documentTypeFromInvoiceType(viewModel.invoiceType)
             }
             
+            // Set correct sync status based on company type (through customer)
+            if let customerId = viewModel.customer?.companyOwnerId {
+                let isProductionCompany = !customerId.isEmpty && 
+                                        DataSyncFilterManager.shared.getProductionCompanies(context: modelContext)
+                                            .contains { $0.id == customerId }
+                invoice.shouldSyncToCloudKit = isProductionCompany
+            } else {
+                invoice.shouldSyncToCloudKit = false
+            }
             
             modelContext.insert(invoice)
             try? modelContext.save()
@@ -142,6 +151,13 @@ extension AddInvoiceView {
             
             let product = Product(productName: viewModel.productName, unitPrice: _price)
             product.companyId = companyIdentifier
+            
+            // Set correct sync status based on company type
+            let isProductionCompany = !companyIdentifier.isEmpty && 
+                                    DataSyncFilterManager.shared.getProductionCompanies(context: modelContext)
+                                        .contains { $0.id == companyIdentifier }
+            product.shouldSyncToCloudKit = isProductionCompany
+            
             viewModel.productName="";
             viewModel.unitPrice=0.0;
             let detail = InvoiceDetail(quantity: 1, product: product)

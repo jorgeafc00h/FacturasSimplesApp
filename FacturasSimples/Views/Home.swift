@@ -47,19 +47,24 @@ struct Home: View {
 }
 
 struct mainView : View{
-    //    @State var selectedTab:Int = 2
-    //    @State var isAuthenticated: Bool = false
-    //    @State var selectedCompanyId: String = ""
     
     @Environment(\.modelContext) var modelContext
     
     @State var viewModel = MainViewModel()
-    
+    @AppStorage("selectedCompanyIdentifier") var companyIdentifier: String = ""
     var body: some View{
         
         if viewModel.isAuthenticated{
             
-            if viewModel.requiresOnboarding{
+            // Show CloudKit sync initialization if needed
+            if viewModel.needsCloudKitSync && !viewModel.cloudKitSyncCompleted {
+                CloudKitInitializationView {
+                    viewModel.cloudKitSyncCompleted = true
+                    // Refresh onboarding status after sync
+                    RefreshRequiresOnboardingPage()
+                }
+            }
+            else if viewModel.requiresOnboarding{
                 OnboardingView(requiresOnboarding: $viewModel.requiresOnboarding, selectedCompanyId: $viewModel.selectedCompanyId)
             }
             else{

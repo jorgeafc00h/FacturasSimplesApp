@@ -43,6 +43,17 @@ import CloudKit
     
     var invalidatedViaApi: Bool = false
     
+    // Flag to mark CCFs that are created only as helpers for credit notes (not counted in CCF progress)
+    var isHelperForCreditNote: Bool = false
+    
+    // CloudKit sync control - only sync invoices from production companies
+    var shouldSyncToCloudKit: Bool = true  // Default to true for backwards compatibility
+    
+    // Helper computed property to check if this invoice belongs to a test company
+    var isFromTestCompany: Bool {
+        return !shouldSyncToCloudKit
+    }
+    
     // CloudKit handles cascade relationships - make optional
     @Relationship(deleteRule: .cascade, inverse: \InvoiceDetail.invoice)
     var items: [InvoiceDetail]?

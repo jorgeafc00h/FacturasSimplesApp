@@ -19,31 +19,41 @@ class DataModel {
     // Store the container instance
     private var _modelContainer: ModelContainer?
     
-    // Single CloudKit container that syncs all models
+    // ModelContainer with separate configurations for CloudKit and local-only data
     var modelContainer: ModelContainer {
         if let container = _modelContainer {
             return container
         }
         
         do {
-            let schema = Schema([
-                            Invoice.self,
-                            Customer.self,
-                            Catalog.self,
-                            CatalogOption.self,
-                            Product.self,
-                            InvoiceDetail.self,
-                            Company.self
-                        ])
-            
-            // CloudKit configuration - all models sync to iCloud
+            // CloudKit configuration - syncs main business data only
             let cloudKitConfiguration = ModelConfiguration(
-                schema: schema,
+                "CloudKitData",
+                schema: Schema([
+                    Invoice.self,
+                    Customer.self,
+                    Product.self,
+                    InvoiceDetail.self,
+                    Company.self
+                ]),
                 isStoredInMemoryOnly: false,
                 cloudKitDatabase: .private("iCloud.kandangalabs.facturassimples")
             )
             
-            let container = try ModelContainer(for: schema, configurations: [cloudKitConfiguration])
+            // Local-only configuration - stores Catalog data locally without CloudKit sync
+            let localConfiguration = ModelConfiguration(
+                "LocalData",
+                schema: Schema([
+                    Catalog.self,
+                    CatalogOption.self
+                ]),
+                isStoredInMemoryOnly: false
+            )
+            
+            let container = try ModelContainer(
+                for: Invoice.self, Customer.self, Product.self, InvoiceDetail.self, Company.self, Catalog.self, CatalogOption.self,
+                configurations: cloudKitConfiguration, localConfiguration
+            )
             _modelContainer = container
             return container
             
@@ -56,22 +66,25 @@ class DataModel {
             // Create a fallback local-only container to prevent complete crash
             do {
                 print("🔄 Attempting to create fallback local container...")
-                let fallbackSchema = Schema([
-                    Invoice.self,
-                    Customer.self,
-                    Product.self,
-                    InvoiceDetail.self,
-                    Company.self,
-                    Catalog.self,
-                    CatalogOption.self
-                ])
                 
-                let localConfiguration = ModelConfiguration(
-                    schema: fallbackSchema,
+                let fallbackConfiguration = ModelConfiguration(
+                    "FallbackLocalData",
+                    schema: Schema([
+                        Invoice.self,
+                        Customer.self,
+                        Product.self,
+                        InvoiceDetail.self,
+                        Company.self,
+                        Catalog.self,
+                        CatalogOption.self
+                    ]),
                     isStoredInMemoryOnly: false
                 )
                 
-                let fallbackContainer = try ModelContainer(for: fallbackSchema, configurations: [])
+                let fallbackContainer = try ModelContainer(
+                    for: Invoice.self, Customer.self, Product.self, InvoiceDetail.self, Company.self, Catalog.self, CatalogOption.self,
+                    configurations: fallbackConfiguration
+                )
                 print("✅ Successfully created fallback local container")
                 _modelContainer = fallbackContainer
                 return fallbackContainer
@@ -79,23 +92,25 @@ class DataModel {
             } catch {
                 print("❌ Failed to create fallback container: \(error)")
                 // As last resort, create in-memory container
-                let memorySchema = Schema([
-                    Invoice.self,
-                    Customer.self,
-                    Product.self,
-                    InvoiceDetail.self,
-                    Company.self,
-                    Catalog.self,
-                    CatalogOption.self
-                ])
-                
                 let memoryConfiguration = ModelConfiguration(
-                    schema: memorySchema,
+                    "MemoryData",
+                    schema: Schema([
+                        Invoice.self,
+                        Customer.self,
+                        Product.self,
+                        InvoiceDetail.self,
+                        Company.self,
+                        Catalog.self,
+                        CatalogOption.self
+                    ]),
                     isStoredInMemoryOnly: true
                 )
                 
                 do {
-                    let memoryContainer = try ModelContainer(for: memorySchema, configurations: [memoryConfiguration])
+                    let memoryContainer = try ModelContainer(
+                        for: Invoice.self, Customer.self, Product.self, InvoiceDetail.self, Company.self, Catalog.self, CatalogOption.self,
+                        configurations: memoryConfiguration
+                    )
                     _modelContainer = memoryContainer
                     return memoryContainer
                 } catch {

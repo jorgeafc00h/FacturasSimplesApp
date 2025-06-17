@@ -45,6 +45,14 @@ import CloudKit
     var hasInvoiceSettings: Bool = false
     var hasContributorRetention: Bool = false
     
+    // CloudKit sync control - only sync customers from production companies
+    var shouldSyncToCloudKit: Bool = true  // Default to true for backwards compatibility
+    
+    // Helper computed property to check if this customer belongs to a test company
+    var isFromTestCompany: Bool {
+        return !shouldSyncToCloudKit
+    }
+    
     // CloudKit handles relationships - change to nullify delete rule and make optional
     @Relationship(deleteRule: .nullify, inverse: \Invoice.customer)
     var invoices: [Invoice]?

@@ -314,6 +314,16 @@ extension InvoiceDetailView {
         note.items = items
         note.relatedDocumentDate = invoice.date
         
+        // Set correct sync status based on company type (through customer)
+        if let customerId = invoice.customer?.companyOwnerId {
+            let isProductionCompany = !customerId.isEmpty && 
+                                    DataSyncFilterManager.shared.getProductionCompanies(context: modelContext)
+                                        .contains { $0.id == customerId }
+            note.shouldSyncToCloudKit = isProductionCompany
+        } else {
+            note.shouldSyncToCloudKit = false
+        }
+        
         modelContext.insert(note)
         try? modelContext.save()
         

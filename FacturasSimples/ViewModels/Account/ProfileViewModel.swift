@@ -26,7 +26,9 @@ extension ProfileView{
     }
     func loadProfileAndSelectedCompany() {
     
-        print("check user defaults..")
+        print("🔄 loadProfileAndSelectedCompany called...")
+        print("📋 companyId: '\(companyId)'")
+        print("📋 selectedCompanyId: '\(selectedCompanyId)'")
        
         
         let id = companyId.isEmpty ? selectedCompanyId : companyId
@@ -37,9 +39,12 @@ extension ProfileView{
         if let selectedCompany = try? modelContext.fetch(descriptor).first {
             defaultSectedCompany = selectedCompany
             
-            print("selected Company -> \(selectedCompany.nombre)")
+            print("✅ Selected Company -> \(selectedCompany.nombre)")
+            print("🏢 Company Type -> \(selectedCompany.isTestAccount ? "TEST" : "PRODUCTION")")
+            print("💳 Credits Button Should Be -> \(selectedCompany.isTestAccount ? "DISABLED" : "ENABLED")")
         } else {
-            print("no selected company identifier: \(selectedCompanyId)")
+            print("❌ No company found with identifier: \(id)")
+            defaultSectedCompany = nil
         }
         
          

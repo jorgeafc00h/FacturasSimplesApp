@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 
 extension mainView{
+     
     
     @Observable
     class MainViewModel {
@@ -10,20 +11,28 @@ extension mainView{
         var selectedCompanyId: String = ""
         var isAuthenticated: Bool = false
         var displayCompaniesByDefault: Bool = false
+        var needsCloudKitSync: Bool = true
+        var cloudKitSyncCompleted: Bool = false
+        
+        func skipCloudKitSync() {
+            needsCloudKitSync = false
+            cloudKitSyncCompleted = true
+        }
     }
     
     
     func RefreshRequiresOnboardingPage() {
+        // Use the new DataSyncFilterManager for better logic
+        viewModel.requiresOnboarding = DataSyncFilterManager.shared.shouldShowOnboarding(context: modelContext)
         
-        let descriptor = FetchDescriptor<Company>()
-        
-        let count = (try? modelContext.fetchCount(descriptor)) ?? 0
-         
-        viewModel.requiresOnboarding = count == 0
-        
-        if count == 0 {
+        if viewModel.requiresOnboarding {
             viewModel.selectedTab = 0
             viewModel.displayCompaniesByDefault = true
+        }
+        else{
+            if companyIdentifier.isEmpty {
+                viewModel.selectedTab = 0
+            }
         }
     }
     

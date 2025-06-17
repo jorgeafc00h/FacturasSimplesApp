@@ -41,6 +41,33 @@ struct ProfileView: View {
         return UIDevice.current.userInterfaceIdiom == .pad
     }
     
+    // MARK: - Computed Properties for Validation
+    
+    /// Determines if the credits button should be disabled
+    /// Credits can only be purchased for production companies (isTestAccount = false)
+    private var isCreditsButtonDisabled: Bool {
+        // If no company is selected, disable the button
+        guard let company = defaultSectedCompany else { return true }
+        
+        // Only production companies (isTestAccount = false) can purchase credits
+        return company.isTestAccount
+    }
+    
+    /// Helper to check if current company is a production company
+    private var isProductionCompany: Bool {
+        guard let company = defaultSectedCompany else { return false }
+        return !company.isTestAccount
+    }
+    
+    /// Dynamic subtitle for the credits button
+    private var creditsButtonSubtitle: String {
+        if isCreditsButtonDisabled {
+            return "Solo disponible para empresas de producción"
+        } else {
+            return "\(storeKitManager.userCredits.availableInvoices) créditos disponibles"
+        }
+    }
+    
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility){
             ZStack {
@@ -75,10 +102,14 @@ struct ProfileView: View {
                 }
             }
             .navigationTitle("configuración")
-            .onChange(of: selectedCompanyId){
-                if selection == nil{
-                    loadProfileAndSelectedCompany()
-                }
+            .onChange(of: selectedCompanyId) {
+                print("🔄 selectedCompanyId changed to: \(selectedCompanyId)")
+                loadProfileAndSelectedCompany()
+            }
+            .onChange(of: companyId) {
+                print("🔄 companyId changed to: \(companyId)")
+                // The didSet already updates selectedCompanyId, so loadProfileAndSelectedCompany 
+                // will be called by the selectedCompanyId onChange
             }
             .onAppear{
                 loadProfileAndSelectedCompany()
@@ -173,21 +204,20 @@ struct ProfileView: View {
             Button(action: {showPurchaseView = true}, label: {
                 HStack {
                     Image(systemName: "creditcard.fill").padding(.horizontal, 5.0)
-                        .foregroundColor(Color.white)
+                        .foregroundColor(isCreditsButtonDisabled ? Color.gray : Color.white)
                     VStack(alignment: .leading) {
                         Text("Comprar Créditos")
-                            .foregroundColor(Color.white)
-                        Text("\(storeKitManager.userCredits.availableInvoices) créditos disponibles")
+                            .foregroundColor(isCreditsButtonDisabled ? Color.gray : Color.white)
+                        Text(creditsButtonSubtitle)
                             .font(.caption)
-                            .foregroundColor(Color.white.opacity(0.8))
+                            .foregroundColor((isCreditsButtonDisabled ? Color.gray : Color.white).opacity(0.8))
                     }
                     Spacer()
                     Image(systemName: "chevron.right")
-                        .foregroundColor(Color.white)
+                        .foregroundColor(isCreditsButtonDisabled ? Color.gray : Color.white)
                 }.padding()
             })
-            .disabled(defaultSectedCompany?.isTestAccount ?? false)
-                .foregroundColor(storeKitManager.userCredits.availableInvoices > 0 ? Color.white : Color.gray)
+            .disabled(isCreditsButtonDisabled)
             .background(Color("Blue-Gray"))
                 .clipShape(RoundedRectangle(cornerRadius: 1.0)).padding(.horizontal, 8.0)
         }

@@ -165,6 +165,11 @@ extension AddCustomerView{
                                         address: viewModel.address,
                                         company: viewModel.company
             )
+            
+            // LOG: Before setting company owner ID
+            DataIntegrityLogger.shared.logAppStorageState()
+            DataIntegrityLogger.shared.logCustomerCreation(companyId: selectedCompanyId, customerName: "\(viewModel.firstName) \(viewModel.lastName)")
+            
             newCustomer.companyOwnerId = selectedCompanyId
             newCustomer.departamentoCode  = viewModel.departamentoCode
             newCustomer.municipioCode = viewModel.municipioCode
@@ -176,9 +181,18 @@ extension AddCustomerView{
             newCustomer.nrc = viewModel.nrc
             newCustomer.hasContributorRetention = viewModel.hasContributorRetention
             
+            // Set correct sync status based on company type
+            let isProductionCompany = !selectedCompanyId.isEmpty && 
+                                    DataSyncFilterManager.shared.getProductionCompanies(context: modelContext)
+                                        .contains { $0.id == selectedCompanyId }
+            newCustomer.shouldSyncToCloudKit = isProductionCompany
             
             modelContext.insert(newCustomer)
             try? modelContext.save()
+            
+            // LOG: After saving customer
+            DataIntegrityLogger.shared.logCustomerSaved(customer: newCustomer)
+            DataIntegrityLogger.shared.logOrphanCheck()
         }
     }
     

@@ -27,6 +27,13 @@ import SwiftData
     
     var companyId: String = ""
     
+    // CloudKit sync control - only sync products from production companies
+    var shouldSyncToCloudKit: Bool = true  // Default to true for backwards compatibility
+    
+    // Helper computed property to check if this product belongs to a test company
+    var isFromTestCompany: Bool {
+        return !shouldSyncToCloudKit
+    }
     
     var priceWithoutTax: Decimal {
         return   unitPrice / Constants.includedTax

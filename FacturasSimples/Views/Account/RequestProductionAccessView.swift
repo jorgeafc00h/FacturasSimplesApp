@@ -8,6 +8,7 @@ struct RequestProductionView: View {
     
     @Bindable var company : Company
     
+    @State private var isSyncing: Bool = false
     
     @Environment(\.modelContext) var modelContext
     @State private var showCloseButton: Bool = true
@@ -19,10 +20,10 @@ struct RequestProductionView: View {
             GeometryReader{
                 let size = $0.size
                 
-                SubPageView(intro: $activeIntro,size: size,showCloseButton: $showCloseButton){
+                SubPageView(intro: $activeIntro,size: size,showCloseButton: $showCloseButton, isSyncing: $isSyncing){
                     VStack{
                         if activeIntro.companyStep1{
-                            PreProdStep1(company: company, size: size, showCloseButton: $showCloseButton)
+                            PreProdStep1(company: company, size: size, isSyncing: $isSyncing, showCloseButton: $showCloseButton)
                         }
                     }
                     //.padding(.top,25)
@@ -45,12 +46,13 @@ private struct SubPageView<ActionView:View> :View{
     
     var actionView: ActionView
     
-    init(intro:Binding<PageIntro>, size: CGSize,showCloseButton: Binding<Bool>,
+    init(intro:Binding<PageIntro>, size: CGSize,showCloseButton: Binding<Bool>, isSyncing: Binding<Bool> = .constant(false),
          @ViewBuilder actionView: @escaping () -> ActionView){
         self._intro = intro
         
         self.size = size
         self._showCloseButton = showCloseButton
+        self._isSyncing = isSyncing
         self.actionView = actionView()
     }
     
@@ -59,18 +61,50 @@ private struct SubPageView<ActionView:View> :View{
     @State private var showView: Bool = false
     @State private var hideHoleView: Bool = false
     @Binding private var showCloseButton : Bool
+    
+    // Add state to track syncing status for image resizing
+    @Binding private var isSyncing: Bool
     var body: some View{
         VStack{
-            // image view
+            // image view - dynamically sized based on syncing status and device
             GeometryReader{
-                let size = $0.size
+                let imageSize = $0.size
+                let isIPad = UIDevice.current.userInterfaceIdiom == .pad
+                let imageSizeFactor: CGFloat = {
+                    if isSyncing && isIPad {
+                        return 0.4 // Much smaller on iPad when syncing
+                    } else if isSyncing {
+                        return 0.6 // Smaller on iPhone when syncing
+                    } else if isIPad {
+                        return 0.8 // Normal size on iPad
+                    } else {
+                        return 1.0 // Full size on iPhone
+                    }
+                }()
                 
                 Image(intro.introAssetImage)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .padding(5)
-                    .frame(width: size.width, height: size.height)
+                    .frame(
+                        width: imageSize.width * imageSizeFactor, 
+                        height: imageSize.height * imageSizeFactor
+                    )
+                    .frame(width: imageSize.width, height: imageSize.height, alignment: .center)
+                    .animation(.easeInOut(duration: 0.5), value: isSyncing)
             }
+            // Adjust frame height based on syncing status to give more space to progress bars
+            .frame(height: {
+                let baseHeight = size.height * 0.5
+                if isSyncing && UIDevice.current.userInterfaceIdiom == .pad {
+                    return baseHeight * 0.6 // Reduce image container height on iPad when syncing
+                } else if isSyncing {
+                    return baseHeight * 0.7 // Slightly reduce on iPhone when syncing
+                } else {
+                    return baseHeight
+                }
+            }())
+            .animation(.easeInOut(duration: 0.5), value: isSyncing)
             // movig up
             .offset(y: showView ? 0 : -size.height/2)
             .opacity(showView ? 1 : 0)
@@ -122,7 +156,7 @@ private struct SubPageView<ActionView:View> :View{
         .offset(y: hideHoleView ? 0 : 1)
         .opacity(hideHoleView ? 0 : 1)
         .overlay(alignment: .topLeading){
-            if intro != pagePreProdIntros.first {
+            if intro != pagePreProdIntros.first, showCloseButton {
                 Button{
                     changeIntro(true)
                 }
@@ -233,6 +267,7 @@ struct PreProdStep1:View{
     var size: CGSize
     
     @State var viewModel = RequestProductionAccessViewModel()
+    @Binding var isSyncing: Bool
     
     // Add state variables for confirmation dialogs
     @State private var showFacturasDialog = false
@@ -274,215 +309,199 @@ struct PreProdStep1:View{
             case .ccf: return { $0.hasProcessedCCF }
             case .notaCredito: return { $0.hasProcessedCreditNotes }
             case .todo: return { $0.hasProcessedFacturas && $0.hasProcessedCCF && $0.hasProcessedCreditNotes }
+            }        }
+    }
+    
+    // MARK: - Computed Properties
+    
+    private var headerLink: some View {
+        Link("ir al portal de Hacienda Facturación Electrónica", destination: URL(string: "https://admin.factura.gob.sv/login") ?? URL(string: "https://mh.gob.sv")!)
+            .foregroundColor(.darkBlue)
+    }
+    
+    private var syncingView: some View {
+        Group {
+            if viewModel.isSyncing {
+                progressView
+            } else {
+                nonSyncingView
             }
         }
     }
     
-    var body: some View {
-        GeometryReader { geometry in
-            VStack(spacing:10){
-                
-                Link("ir al portal de Hacienda Facturación Electrónica", destination: URL(string: "https://admin.factura.gob.sv/login") ?? URL(string: "https://mh.gob.sv")!)
-                    .foregroundColor(.darkBlue)
-                
-                if viewModel.isSyncing {
-                    withAnimation{
-                        VStack{
-                            ProgressView(value: max(0, min(1, viewModel.progress.isNaN || viewModel.progress.isInfinite ? 0 : viewModel.progress)), total: 1.0)
-                                .padding()
-                                .tint(Color.marine)
-                            
-                            Text("Progreso: \(viewModel.progress.isNaN || viewModel.progress.isInfinite ? 0 : Int(max(0, min(100, viewModel.progress * 100))))%")
-                                .foregroundColor(.primary)
-                                .padding(.bottom)
-                        }
-                    }
-                }
-                else{
-                    if viewModel.hasCompleted {
-                        Button(action: ValidateProductionAccount) {
-                            Text("Completar")
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
-                                .frame(width: size.width * 0.4)
-                                .padding(EdgeInsets(top: 16, leading: 18, bottom: 16, trailing: 18))
-                                .background(Capsule().fill(Color.darkCyan))
-                                .shadow(color: .gray, radius: 6)
-                        }
-                        .disabled(viewModel.isSyncing)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                    }
-                    else {
-                        // Dropdown selector for document type
-                        Spacer()
-                        Menu {
-                            ForEach(DocumentType.allCases) { docType in
-                                Button(action: { 
-                                    selectedDocType = docType
-                                    showConfirmationForType(docType)
-                                }) {
-                                    HStack {
-                                        Image(systemName: docType.iconName)
-                                        Text(docType.rawValue)
-                                        if docType.isProcessed(viewModel) {
-                                            Image(systemName: "checkmark")
-                                                .foregroundColor(.green)
-                                        }
-                                    }
-                                }
-                            }
-                        } label: {
-                            HStack {
-                                Image(systemName: selectedDocType.iconName)
-                                Text("Procesar \(selectedDocType.rawValue)")
-                                Image(systemName: "chevron.down")
-                                    .font(.caption)
-                            }
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
-                            .frame(width: size.width * 0.7)
-                            .padding(EdgeInsets(top: 16, leading: 18, bottom: 16, trailing: 18))
-                            .background(Capsule().fill(Color.black))
-                            .shadow(color: .gray, radius: 6)
-                        }
-                        .padding(.top,10)
-                        .disabled(viewModel.isSyncing)
-                        
-//                        Button(action: { processSelectedDocumentType() }) {
-//                            Text("Procesar")
-//                                .fontWeight(.bold)
-//                                .foregroundColor(.white)
-//                                .frame(width: size.width * 0.4)
-//                                .padding(EdgeInsets(top: 16, leading: 18, bottom: 16, trailing: 18))
-//                                .background(Capsule().fill(Color.black))
-//                                .shadow(color: .gray, radius: 6)
-//                        }
-//                        .disabled(viewModel.isSyncing)
-//                        .padding(.top, 20)
-                    }
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .center)
-            .alert(isPresented: $viewModel.showAlert) {
-                Alert(title: Text("Información"), message: Text(viewModel.alertMessage), dismissButton: .default(Text("OK")))
-            }
-            
-            // Confirmation dialogs
-            .confirmationDialog("¿Desea generar y enviar Facturas?", isPresented: $showFacturasDialog, titleVisibility: .visible) {
-                Button("Confirmar") {
-                    prepareCustomersAndProducts()
-                    
-                    // Check if we already have enough facturas
-                    if viewModel.invoices.count(where: { $0.invoiceType == .Factura && $0.status == .Completada }) >= viewModel.totalInvoices {
-                        showForceFacturasDialog = true
-                    } else {
-                        showCloseButton = false
-                        generateFacturas()
-                        sendInvoices()
-                    }
-                }
-                Button("Cancelar", role: .cancel) {}
-            }
-            
-            .confirmationDialog("¿Desea generar y enviar Créditos Fiscales?", isPresented: $showCCFDialog, titleVisibility: .visible) {
-                Button("Confirmar") {
-                    prepareCustomersAndProducts()
-                    
-                    // Check if we already have enough CCF
-                    if viewModel.invoices.count(where: { $0.invoiceType == .CCF && $0.status == .Completada }) >= viewModel.totalInvoices {
-                        showForceCCFDialog = true
-                    } else {
-                        showCloseButton = false
-                        generateCreditosFiscales()
-                        sendInvoices()
-                    }
-                }
-                Button("Cancelar", role: .cancel) {}
-            }
-            
-            .confirmationDialog("¿Desea generar y enviar Notas de Crédito?", isPresented: $showNotasDialog, titleVisibility: .visible) {
-                Button("Confirmar") {
-                    prepareCustomersAndProducts()
-                    
-                    // Check if we already have enough Credit Notes
-                    if viewModel.invoices.count(where: { $0.invoiceType == .NotaCredito && $0.status == .Completada }) >= 50 {
-                        showForceNotasDialog = true
-                    } else {
-                        showCloseButton = false
-                        generateCreditNotes()
-                        sendInvoices()
-                    }
-                }
-                Button("Cancelar", role: .cancel) {}
-            }
-            
-            // Confirmation dialog for "Procesar Todo"
-            .confirmationDialog("¿Desea generar y enviar todos los tipos de documentos?", isPresented: $showProcessAllDialog, titleVisibility: .visible) {
-                Button("Confirmar") {
-                    prepareCustomersAndProducts()
-                    
-                    // Check if we already have enough of any type
-                    let hasEnoughFacturas = viewModel.invoices.count(where: { $0.invoiceType == .Factura && $0.status == .Completada }) >= viewModel.totalInvoices
-                    let hasEnoughCCF = viewModel.invoices.count(where: { $0.invoiceType == .CCF && $0.status == .Completada }) >= viewModel.totalInvoices
-                    let hasEnoughNotes = viewModel.invoices.count(where: { $0.invoiceType == .NotaCredito && $0.status == .Completada }) >= 50
-                    
-                    if hasEnoughFacturas || hasEnoughCCF || hasEnoughNotes {
-                        showForceAllDialog = true
-                    } else {
-                        showCloseButton = false
-                        processAllDocuments()
-                    }
-                }
-                Button("Cancelar", role: .cancel) {}
-            }
-            
-            // Force generation confirmation dialogs
-            .confirmationDialog("Ya existen suficientes Facturas completadas. ¿Desea generar una nueva tanda de todas formas?", isPresented: $showForceFacturasDialog, titleVisibility: .visible) {
-                Button("Sí, generar nueva tanda") {
-                    showCloseButton = false
-                    generateFacturas(forceGenerate: true)
-                    sendInvoices()
-                }
-                Button("No, cancelar", role: .cancel) {}
-            }
-            
-            .confirmationDialog("Ya existen suficientes Créditos Fiscales completados. ¿Desea generar una nueva tanda de todas formas?", isPresented: $showForceCCFDialog, titleVisibility: .visible) {
-                Button("Sí, generar nueva tanda") {
-                    showCloseButton = false
-                    generateCreditosFiscales(forceGenerate: true)
-                    sendInvoices()
-                }
-                Button("No, cancelar", role: .cancel) {}
-            }
-            
-            .confirmationDialog("Ya existen suficientes Notas de Crédito completadas. ¿Desea generar una nueva tanda de todas formas?", isPresented: $showForceNotasDialog, titleVisibility: .visible) {
-                Button("Sí, generar nueva tanda") {
-                    showCloseButton = false
-                    generateCreditNotes(forceGenerate: true)
-                    sendInvoices()
-                }
-                Button("No, cancelar", role: .cancel) {}
-            }
-            
-            .confirmationDialog("Ya existen suficientes documentos completados. ¿Desea generar una nueva tanda de todos los tipos de todas formas?", isPresented: $showForceAllDialog, titleVisibility: .visible) {
-                Button("Sí, generar nueva tanda de todos") {
-                    showCloseButton = false
-                    processAllDocuments(forceGenerate: true)
-                }
-                Button("No, cancelar", role: .cancel) {}
-            }
-            
-            .onAppear {
-                loadAllInvoices()
-            }
-            .onChange(of: viewModel.isSyncing) { oldValue, newValue in
-                // Reset showCloseButton when syncing completes
-                if oldValue && !newValue {
-                    showCloseButton = true
-                }
+    private var progressView: some View {
+        Group {
+            if viewModel.isProcessingAll {
+                allProgressView
+            } else {
+                singleProgressView
             }
         }
-        
+    }
+    
+    private var allProgressView: some View {
+        ScrollView(.vertical, showsIndicators: true) {
+            VStack(spacing: 16) {
+                DocumentProgressView(
+                    title: "Facturas",
+                    progress: viewModel.facturasProgress,
+                    status: viewModel.facturasStatus.displayText,
+                    icon: "doc.text"
+                )
+                
+                DocumentProgressView(
+                    title: "Créditos Fiscales",
+                    progress: viewModel.ccfProgress,
+                    status: viewModel.ccfStatus.displayText,
+                    icon: "doc.text.fill"
+                )
+                
+                DocumentProgressView(
+                    title: "Notas de Crédito",
+                    progress: viewModel.creditNotesProgress,
+                    status: viewModel.creditNotesStatus.displayText,
+                    icon: "arrow.left.and.right.doc"
+                )
+                
+                EnhancedProgressView(
+                    title: "Progreso General",
+                    progress: viewModel.progress,
+                    icon: "chart.bar.fill",
+                    isActive: viewModel.isSyncing,
+                    showAsOverall: true
+                )
+            }
+            .padding()
+        }
+        .frame(maxWidth: .infinity)
+        .frame(maxHeight: .infinity)
+    }
+    
+    private var singleProgressView: some View {
+        VStack(spacing: 16) {
+            EnhancedProgressView(
+                title: "Procesando \(selectedDocType.rawValue)",
+                progress: viewModel.progress,
+                icon: selectedDocType.iconName,
+                isActive: viewModel.isSyncing
+            )
+        }
+        .padding()
+    }
+    
+    private var nonSyncingView: some View {
+        Group {
+            if viewModel.hasCompleted {
+                completionButton
+            } else {
+                documentSelectionView
+            }
+        }
+    }
+    
+    private var completionButton: some View {
+        Button(action: ValidateProductionAccount) {
+            Text("Completar")
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+                .frame(width: size.width * 0.4)
+                .padding(EdgeInsets(top: 16, leading: 18, bottom: 16, trailing: 18))
+                .background(Capsule().fill(Color.darkCyan))
+                .shadow(color: .gray, radius: 6)
+        }
+        .disabled(viewModel.isSyncing)
+        .frame(maxWidth: .infinity, alignment: .center)
+    }
+    
+    private var documentSelectionView: some View {
+        VStack {
+            Spacer(minLength: 0)
+            documentTypeMenu
+            Spacer(minLength: 0)
+        }
+    }
+    
+    private var documentTypeMenu: some View {
+        Menu {
+            ForEach(DocumentType.allCases) { docType in
+                Button(action: { 
+                    selectedDocType = docType
+                    showConfirmationForType(docType)
+                }) {
+                    HStack {
+                        Image(systemName: docType.iconName)
+                        Text(docType.rawValue)
+                        if docType.isProcessed(viewModel) {
+                            Image(systemName: "checkmark")
+                                .foregroundColor(.green)
+                        }
+                    }
+                }
+            }
+        } label: {
+            HStack {
+                Image(systemName: selectedDocType.iconName)
+                Text("Procesar \(selectedDocType.rawValue)")
+                Image(systemName: "chevron.down")
+                    .font(.caption)
+            }
+            .fontWeight(.bold)
+            .foregroundColor(.white)
+            .frame(width: size.width * 0.7)
+            .padding(EdgeInsets(top: 16, leading: 18, bottom: 16, trailing: 18))
+            .background(Capsule().fill(Color.black))
+            .shadow(color: .gray, radius: 6)
+        }
+        .padding(.top, 10)
+        .disabled(viewModel.isSyncing)
+    }
+    
+    private var selectedDocumentInfo: some View {
+        EmptyView() // Placeholder for any document info we might want to show
+    }
+    
+    private var actionButton: some View {
+        EmptyView() // Placeholder for any action button we might need
+    }
+
+    var body: some View {
+        GeometryReader { geometry in
+            VStack(spacing: 10) {
+                headerLink
+                syncingView
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+        }
+        .alert(isPresented: $viewModel.showAlert) {
+            Alert(title: Text("Información"), message: Text(viewModel.alertMessage), dismissButton: .default(Text("OK")))
+        }
+        .onAppear {
+            loadAllInvoices()
+        }
+        .onChange(of: viewModel.isSyncing) { oldValue, newValue in
+            isSyncing = newValue
+            if oldValue && !newValue {
+                showCloseButton = true
+            }
+        }
+        .modifier(ConfirmationDialogsModifier(
+            showFacturasDialog: $showFacturasDialog,
+            showForceFacturasDialog: $showForceFacturasDialog,
+            showCCFDialog: $showCCFDialog,
+            showForceCCFDialog: $showForceCCFDialog,
+            showNotasDialog: $showNotasDialog,
+            showForceNotasDialog: $showForceNotasDialog,
+            showProcessAllDialog: $showProcessAllDialog,
+            showForceAllDialog: $showForceAllDialog,
+            onConfirmFacturas: confirmFacturas,
+            onConfirmForceFacturas: confirmForceFacturas,
+            onConfirmCCF: confirmCCF,
+            onConfirmForceCCF: confirmForceCCF,
+            onConfirmCreditNotes: confirmCreditNotes,
+            onConfirmForceCreditNotes: confirmForceCreditNotes,
+            onConfirmProcessAll: confirmProcessAll,
+            onConfirmForceAll: confirmForceAll
+        ))
     }
     
     // Function to show the appropriate confirmation dialog based on document type
@@ -499,12 +518,78 @@ struct PreProdStep1:View{
         }
     }
     
-    // Function to process the selected document type
-    private func processSelectedDocumentType() {
-        showConfirmationForType(selectedDocType)
+    // MARK: - Helper Methods for Confirmation Dialogs
+
+    private func confirmFacturas() {
+        prepareCustomersAndProducts()
+        if viewModel.invoices.count(where: { $0.invoiceType == .Factura && $0.status == .Completada }) >= viewModel.totalInvoices {
+            showForceFacturasDialog = true
+        } else {
+            showCloseButton = false
+            generateFacturas()
+            sendInvoices()
+        }
+    }
+
+    private func confirmForceFacturas() {
+        showCloseButton = false
+        generateFacturas(forceGenerate: true)
+        sendInvoices()
+    }
+
+    private func confirmCCF() {
+        prepareCustomersAndProducts()
+        if viewModel.invoices.count(where: { $0.invoiceType == .CCF && $0.status == .Completada }) >= viewModel.totalInvoices {
+            showForceCCFDialog = true
+        } else {
+            showCloseButton = false
+            generateCreditosFiscales()
+            sendInvoices()
+        }
+    }
+
+    private func confirmForceCCF() {
+        showCloseButton = false
+        generateCreditosFiscales(forceGenerate: true)
+        sendInvoices()
+    }
+
+    private func confirmCreditNotes() {
+        prepareCustomersAndProducts()
+        if viewModel.invoices.count(where: { $0.invoiceType == .NotaCredito && $0.status == .Completada }) >= 50 {
+            showForceNotasDialog = true
+        } else {
+            showCloseButton = false
+            generateCreditNotes()
+            sendInvoices()
+        }
+    }
+
+    private func confirmForceCreditNotes() {
+        showCloseButton = false
+        generateCreditNotes(forceGenerate: true)
+        sendInvoices()
+    }
+
+    private func confirmProcessAll() {
+        prepareCustomersAndProducts()
+        let hasEnoughFacturas = viewModel.invoices.count(where: { $0.invoiceType == .Factura && $0.status == .Completada }) >= viewModel.totalInvoices
+        let hasEnoughCCF = viewModel.invoices.count(where: { $0.invoiceType == .CCF && $0.status == .Completada }) >= viewModel.totalInvoices
+        let hasEnoughNotes = viewModel.invoices.count(where: { $0.invoiceType == .NotaCredito && $0.status == .Completada }) >= 50
+        
+        if hasEnoughFacturas || hasEnoughCCF || hasEnoughNotes {
+            showForceAllDialog = true
+        } else {
+            showCloseButton = false
+            processAllDocuments()
+        }
+    }
+
+    private func confirmForceAll() {
+        showCloseButton = false
+        processAllDocuments(forceGenerate: true)
     }
 }
-
  
 
 #Preview("Onboarding") {
@@ -528,10 +613,68 @@ struct PreProdStep1:View{
         PreProdStep1(
             company: company,
             size: size,
+            isSyncing: .constant(false),
             showCloseButton: .constant(true)
         )
     }
      
+}
+
+// MARK: - ConfirmationDialogsModifier
+struct ConfirmationDialogsModifier: ViewModifier {
+    @Binding var showFacturasDialog: Bool
+    @Binding var showForceFacturasDialog: Bool
+    @Binding var showCCFDialog: Bool
+    @Binding var showForceCCFDialog: Bool
+    @Binding var showNotasDialog: Bool
+    @Binding var showForceNotasDialog: Bool
+    @Binding var showProcessAllDialog: Bool
+    @Binding var showForceAllDialog: Bool
+    
+    let onConfirmFacturas: () -> Void
+    let onConfirmForceFacturas: () -> Void
+    let onConfirmCCF: () -> Void
+    let onConfirmForceCCF: () -> Void
+    let onConfirmCreditNotes: () -> Void
+    let onConfirmForceCreditNotes: () -> Void
+    let onConfirmProcessAll: () -> Void
+    let onConfirmForceAll: () -> Void
+    
+    func body(content: Content) -> some View {
+        content
+            .confirmationDialog("¿Desea generar y enviar Facturas?", isPresented: $showFacturasDialog, titleVisibility: .visible) {
+                Button("Confirmar", action: onConfirmFacturas)
+                Button("Cancelar", role: .cancel) {}
+            }
+            .confirmationDialog("Ya existen suficientes Facturas completadas. ¿Desea generar una nueva tanda de todas formas?", isPresented: $showForceFacturasDialog, titleVisibility: .visible) {
+                Button("Sí, generar nueva tanda", action: onConfirmForceFacturas)
+                Button("No, cancelar", role: .cancel) {}
+            }
+            .confirmationDialog("¿Desea generar y enviar Créditos Fiscales?", isPresented: $showCCFDialog, titleVisibility: .visible) {
+                Button("Confirmar", action: onConfirmCCF)
+                Button("Cancelar", role: .cancel) {}
+            }
+            .confirmationDialog("Ya existen suficientes Créditos Fiscales completados. ¿Desea generar una nueva tanda de todas formas?", isPresented: $showForceCCFDialog, titleVisibility: .visible) {
+                Button("Sí, generar nueva tanda", action: onConfirmForceCCF)
+                Button("No, cancelar", role: .cancel) {}
+            }
+            .confirmationDialog("¿Desea generar y enviar Notas de Crédito?", isPresented: $showNotasDialog, titleVisibility: .visible) {
+                Button("Confirmar", action: onConfirmCreditNotes)
+                Button("Cancelar", role: .cancel) {}
+            }
+            .confirmationDialog("Ya existen suficientes Notas de Crédito completadas. ¿Desea generar una nueva tanda de todas formas?", isPresented: $showForceNotasDialog, titleVisibility: .visible) {
+                Button("Sí, generar nueva tanda", action: onConfirmForceCreditNotes)
+                Button("No, cancelar", role: .cancel) {}
+            }
+            .confirmationDialog("¿Desea generar y enviar todos los tipos de documentos?", isPresented: $showProcessAllDialog, titleVisibility: .visible) {
+                Button("Confirmar", action: onConfirmProcessAll)
+                Button("Cancelar", role: .cancel) {}
+            }
+            .confirmationDialog("Ya existen suficientes documentos completados. ¿Desea generar una nueva tanda de todos los tipos de todas formas?", isPresented: $showForceAllDialog, titleVisibility: .visible) {
+                Button("Sí, generar nueva tanda de todos", action: onConfirmForceAll)
+                Button("No, cancelar", role: .cancel) {}
+            }
+    }
 }
 
 

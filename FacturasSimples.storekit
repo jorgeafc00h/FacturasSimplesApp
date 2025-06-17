@@ -1,0 +1,175 @@
+{
+  "identifier" : "A123456789",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "2.99",
+      "familyShareable" : false,
+      "internalID" : "1001",
+      "localizations" : [
+        {
+          "description" : "Paquete de 10 facturas para generar documentos electrónicos",
+          "displayName" : "10 Facturas",
+          "locale" : "es_ES"
+        }
+      ],
+      "productID" : "com.facturaSimples.invoices.10",
+      "referenceName" : "10 Facturas",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "4.99",
+      "familyShareable" : false,
+      "internalID" : "1002",
+      "localizations" : [
+        {
+          "description" : "Paquete de 25 facturas para generar documentos electrónicos",
+          "displayName" : "25 Facturas",
+          "locale" : "es_ES"
+        }
+      ],
+      "productID" : "com.facturaSimples.invoices.25",
+      "referenceName" : "25 Facturas",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "9.99",
+      "familyShareable" : false,
+      "internalID" : "1003",
+      "localizations" : [
+        {
+          "description" : "Paquete de 50 facturas para generar documentos electrónicos",
+          "displayName" : "50 Facturas",
+          "locale" : "es_ES"
+        }
+      ],
+      "productID" : "com.facturaSimples.invoices.50",
+      "referenceName" : "50 Facturas",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "19.99",
+      "familyShareable" : false,
+      "internalID" : "1004",
+      "localizations" : [
+        {
+          "description" : "Paquete de 100 facturas para generar documentos electrónicos",
+          "displayName" : "100 Facturas",
+          "locale" : "es_ES"
+        }
+      ],
+      "productID" : "com.facturaSimples.invoices.100",
+      "referenceName" : "100 Facturas",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "99.99",
+      "familyShareable" : false,
+      "internalID" : "1005",
+      "localizations" : [
+        {
+          "description" : "Paquete de 500 facturas para generar documentos electrónicos",
+          "displayName" : "500 Facturas",
+          "locale" : "es_ES"
+        }
+      ],
+      "productID" : "com.facturaSimples.invoices.500",
+      "referenceName" : "500 Facturas",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "149.99",
+      "familyShareable" : false,
+      "internalID" : "1006",
+      "localizations" : [
+        {
+          "description" : "Paquete de 1000 facturas para generar documentos electrónicos",
+          "displayName" : "1000 Facturas",
+          "locale" : "es_ES"
+        }
+      ],
+      "productID" : "com.facturaSimples.invoices.1000",
+      "referenceName" : "1000 Facturas",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "19.99",
+      "familyShareable" : false,
+      "internalID" : "2001",
+      "localizations" : [
+        {
+          "description" : "Tarifa única de implementación para activar tu cuenta empresarial",
+          "displayName" : "Tarifa de Implementación",
+          "locale" : "es_ES"
+        }
+      ],
+      "productID" : "com.facturaSimples.implementationFee",
+      "referenceName" : "Implementation Fee",
+      "type" : "Consumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "123456789",
+    "_developerTeamID" : "ABCD123456",
+    "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 748648800.0,
+    "_locale" : "es_ES",
+    "_storefront" : "ESP",
+    "_storeKitErrors" : [
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Load Products"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Purchase"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Verification"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Store Sync"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Subscription Status"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Transaction"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Manage Subscriptions Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Refund Request Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Offer Code Redeem Sheet"
+      }
+    ]
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

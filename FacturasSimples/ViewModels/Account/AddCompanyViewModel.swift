@@ -72,20 +72,38 @@ extension AddCompanyView4 {
     
     
     func saveChanges() {
-        
         let id = company.id
+        let timestamp = DateFormatter.localizedString(from: Date(), dateStyle: .short, timeStyle: .medium)
+        
+        print("[\(timestamp)] COMPANY_SAVE_STARTED: '\(company.nombre)' with ID '\(id)'")
         
         let descriptor = FetchDescriptor<Company>(predicate: #Predicate { $0.id ==  id })
-        
         let count = (try? modelContext.fetchCount(descriptor)) ?? 0
         
+        print("[\(timestamp)] COMPANY_EXISTS_CHECK: count=\(count)")
+        
         if count == 0 {
+            print("[\(timestamp)] INSERTING_COMPANY: '\(company.nombre)' with ID '\(id)'")
             modelContext.insert(company)
-           
         }
         
         try? modelContext.save()
+        print("[\(timestamp)] COMPANY_SAVED: ID '\(id)'")
+        
         selectedCompanyId = id
+        print("[\(timestamp)] SELECTED_COMPANY_ID_SET: '\(selectedCompanyId)'")
+        
+        // Verify the company was actually saved correctly
+        do {
+            let savedCompany = try modelContext.fetch(FetchDescriptor<Company>(predicate: #Predicate { $0.id == id })).first
+            if let saved = savedCompany {
+                print("[\(timestamp)] COMPANY_VERIFICATION: Found '\(saved.nombre)' with ID '\(saved.id)'")
+            } else {
+                print("[\(timestamp)] COMPANY_VERIFICATION_FAILED: Company not found after save!")
+            }
+        } catch {
+            print("[\(timestamp)] COMPANY_VERIFICATION_ERROR: \(error)")
+        }
     }
     
     func updateMHCertificateCredentialValidation(){

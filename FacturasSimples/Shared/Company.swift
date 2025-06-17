@@ -52,9 +52,10 @@ import CloudKit
     
     var isTestAccount: Bool = true
     
-    // CloudKit sync indicator - only production companies sync to CloudKit
+    // CloudKit sync indicator - ALL companies now sync to CloudKit
+    // The filtering will happen at the related data level (customers, invoices, etc.)
     var shouldSyncToCloudKit: Bool {
-        return !isTestAccount
+        return true  // Always sync companies so devices can see all company options
     }
     
     // Subscription and Purchase Tracking (only for production accounts)
