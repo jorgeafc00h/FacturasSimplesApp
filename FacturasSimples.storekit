@@ -5,107 +5,62 @@
   ],
   "products" : [
     {
-      "displayPrice" : "2.99",
+      "displayPrice" : "9.99",
       "familyShareable" : false,
       "internalID" : "1001",
       "localizations" : [
         {
-          "description" : "Paquete de 10 facturas para generar documentos electrónicos",
-          "displayName" : "10 Facturas",
-          "locale" : "es_ES"
+          "description" : "Perfecto para pequeñas empresas",
+          "displayName" : "Paquete Inicial",
+          "locale" : "es_SV"
         }
       ],
-      "productID" : "com.facturaSimples.invoices.10",
-      "referenceName" : "10 Facturas",
+      "productID" : "com.kandangalabs.facturas.bundle50",
+      "referenceName" : "Paquete Inicial",
       "type" : "Consumable"
     },
     {
-      "displayPrice" : "4.99",
+      "displayPrice" : "15.00",
       "familyShareable" : false,
       "internalID" : "1002",
       "localizations" : [
         {
-          "description" : "Paquete de 25 facturas para generar documentos electrónicos",
-          "displayName" : "25 Facturas",
-          "locale" : "es_ES"
+          "description" : "La mejor opción para empresas en crecimiento",
+          "displayName" : "Paquete Profesional",
+          "locale" : "es_SV"
         }
       ],
-      "productID" : "com.facturaSimples.invoices.25",
-      "referenceName" : "25 Facturas",
+      "productID" : "com.kandangalabs.facturas.bundle100",
+      "referenceName" : "Paquete Profesional",
       "type" : "Consumable"
     },
     {
-      "displayPrice" : "9.99",
+      "displayPrice" : "29.99",
       "familyShareable" : false,
       "internalID" : "1003",
       "localizations" : [
         {
-          "description" : "Paquete de 50 facturas para generar documentos electrónicos",
-          "displayName" : "50 Facturas",
-          "locale" : "es_ES"
+          "description" : "Para empresas de alto volumen",
+          "displayName" : "Paquete Empresarial",
+          "locale" : "es_SV"
         }
       ],
-      "productID" : "com.facturaSimples.invoices.50",
-      "referenceName" : "50 Facturas",
+      "productID" : "com.kandangalabs.facturas.bundle250",
+      "referenceName" : "Paquete Empresarial",
       "type" : "Consumable"
     },
     {
-      "displayPrice" : "19.99",
-      "familyShareable" : false,
-      "internalID" : "1004",
-      "localizations" : [
-        {
-          "description" : "Paquete de 100 facturas para generar documentos electrónicos",
-          "displayName" : "100 Facturas",
-          "locale" : "es_ES"
-        }
-      ],
-      "productID" : "com.facturaSimples.invoices.100",
-      "referenceName" : "100 Facturas",
-      "type" : "Consumable"
-    },
-    {
-      "displayPrice" : "99.99",
-      "familyShareable" : false,
-      "internalID" : "1005",
-      "localizations" : [
-        {
-          "description" : "Paquete de 500 facturas para generar documentos electrónicos",
-          "displayName" : "500 Facturas",
-          "locale" : "es_ES"
-        }
-      ],
-      "productID" : "com.facturaSimples.invoices.500",
-      "referenceName" : "500 Facturas",
-      "type" : "Consumable"
-    },
-    {
-      "displayPrice" : "149.99",
-      "familyShareable" : false,
-      "internalID" : "1006",
-      "localizations" : [
-        {
-          "description" : "Paquete de 1000 facturas para generar documentos electrónicos",
-          "displayName" : "1000 Facturas",
-          "locale" : "es_ES"
-        }
-      ],
-      "productID" : "com.facturaSimples.invoices.1000",
-      "referenceName" : "1000 Facturas",
-      "type" : "Consumable"
-    },
-    {
-      "displayPrice" : "19.99",
+      "displayPrice" : "250.00",
       "familyShareable" : false,
       "internalID" : "2001",
       "localizations" : [
         {
-          "description" : "Tarifa única de implementación para activar tu cuenta empresarial",
-          "displayName" : "Tarifa de Implementación",
-          "locale" : "es_ES"
+          "description" : "Tarifa única para activar cuenta de producción",
+          "displayName" : "Costo de Implementación",
+          "locale" : "es_SV"
         }
       ],
-      "productID" : "com.facturaSimples.implementationFee",
+      "productID" : "com.kandangalabs.facturas.implementation_fee",
       "referenceName" : "Implementation Fee",
       "type" : "Consumable"
     }
@@ -115,8 +70,8 @@
     "_developerTeamID" : "ABCD123456",
     "_failTransactionsEnabled" : false,
     "_lastSynchronizedDate" : 748648800.0,
-    "_locale" : "es_ES",
-    "_storefront" : "ESP",
+    "_locale" : "es_SV",
+    "_storefront" : "SLV",
     "_storeKitErrors" : [
       {
         "current" : null,
@@ -166,7 +121,69 @@
     ]
   },
   "subscriptionGroups" : [
+    {
+      "id" : "21497180",
+      "localizations" : [
+        {
+          "description" : "Suscripciones Enterprise Pro con facturación ilimitada",
+          "displayName" : "Enterprise Pro Unlimited",
+          "locale" : "es_SV"
+        }
+      ],
+      "name" : "Enterprise Pro Unlimited",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
 
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "99.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "3001",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Suscripción mensual con facturación ilimitada para empresas grandes",
+              "displayName" : "Enterprise Pro Unlimited",
+              "locale" : "es_SV"
+            }
+          ],
+          "productID" : "com.kandangalabs.facturas.enterprise_pro_unlimited_monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Enterprise Pro Monthly",
+          "subscriptionGroupID" : "21497180",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "999.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "3002",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Suscripción anual con facturación ilimitada para empresas grandes - AHORRA HASTA $200",
+              "displayName" : "Enterprise Pro Unlimited Anual",
+              "locale" : "es_SV"
+            }
+          ],
+          "productID" : "com.kandangalabs.facturas.enterprise_pro_unlimited_anual",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Enterprise Pro Yearly",
+          "subscriptionGroupID" : "21497180",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
   ],
   "version" : {
     "major" : 3,

@@ -24,8 +24,10 @@ struct InvoiceBundle: Identifiable, Hashable {
     let formattedPrice: String
     let isPopular: Bool
     let productType: ProductType
+    let isImplementationFee: Bool 
     let subscriptionPeriod: String? // For subscriptions: "monthly", "yearly", etc.
     let specialOfferText: String? // For special discount offers like "AHORRA $200"
+     
     
     // Helper property to check if this is an unlimited bundle
     var isUnlimited: Bool {
@@ -71,6 +73,7 @@ struct InvoiceBundle: Identifiable, Hashable {
         formattedPrice: "$9.99",
         isPopular: false,
         productType: .consumable,
+        isImplementationFee: false,
         subscriptionPeriod: nil,
         specialOfferText: nil
     )
@@ -84,6 +87,7 @@ struct InvoiceBundle: Identifiable, Hashable {
         formattedPrice: "$15.00",
         isPopular: true,
         productType: .consumable,
+        isImplementationFee: false,
         subscriptionPeriod: nil,
         specialOfferText: nil
     )
@@ -97,6 +101,7 @@ struct InvoiceBundle: Identifiable, Hashable {
         formattedPrice: "$29.99",
         isPopular: false,
         productType: .consumable,
+        isImplementationFee: false,
         subscriptionPeriod: nil,
         specialOfferText: nil
     )
@@ -110,6 +115,7 @@ struct InvoiceBundle: Identifiable, Hashable {
         formattedPrice: "$99.99",
         isPopular: false,
         productType: .subscription,
+        isImplementationFee: false,
         subscriptionPeriod: "monthly",
         specialOfferText: nil
     )
@@ -123,6 +129,7 @@ struct InvoiceBundle: Identifiable, Hashable {
         formattedPrice: "$999.99",
         isPopular: false,
         productType: .subscription,
+        isImplementationFee: false,
         subscriptionPeriod: "yearly",
         specialOfferText: "AHORRA HASTA $200"
     )
@@ -136,11 +143,12 @@ struct InvoiceBundle: Identifiable, Hashable {
         formattedPrice: "$250.00",
         isPopular: false,
         productType: .consumable,
+        isImplementationFee: true,
         subscriptionPeriod: nil,
         specialOfferText: nil
     )
     
-    static let allBundles: [InvoiceBundle] = [bundle50, bundle100, bundle250, enterpriseProUnlimited, enterpriseProAnual]
+    static let allBundles: [InvoiceBundle] = [bundle50, bundle100, bundle250, enterpriseProUnlimited, enterpriseProAnual,implementationFee]
     static let allProductIDs: Set<String> = Set(allBundles.map { $0.id })
 }
 

@@ -15,7 +15,14 @@ struct InvoiceDetailView: View {
     @State var viewModel = InvoiceDetailViewModel()
     @Environment(\.dismiss) var dismiss;
     @Environment(\.modelContext) var modelContext
+    @EnvironmentObject var storeKitManager: StoreKitManager
     @AppStorage("selectedCompanyIdentifier")  var companyIdentifier : String = ""
+    
+    @Query var companies: [Company]
+    
+    var selectedCompany: Company? {
+        companies.first { $0.id == companyIdentifier }
+    }
     
     var body: some View {
         NavigationStack{
@@ -30,7 +37,7 @@ struct InvoiceDetailView: View {
             ToolbarItemGroup(placement: .automatic) {
                 ShareButton()
             }
-            
+             
             ToolbarItem(placement: .primaryAction) {
                 Menu {
                     CreditNoteButton()
@@ -339,7 +346,7 @@ struct InvoiceDetailView: View {
                         titleVisibility: .visible
                     ) {
                         
-                        Button(action: SyncInvoice, label: { Text("Sincronizar") })
+                        Button(action: { SyncInvoice(storeKitManager: storeKitManager) }, label: { Text("Sincronizar") })
                         
                         Button("Cancelar", role: .cancel) {}
                     }

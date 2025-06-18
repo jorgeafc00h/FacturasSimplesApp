@@ -13,6 +13,9 @@ struct RequestProductionView: View {
     @Environment(\.modelContext) var modelContext
     @State private var showCloseButton: Bool = true
     
+    // Completion callback to notify parent when process is completed
+    var onCompletion: (() -> Void)? = nil
+    
     var body: some View {
         ZStack{
             Color(activeIntro.backColor).ignoresSafeArea()
@@ -23,7 +26,7 @@ struct RequestProductionView: View {
                 SubPageView(intro: $activeIntro,size: size,showCloseButton: $showCloseButton, isSyncing: $isSyncing){
                     VStack{
                         if activeIntro.companyStep1{
-                            PreProdStep1(company: company, size: size, isSyncing: $isSyncing, showCloseButton: $showCloseButton)
+                            PreProdStep1(company: company, size: size, isSyncing: $isSyncing, onCompletion: onCompletion, showCloseButton: $showCloseButton)
                         }
                     }
                     //.padding(.top,25)
@@ -266,8 +269,11 @@ struct PreProdStep1:View{
     @Bindable var company: Company
     var size: CGSize
     
-    @State var viewModel = RequestProductionAccessViewModel()
+    @State private var viewModel = RequestProductionAccessViewModel()
     @Binding var isSyncing: Bool
+    
+    // Completion callback from parent
+    var onCompletion: (() -> Void)? = nil
     
     // Add state variables for confirmation dialogs
     @State private var showFacturasDialog = false
@@ -400,7 +406,9 @@ struct PreProdStep1:View{
     }
     
     private var completionButton: some View {
-        Button(action: ValidateProductionAccount) {
+        Button(action: { 
+            viewModel.validateProductionAccount(onCompletion: onCompletion)
+        }) {
             Text("Completar")
                 .fontWeight(.bold)
                 .foregroundColor(.white)
@@ -476,7 +484,8 @@ struct PreProdStep1:View{
             Alert(title: Text("Información"), message: Text(viewModel.alertMessage), dismissButton: .default(Text("OK")))
         }
         .onAppear {
-            loadAllInvoices()
+            viewModel.configure(company: company, modelContext: modelContext)
+            viewModel.loadAllInvoices()
         }
         .onChange(of: viewModel.isSyncing) { oldValue, newValue in
             isSyncing = newValue
@@ -521,58 +530,58 @@ struct PreProdStep1:View{
     // MARK: - Helper Methods for Confirmation Dialogs
 
     private func confirmFacturas() {
-        prepareCustomersAndProducts()
+        viewModel.prepareCustomersAndProducts()
         if viewModel.invoices.count(where: { $0.invoiceType == .Factura && $0.status == .Completada }) >= viewModel.totalInvoices {
             showForceFacturasDialog = true
         } else {
             showCloseButton = false
-            generateFacturas()
-            sendInvoices()
+            viewModel.generateFacturas()
+            viewModel.sendInvoices(onCompletion: onCompletion)
         }
     }
 
     private func confirmForceFacturas() {
         showCloseButton = false
-        generateFacturas(forceGenerate: true)
-        sendInvoices()
+        viewModel.generateFacturas(forceGenerate: true)
+        viewModel.sendInvoices(onCompletion: onCompletion)
     }
 
     private func confirmCCF() {
-        prepareCustomersAndProducts()
+        viewModel.prepareCustomersAndProducts()
         if viewModel.invoices.count(where: { $0.invoiceType == .CCF && $0.status == .Completada }) >= viewModel.totalInvoices {
             showForceCCFDialog = true
         } else {
             showCloseButton = false
-            generateCreditosFiscales()
-            sendInvoices()
+            viewModel.generateCreditosFiscales()
+            viewModel.sendInvoices(onCompletion: onCompletion)
         }
     }
 
     private func confirmForceCCF() {
         showCloseButton = false
-        generateCreditosFiscales(forceGenerate: true)
-        sendInvoices()
+        viewModel.generateCreditosFiscales(forceGenerate: true)
+        viewModel.sendInvoices(onCompletion: onCompletion)
     }
 
     private func confirmCreditNotes() {
-        prepareCustomersAndProducts()
+        viewModel.prepareCustomersAndProducts()
         if viewModel.invoices.count(where: { $0.invoiceType == .NotaCredito && $0.status == .Completada }) >= 50 {
             showForceNotasDialog = true
         } else {
             showCloseButton = false
-            generateCreditNotes()
-            sendInvoices()
+            viewModel.generateCreditNotes()
+            viewModel.sendInvoices(onCompletion: onCompletion)
         }
     }
 
     private func confirmForceCreditNotes() {
         showCloseButton = false
-        generateCreditNotes(forceGenerate: true)
-        sendInvoices()
+        viewModel.generateCreditNotes(forceGenerate: true)
+        viewModel.sendInvoices(onCompletion: onCompletion)
     }
 
     private func confirmProcessAll() {
-        prepareCustomersAndProducts()
+        viewModel.prepareCustomersAndProducts()
         let hasEnoughFacturas = viewModel.invoices.count(where: { $0.invoiceType == .Factura && $0.status == .Completada }) >= viewModel.totalInvoices
         let hasEnoughCCF = viewModel.invoices.count(where: { $0.invoiceType == .CCF && $0.status == .Completada }) >= viewModel.totalInvoices
         let hasEnoughNotes = viewModel.invoices.count(where: { $0.invoiceType == .NotaCredito && $0.status == .Completada }) >= 50
@@ -581,23 +590,23 @@ struct PreProdStep1:View{
             showForceAllDialog = true
         } else {
             showCloseButton = false
-            processAllDocuments()
+            viewModel.processAllDocuments(onCompletion: onCompletion)
         }
     }
 
     private func confirmForceAll() {
         showCloseButton = false
-        processAllDocuments(forceGenerate: true)
+        viewModel.processAllDocuments(forceGenerate: true, onCompletion: onCompletion)
     }
 }
  
 
 #Preview("Onboarding") {
-    RequestProductionView(company: Company(nit: "123", nrc: "456", nombre: "Test Company"))
+    RequestProductionView(company: Company(nit: "123", nrc: "456", nombre: "Test Company"), onCompletion: nil)
 }
 
 #Preview("Onboarding Dark") {
-    RequestProductionView(company: Company(nit: "123", nrc: "456", nombre: "Test Company"))
+    RequestProductionView(company: Company(nit: "123", nrc: "456", nombre: "Test Company"), onCompletion: nil)
         .preferredColorScheme(.dark)
 }
 
@@ -607,17 +616,9 @@ struct PreProdStep1:View{
     // Add sample data
     let company = Company(nit:"123512351",nrc:"1351346",nombre:"Joe Cool",descActividad: "")
     
-    let intro = pagesIntros[5]
-    GeometryReader{
-        let size = $0.size
-        PreProdStep1(
-            company: company,
-            size: size,
-            isSyncing: .constant(false),
-            showCloseButton: .constant(true)
-        )
-    }
-     
+    RequestProductionView(company: company, onCompletion: {
+        print("Preview: Production access process completed")
+    })
 }
 
 // MARK: - ConfirmationDialogsModifier
@@ -675,6 +676,25 @@ struct ConfirmationDialogsModifier: ViewModifier {
                 Button("No, cancelar", role: .cancel) {}
             }
     }
+}
+
+#Preview ("PreProdStep1 Direct", traits: .sampleCompanies) {
+    // Add sample data
+    let company = Company(nit:"123512351",nrc:"1351346",nombre:"Joe Cool",descActividad: "")
+    
+    GeometryReader { geometry in
+        let size = geometry.size
+        PreProdStep1(
+            company: company,
+            size: size,
+            isSyncing: .constant(false),
+            onCompletion: {
+                print("Preview: PreProdStep1 completed")
+            },
+            showCloseButton: .constant(true)
+        )
+    }
+    .background(Color(.systemBackground))
 }
 
 

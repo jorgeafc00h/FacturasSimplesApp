@@ -36,12 +36,18 @@ struct AddInvoiceView: View {
             return false
         }
         
+        // Migrate global implementation fee to company-specific if needed
+        storeKitManager.migrateGlobalImplementationFeeToCompany(company)
+        
         // Production accounts need implementation fee and credits
         return storeKitManager.requiresImplementationFee(for: company) || !storeKitManager.hasAvailableCredits(for: company)
     }
     
     var shouldShowCreditsWarning: Bool {
         guard let company = selectedCompany else { return false }
+        
+        // Migrate global implementation fee to company-specific if needed
+        storeKitManager.migrateGlobalImplementationFeeToCompany(company)
         
         // Only show warning for production accounts that lack credits or implementation fee
         return company.requiresPaidServices && shouldDisableForCredits
@@ -112,10 +118,24 @@ struct AddInvoiceView: View {
                 }
                 .environmentObject(storeKitManager)
             }
+            .onChange(of: showCreditsGate) { oldValue, newValue in
+                // Refresh credits when CreditsGateView is dismissed
+                if oldValue == true && newValue == false {
+                    print("🔄 CreditsGateView dismissed, refreshing credits...")
+                    storeKitManager.refreshUserCredits()
+                }
+            }
             .sheet(isPresented: $viewModel.showImplementationFee) {
                 if let company = selectedCompany {
                     ImplementationFeeView(company: company)
                         .environmentObject(storeKitManager)
+                }
+            }
+            .onChange(of: viewModel.showImplementationFee) { oldValue, newValue in
+                // Refresh credits when ImplementationFeeView is dismissed
+                if oldValue == true && newValue == false {
+                    print("🔄 ImplementationFeeView dismissed, refreshing credits...")
+                    storeKitManager.refreshUserCredits()
                 }
             }
             .toolbar {
@@ -130,9 +150,25 @@ struct AddInvoiceView: View {
                 }
             }.accentColor(.darkCyan)
         }
-        .onAppear(perform: getNextInoviceNumber)
+        .onAppear {
+            getNextInoviceNumber()
+            // Refresh credits when AddInvoiceView appears to ensure current balance
+            storeKitManager.refreshUserCredits()
+        }
         .onChange(of: viewModel.invoiceType){
             getNextInoviceOrCCFNumber(invoiceType: viewModel.invoiceType)
+        }
+        .onChange(of: selectedCompany?.hasImplementationFeePaid ?? false) { oldValue, newValue in
+            if oldValue != newValue {
+                print("🔄 Implementation fee status changed for company: \(newValue)")
+                // The view should automatically refresh due to company being from @Query
+            }
+        }
+        .onChange(of: storeKitManager.userCredits.availableInvoices) { oldValue, newValue in
+            if oldValue != newValue {
+                print("🔄 Available credits changed: \(newValue)")
+                // The view should automatically refresh due to the @EnvironmentObject
+            }
         }
         .presentationDetents([.large])
     }

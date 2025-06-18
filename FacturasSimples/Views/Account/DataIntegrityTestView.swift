@@ -31,6 +31,11 @@ struct DataIntegrityTestView: View {
             }
             .buttonStyle(.bordered)
             
+            Button("Test Logging") {
+                DataIntegrityLogger.shared.testLogging()
+            }
+            .buttonStyle(.bordered)
+            
             if !diagnosticResults.isEmpty {
                 ScrollView {
                     Text(diagnosticResults)

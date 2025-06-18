@@ -96,11 +96,6 @@ struct CloudKitSettingsView: View {
                         refreshFromiCloud()
                     }
                     .disabled(isLoading)
-                    
-                    Button("Corregir Estado de Sincronización") {
-                        fixSyncStatus()
-                    }
-                    .disabled(isLoading)
                 }
                 
             } header: {
@@ -127,33 +122,9 @@ struct CloudKitSettingsView: View {
                 }
                 .foregroundColor(.blue)
                  #if DEBUG
-                NavigationLink("✅ Verificar Nueva Lógica") {
-                    SyncVerificationView()
-                }
-                .foregroundColor(.blue)
-                
-                NavigationLink("🚨 Solución de Problemas") {
-                    SyncTroubleshootingView()
-                }
-                .foregroundColor(.orange)
-                
-                NavigationLink("CloudKit Diagnóstico") {
-                    CloudKitDiagnosticView()
-                }
-                
                 NavigationLink("Verificar IDs de Empresa") {
                     CompanyIDSyncChecker()
                 }
-                
-                NavigationLink("Limpieza de Datos") {
-                    CloudKitDataCleanupView()
-                }
-                .foregroundColor(.red)
-                
-                NavigationLink("🔍 Test Integridad de Datos") {
-                    DataIntegrityTestView()
-                }
-                .foregroundColor(.purple)
                    #endif
             } header: {
                 Text("Diagnóstico")
@@ -375,45 +346,6 @@ struct CloudKitSettingsView: View {
             } catch {
                 await MainActor.run {
                     errorMessage = "Error refreshing from iCloud: \(error.localizedDescription)"
-                    showingError = true
-                    isLoading = false
-                }
-            }
-        }
-    }
-    
-    private func fixSyncStatus() {
-        Task {
-            await MainActor.run { isLoading = true }
-            
-            do {
-                // Update sync status for all data types to fix any inconsistencies
-                DataSyncFilterManager.shared.updateAllDataSyncStatus(context: companyStorageManager.currentContext)
-                
-                // Clean up any orphaned data
-                let cleanupResult = DataSyncFilterManager.shared.cleanupOrphanedData(context: companyStorageManager.currentContext)
-                
-                // Force sync for production companies (all data types)
-                let productionCompanies = DataSyncFilterManager.shared.getProductionCompanies(context: companyStorageManager.currentContext)
-                
-                for company in productionCompanies {
-                    try await CloudKitConfiguration.shared.forceAllDataSync(for: company.id)
-                }
-                
-                await MainActor.run {
-                    lastSyncDate = Date()
-                    if cleanupResult.customersRemoved > 0 || cleanupResult.productsRemoved > 0 || cleanupResult.invoicesRemoved > 0 {
-                        errorMessage = "Sync status fixed. Removed \(cleanupResult.customersRemoved) orphaned customers, \(cleanupResult.productsRemoved) orphaned products, and \(cleanupResult.invoicesRemoved) orphaned invoices."
-                    } else {
-                        errorMessage = "Sync status corrected successfully for all data types."
-                    }
-                    showingError = true // Use this to show the success message
-                    isLoading = false
-                }
-                
-            } catch {
-                await MainActor.run {
-                    errorMessage = "Error fixing sync status: \(error.localizedDescription)"
                     showingError = true
                     isLoading = false
                 }

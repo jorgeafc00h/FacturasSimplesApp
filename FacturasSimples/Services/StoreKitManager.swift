@@ -76,6 +76,11 @@ class StoreKitManager: NSObject, ObservableObject {
     
     /// Purchase a specific product
     func purchase(_ product: StoreKit.Product) async {
+        await purchase(product, for: nil)
+    }
+    
+    /// Purchase a specific product for a specific company (needed for implementation fee)
+    func purchase(_ product: StoreKit.Product, for company: Company?) async {
         purchaseState = .purchasing
         errorMessage = nil
         
@@ -85,7 +90,7 @@ class StoreKitManager: NSObject, ObservableObject {
             switch result {
             case .success(let verification):
                 let transaction: StoreKit.Transaction = try await checkVerified(verification)
-                await handlePurchase(transaction: transaction, isRestored: false)
+                await handlePurchase(transaction: transaction, isRestored: false, for: company)
                 purchaseState = .purchased
                 
             case .userCancelled:
@@ -118,7 +123,7 @@ class StoreKitManager: NSObject, ObservableObject {
             for await result in StoreKit.Transaction.currentEntitlements {
                 do {
                     let transaction: StoreKit.Transaction = try await checkVerified(result)
-                    await handlePurchase(transaction: transaction, isRestored: true)
+                    await handlePurchase(transaction: transaction, isRestored: true, for: nil)
                     restoredCount += 1
                 } catch {
                     print("❌ Failed to verify restored transaction: \(error)")
@@ -294,8 +299,8 @@ class StoreKitManager: NSObject, ObservableObject {
             return false
         }
         
-        // Production accounts need implementation fee if not paid yet
-        return !userCredits.hasImplementationFeePaid
+        // Production accounts need implementation fee if not paid yet for this specific company
+        return !company.hasImplementationFeePaid
     }
     
     /// Check if user can create invoices for production company (including implementation fee check)
@@ -308,7 +313,7 @@ class StoreKitManager: NSObject, ObservableObject {
         }
         
         // Production accounts need implementation fee paid AND credits available
-        return userCredits.hasImplementationFeePaid && hasAvailableCredits(for: company)
+        return company.hasImplementationFeePaid && hasAvailableCredits(for: company)
     }
 
     // MARK: - Private Methods
@@ -318,7 +323,7 @@ class StoreKitManager: NSObject, ObservableObject {
             for await result in StoreKit.Transaction.updates {
                 do {
                     let transaction: StoreKit.Transaction = try await self.checkVerified(result)
-                    await self.handlePurchase(transaction: transaction, isRestored: false)
+                    await self.handlePurchase(transaction: transaction, isRestored: false, for: nil)
                 } catch {
                     print("❌ Transaction update failed: \(error)")
                 }
@@ -335,7 +340,7 @@ class StoreKitManager: NSObject, ObservableObject {
         }
     }
     
-    private func handlePurchase(transaction: StoreKit.Transaction, isRestored: Bool) async {
+    private func handlePurchase(transaction: StoreKit.Transaction, isRestored: Bool, for company: Company? = nil) async {
         guard let bundle = getInvoiceBundle(for: transaction.productID) else {
             print("❌ Unknown product ID: \(transaction.productID)")
             return
@@ -356,9 +361,20 @@ class StoreKitManager: NSObject, ObservableObject {
             
             print("✅ Subscription activated: \(bundle.name) until \(userCredits.subscriptionExpiryDate?.description ?? "unknown")")
         } else if bundle.id == InvoiceBundle.implementationFee.id {
-            // Handle implementation fee purchase
-            userCredits.hasImplementationFeePaid = true
-            print("✅ Implementation fee paid: \(bundle.name)")
+            // Handle implementation fee purchase - mark as paid for the specific company
+            if let company = company {
+                company.markImplementationFeePaid()
+                print("✅ Implementation fee paid for company: \(company.nombre)")
+            } else {
+                // Fallback: mark globally if no specific company (for backward compatibility with restores)
+                userCredits.hasImplementationFeePaid = true
+                print("✅ Implementation fee paid globally (no specific company)")
+            }
+            
+            // Explicitly trigger change notification for implementation fee
+            Task { @MainActor in
+                objectWillChange.send()
+            }
         } else {
             // Handle consumable purchase
             userCredits.availableInvoices += bundle.invoiceCount
@@ -404,9 +420,40 @@ class StoreKitManager: NSObject, ObservableObject {
         do {
             let data = try JSONEncoder().encode(userCredits)
             UserDefaults.standard.set(data, forKey: creditsKey)
-            print("✅ Saved user credits: \(userCredits.availableInvoices) available invoices")
+            
+            // Force UI update by triggering a change notification
+            // This ensures that any views observing this StoreKitManager will refresh
+            Task { @MainActor in
+                objectWillChange.send()
+            }
+            
+            print("✅ Saved user credits: \(userCredits.availableInvoices) available invoices, Implementation Fee Paid: \(userCredits.hasImplementationFeePaid)")
         } catch {
             print("❌ Failed to save user credits: \(error)")
+        }
+    }
+    
+    /// Refresh user credits from UserDefaults and trigger UI update
+    /// Call this when you need to ensure the UI shows the most current credit balance
+    func refreshUserCredits() {
+        loadUserCredits()
+        
+        // Force UI update
+        Task { @MainActor in
+            objectWillChange.send()
+        }
+    }
+
+    // MARK: - Migration Methods
+    
+    /// Migrate global implementation fee payment to company-specific tracking
+    /// This should be called once for existing users who paid before per-company tracking
+    func migrateGlobalImplementationFeeToCompany(_ company: Company) {
+        // If global implementation fee is paid but this company doesn't have it marked,
+        // migrate the payment status to this company
+        if userCredits.hasImplementationFeePaid && !company.hasImplementationFeePaid {
+            company.markImplementationFeePaid()
+            print("🔄 Migrated global implementation fee payment to company: \(company.nombre)")
         }
     }
 }

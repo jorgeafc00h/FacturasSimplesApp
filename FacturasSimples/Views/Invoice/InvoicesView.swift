@@ -55,6 +55,7 @@ struct InvoicesView: View {
         } detail: {
             if let inv = selection {
                 InvoiceDetailView(invoice: inv)
+                    .environmentObject(storeManager)
             }
             else{
                 ContentUnavailableView {

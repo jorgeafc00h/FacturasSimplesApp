@@ -27,6 +27,7 @@
 		AE669BE82D39D39C003ECE7C /* FacturasSimples.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FacturasSimples.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AE669BFA2D39D39E003ECE7C /* FacturasSimplesTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FacturasSimplesTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		AE669C042D39D39E003ECE7C /* FacturasSimplesUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FacturasSimplesUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		AE8927F62E00F570005D7630 /* FacturasSimples.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = FacturasSimples.storekit; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -88,6 +89,7 @@
 		AE669BDF2D39D39C003ECE7C = {
 			isa = PBXGroup;
 			children = (
+				AE8927F62E00F570005D7630 /* FacturasSimples.storekit */,
 				AE669BEA2D39D39C003ECE7C /* FacturasSimples */,
 				AE669BFD2D39D39E003ECE7C /* FacturasSimplesTests */,
 				AE669C072D39D39E003ECE7C /* FacturasSimplesUITests */,

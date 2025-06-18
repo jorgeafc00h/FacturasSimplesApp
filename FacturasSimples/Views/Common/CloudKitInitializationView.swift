@@ -104,7 +104,7 @@ struct CloudKitInitializationView: View {
                 
                 Spacer()
                 
-                // Action Buttons with modern styling
+                // Action Buttons with onboarding-style black capsule buttons
                 VStack(spacing: 16) {
                     // Continue Button (shown when sync is complete or failed)
                     if !syncManager.isSyncing {
@@ -112,20 +112,13 @@ struct CloudKitInitializationView: View {
                             onComplete()
                         }
                         .font(.headline)
+                        .fontWeight(.semibold)
                         .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(
-                                    LinearGradient(
-                                        gradient: Gradient(colors: [Color.blue, Color.blue.opacity(0.8)]),
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    )
-                                )
-                        )
-                        .shadow(color: .blue.opacity(0.3), radius: 8, x: 0, y: 4)
+                        .padding(.vertical, 15)
+                        .frame(width: UIScreen.main.bounds.width * 0.4)
+                        .background {
+                            Capsule().fill(.black)
+                        }
                     }
                     
                     // Retry Button (shown on error)
@@ -136,17 +129,13 @@ struct CloudKitInitializationView: View {
                             }
                         }
                         .font(.subheadline)
+                        .fontWeight(.semibold)
                         .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(.ultraThinMaterial)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(Color.white.opacity(0.3), lineWidth: 1)
-                                )
-                        )
+                        .padding(.vertical, 15)
+                        .frame(width: UIScreen.main.bounds.width * 0.6)
+                        .background {
+                            Capsule().fill(.black)
+                        }
                     }
                     
                     // Skip Button (always available)
@@ -154,8 +143,18 @@ struct CloudKitInitializationView: View {
                         onComplete()
                     }
                     .font(.subheadline)
-                    .foregroundColor(.white.opacity(0.7))
-                    .padding(.vertical, 8)
+                    .fontWeight(.medium)
+                    .foregroundColor(.white.opacity(0.8))
+                    .padding(.vertical, 12)
+                    .frame(width: UIScreen.main.bounds.width * 0.35)
+                    .background {
+                        Capsule()
+                            .fill(.ultraThinMaterial)
+                            .overlay(
+                                Capsule()
+                                    .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                            )
+                    }
                 }
                 .padding(.bottom, 40)
                 .padding(.horizontal, 20)

@@ -10,7 +10,7 @@ import StoreKit
 
 struct ImplementationFeeView: View {
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var storeManager = StoreKitManager()
+    @EnvironmentObject var storeManager: StoreKitManager
     @State private var couponCode = ""
     @State private var showCouponField = false
     @State private var isApplyingCoupon = false
@@ -368,7 +368,7 @@ struct ImplementationFeeView: View {
         }
         
         Task {
-            await storeManager.purchase(product)
+            await storeManager.purchase(product, for: company)
             
             // If purchase was successful, dismiss the view
             if storeManager.purchaseState == .purchased {

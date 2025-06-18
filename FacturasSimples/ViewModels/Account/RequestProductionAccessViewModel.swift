@@ -30,12 +30,14 @@ enum ProcessingStatus {
     }
 }
 
-extension PreProdStep1{
-    
-    @Observable
-    class RequestProductionAccessViewModel {
+@Observable
+class RequestProductionAccessViewModel {
+        
+    // Dependencies
+    private var company: Company?
+    private var modelContext: ModelContext?
             
-        var invoices: [Invoice] = []
+    var invoices: [Invoice] = []
         var generatedInvoices: [Invoice] = []
         var customers: [Customer] = []
         var products: [Product] = []
@@ -71,18 +73,50 @@ extension PreProdStep1{
         
         var isLoadingCertificateStatus: Bool = false
         var isLoadingCredentialsStatus: Bool = false
-        var showCertificateInvalidMessage: Bool = false
-        var showCredentialsInvalidMessage: Bool = false
-        
+    var showCertificateInvalidMessage: Bool = false
+    var showCredentialsInvalidMessage: Bool = false
+    
+    // Constructor
+    init(company: Company, modelContext: ModelContext) {
+        self.company = company
+        self.modelContext = modelContext
     }
     
+    // Placeholder constructor for SwiftUI initialization
+    init() {
+        self.company = nil
+        self.modelContext = nil
+    }
+    
+    // Method to update dependencies after initialization
+    func configure(company: Company, modelContext: ModelContext) {
+        self.company = company
+        self.modelContext = modelContext
+    }
+    
+    // Safe accessors for dependencies
+    private var safeCompany: Company {
+        guard let company = company else {
+            fatalError("RequestProductionAccessViewModel: company not configured")
+        }
+        return company
+    }
+    
+    private var safeModelContext: ModelContext {
+        guard let modelContext = modelContext else {
+            fatalError("RequestProductionAccessViewModel: modelContext not configured")
+        }
+        return modelContext
+    }
+        
     func loadAllInvoices() {
-        let id = company.id
+        guard let company = company, let modelContext = modelContext else { return }
+        let id = safeCompany.id
         let _fetchAll = FetchDescriptor<Invoice>(predicate: #Predicate{
             $0.customer?.companyOwnerId == id
         })
         
-        let _invoices = try? modelContext.fetch(_fetchAll)
+        let _invoices = try? safeModelContext.fetch(_fetchAll)
         
         let fetchCustomers = FetchDescriptor<Customer>(predicate: #Predicate{
             $0.companyOwnerId == id &&
@@ -90,14 +124,14 @@ extension PreProdStep1{
             $0.codActividad != ""
         })
                                                        
-        let _customers = try? modelContext.fetch(fetchCustomers)
+        let _customers = try? safeModelContext.fetch(fetchCustomers)
         
         
        
 //
         
-        viewModel.invoices = _invoices ?? []
-        viewModel.customers = _customers ?? []
+        self.invoices = _invoices ?? []
+        self.customers = _customers ?? []
     }
     
     func generateAndSendInvoices() {
@@ -111,71 +145,89 @@ extension PreProdStep1{
         // This method now acts as a coordinator for all invoice types
         var processed = false
         
-        if !viewModel.hasProcessedFacturas {
+        if !self.hasProcessedFacturas {
             generateFacturas()
             processed = true
         }
         
-        if !viewModel.hasProcessedCCF {
+        if !self.hasProcessedCCF {
             generateCreditosFiscales()
             processed = true
         }
         
-        if !viewModel.hasProcessedCreditNotes {
+        if !self.hasProcessedCreditNotes {
             generateCreditNotes()
             processed = true
         }
         
         if processed {
-            try? modelContext.save()
-            viewModel.alertMessage = "Se generaron facturas con datos de prueba."
+            try? safeModelContext.save()
+            self.alertMessage = "Se generaron facturas con datos de prueba."
         } else {
-            viewModel.alertMessage = "Todos los tipos de documentos ya han sido procesados."
+            self.alertMessage = "Todos los tipos de documentos ya han sido procesados."
         }
         
-        viewModel.showAlert = true
-        ValidateProductionAccount()
+        self.showAlert = true
+        validateProductionAccount()
     }
     
     func validateCertificateCredentialasAsync() async  {
-        viewModel.isLoadingCertificateStatus = true
+        self.isLoadingCertificateStatus = true
+        // Reset error state when starting validation
+        self.showCertificateInvalidMessage = false
         
         let service = InvoiceServiceClient()
         
-        
-        let result = try? await service.validateCertificate(nit: company.nit, key: company.certificatePassword,isProduction: company.isProduction)
-        
-        print("Certificate Validation Result: \(String(describing: result))")
-        
-        if(result == nil || result! == false){
+        do {
+            let result = try await service.validateCertificate(nit: safeCompany.nit, key: safeCompany.certificatePassword, isProduction: safeCompany.isProduction)
             
-            viewModel.showCertificateInvalidMessage = true
+            print("Certificate Validation Result: \(result)")
+            
+            if result == false {
+                self.showCertificateInvalidMessage = true
+                print("❌ Certificate validation failed - invalid credentials")
+            } else {
+                self.showCertificateInvalidMessage = false
+                print("✅ Certificate validation successful")
+            }
+        } catch {
+            // Network or other errors
+            self.showCertificateInvalidMessage = true
+            print("❌ Certificate validation error: \(error)")
         }
-        else{
-            viewModel.showCertificateInvalidMessage = false
-        }
-        viewModel.isLoadingCertificateStatus = false
+        
+        self.isLoadingCertificateStatus = false
     }
     
     func validateCredentialsAsync() async  {
-        viewModel.isLoadingCredentialsStatus = true
+        self.isLoadingCredentialsStatus = true
+        // Reset error state when starting validation
+        self.showCredentialsInvalidMessage = false
         
         let service = InvoiceServiceClient()
         
-        let result = try? await service.validateCredentials(nit: company.nit,
-                                                            password: company.credentials,
-                                                            isProduction: company.isProduction,
-                                                            forceRefresh: false)
-        print("Credentials Validation Result: \(String(describing: result))")
-        
-        if( result == nil || result! == false){
-            viewModel.showCredentialsInvalidMessage = true
+        do {
+            let result = try await service.validateCredentials(nit: safeCompany.nit,
+                                                                password: safeCompany.credentials,
+                                                                isProduction: safeCompany.isProduction,
+                                                                forceRefresh: false)
+            
+            print("Credentials Validation Result: \(result)")
+            
+            if result == false {
+                self.showCredentialsInvalidMessage = true
+                print("❌ Credentials validation failed - invalid credentials")
+            } else {
+                self.showCredentialsInvalidMessage = false
+                print("✅ Credentials validation successful")
+            }
+        } catch {
+            // Network or other errors
+            self.showCredentialsInvalidMessage = true
+            print("❌ Credentials validation error: \(error)")
         }
-        else{
-            viewModel.showCredentialsInvalidMessage = false
-        }
         
-        viewModel.isLoadingCredentialsStatus = false
+        self.isLoadingCredentialsStatus = false
     }
     
     // Helper method to prepare customers and products
@@ -185,14 +237,14 @@ extension PreProdStep1{
         loadAllInvoices()
        
         // Only create customers and products if they haven't been created yet
-        if viewModel.customers.isEmpty {
+        if self.customers.isEmpty {
             let firstNames = ["Juan", "María", "Carlos", "Ana", "Luis", "Sofía", "Miguel", "Lucía", "Javier", "Isabel"]
             let lastNames = ["Pérez", "García", "Rodríguez", "López", "Martínez", "Hernández", "González", "Ramírez", "Sánchez", "Torres"]
-            viewModel.customers = (1...5).map { i in
+            self.customers = (1...5).map { i in
                 let firstName = firstNames.randomElement()!
                 let lastName = lastNames.randomElement()!
                 let c = Customer(firstName: firstName, lastName: lastName, nationalId: "03721600\(i)", email: "\(firstName.lowercased())\(i)@yopmail.com", phone: "7700120\(i)")
-                c.companyOwnerId = company.id
+                c.companyOwnerId = safeCompany.id
                 c.departamento = "San Salvador"
                 c.departamentoCode = "06"
                 c.municipioCode = "14"
@@ -202,17 +254,17 @@ extension PreProdStep1{
                 c.descActividad = "Publicidad"
                 c.codActividad = "73100"
                 // Set sync status based on company type - since this is for production test data, it should sync
-                c.shouldSyncToCloudKit = !company.isTestAccount
+                c.shouldSyncToCloudKit = !safeCompany.isTestAccount
                 return c
             }
         }
         
-        if viewModel.products.isEmpty {
-            viewModel.products = (1...7).map { i in
+        if self.products.isEmpty {
+            self.products = (1...7).map { i in
                 let p = Product(productName: "Producto\(i)", unitPrice: Decimal(Double.random(in: 1...100)))
-                p.companyId = company.id
+                p.companyId = safeCompany.id
                 // Set sync status based on company type - since this is for production test data, it should sync
-                p.shouldSyncToCloudKit = !company.isTestAccount
+                p.shouldSyncToCloudKit = !safeCompany.isTestAccount
                 return p
             }
         }
@@ -220,76 +272,76 @@ extension PreProdStep1{
     
     // Generate Facturas
     func generateFacturas(forceGenerate: Bool = false) {
-        if !forceGenerate && viewModel.invoices.count(where: { $0.invoiceType == .Factura && $0.status == .Completada }) >= viewModel.totalInvoices {
-            viewModel.hasProcessedFacturas = true
-            viewModel.alertMessage = "Ya existen suficientes Facturas completadas."
-            viewModel.showAlert = true
+        if !forceGenerate && self.invoices.count(where: { $0.invoiceType == .Factura && $0.status == .Completada }) >= self.totalInvoices {
+            self.hasProcessedFacturas = true
+            self.alertMessage = "Ya existen suficientes Facturas completadas."
+            self.showAlert = true
             return
         }
         
         var invoiceIndex = getNextInoviceNumber()
         
-        for _ in 1...viewModel.totalInvoices {  
-            let customer = viewModel.customers.randomElement()!
+        for _ in 1...self.totalInvoices {  
+            let customer = self.customers.randomElement()!
             let invoiceNumber = String(format: "%05d", invoiceIndex)
             let invoice = Invoice(invoiceNumber: invoiceNumber, date: Date(), status: .Nueva, customer: customer, invoiceType: .Factura)
-            invoice.items = viewModel.products.map { product in
+            invoice.items = self.products.map { product in
                 InvoiceDetail(quantity: Decimal(Int.random(in: 1...5)), product: product)
             }
             // Set sync status based on company type
-            invoice.shouldSyncToCloudKit = !company.isTestAccount
+            invoice.shouldSyncToCloudKit = !safeCompany.isTestAccount
             invoiceIndex += 1
-            //modelContext.insert(invoice)
-            viewModel.generatedInvoices.append(invoice)
+            //safeModelContext.insert(invoice)
+            self.generatedInvoices.append(invoice)
             //return invoice
         }
         
-        //try? modelContext.save()
+        //try? safeModelContext.save()
         
-        viewModel.hasProcessedFacturas = true
-        viewModel.alertMessage = "Se generaron \(viewModel.totalInvoices) Facturas con datos de prueba."
-        viewModel.showAlert = true
+        self.hasProcessedFacturas = true
+        self.alertMessage = "Se generaron \(self.totalInvoices) Facturas con datos de prueba."
+        self.showAlert = true
     }
     
     // Generate Creditos Fiscales
     func generateCreditosFiscales(forceGenerate: Bool = false) {
-        if !forceGenerate && viewModel.invoices.count(where: { $0.invoiceType == .CCF && $0.status == .Completada }) >= viewModel.totalInvoices {
-            viewModel.hasProcessedCCF = true
-            viewModel.alertMessage = "Ya existen suficientes Créditos Fiscales completados."
-            viewModel.showAlert = true
+        if !forceGenerate && self.invoices.count(where: { $0.invoiceType == .CCF && $0.status == .Completada }) >= self.totalInvoices {
+            self.hasProcessedCCF = true
+            self.alertMessage = "Ya existen suficientes Créditos Fiscales completados."
+            self.showAlert = true
             return
         }
         
         var invoiceIndex = getNextInoviceNumber()
         
-        for _ in 1...viewModel.totalInvoices { 
-            let customer = viewModel.customers.randomElement()!
+        for _ in 1...self.totalInvoices { 
+            let customer = self.customers.randomElement()!
             let invoiceNumber = String(format: "%05d", invoiceIndex)
             let ccf = Invoice(invoiceNumber: invoiceNumber, date: Date(), status: .Nueva, customer: customer, invoiceType: .CCF)
-            ccf.items = viewModel.products.map { product in
+            ccf.items = self.products.map { product in
                 InvoiceDetail(quantity: Decimal(Int.random(in: 1...5)), product: product)
             }
             // Set sync status based on company type
-            ccf.shouldSyncToCloudKit = !company.isTestAccount
+            ccf.shouldSyncToCloudKit = !safeCompany.isTestAccount
             invoiceIndex += 1
-            viewModel.generatedInvoices.append(ccf)
-            //modelContext.insert(ccf)
+            self.generatedInvoices.append(ccf)
+            //safeModelContext.insert(ccf)
             //return ccf
         }
         
-        //try? modelContext.save()
+        //try? safeModelContext.save()
         
-        viewModel.hasProcessedCCF = true
-        viewModel.alertMessage = "Se generaron \(viewModel.totalInvoices) Créditos Fiscales con datos de prueba."
-        viewModel.showAlert = true
+        self.hasProcessedCCF = true
+        self.alertMessage = "Se generaron \(self.totalInvoices) Créditos Fiscales con datos de prueba."
+        self.showAlert = true
     }
     
     // Generate Credit Notes
     func generateCreditNotes(forceGenerate: Bool = false) {
-        if !forceGenerate && viewModel.invoices.count(where: { $0.invoiceType == .NotaCredito && $0.status == .Completada }) >= 50 {
-            viewModel.hasProcessedCreditNotes = true
-            viewModel.alertMessage = "Ya existen suficientes Notas de Crédito completadas."
-            viewModel.showAlert = true
+        if !forceGenerate && self.invoices.count(where: { $0.invoiceType == .NotaCredito && $0.status == .Completada }) >= 50 {
+            self.hasProcessedCreditNotes = true
+            self.alertMessage = "Ya existen suficientes Notas de Crédito completadas."
+            self.showAlert = true
             return
         }
         
@@ -297,7 +349,7 @@ extension PreProdStep1{
         let calendar = Calendar.current
         _ = calendar.startOfDay(for: Date())
         
-        let hasCCFAvailable = viewModel.invoices.count(where: { 
+        let hasCCFAvailable = self.invoices.count(where: { 
             $0.invoiceType == .CCF && 
             $0.status == .Nueva && 
             calendar.isDate($0.date, inSameDayAs: Date())
@@ -309,7 +361,7 @@ extension PreProdStep1{
         }
         
         // Filter to get only today's CCF invoices for credit notes
-        let ccfInvoices = viewModel.invoices.filter { 
+        let ccfInvoices = self.invoices.filter { 
             $0.invoiceType == .CCF && 
             $0.status == .Nueva &&
             calendar.isDate($0.date, inSameDayAs: Date())
@@ -320,42 +372,42 @@ extension PreProdStep1{
         // If we don't have enough from today, create a new CCF then a note
         if ccfInvoices.count < 50 {
             // Use a simple for loop instead of map
-            for _ in 1...viewModel.totalInvoices {
+            for _ in 1...self.totalInvoices {
                 // Create a new CCF
-                let customer = viewModel.customers.randomElement()!
+                let customer = self.customers.randomElement()!
                 let invoiceNumber = String(format: "%05d", invoiceIndex)
                 let ccf = Invoice(invoiceNumber: invoiceNumber, date: Date(), status: .Nueva, customer: customer, invoiceType: .CCF)
                 
                 // Add items to the CCF
-                ccf.items = viewModel.products.map { product in
+                ccf.items = self.products.map { product in
                     InvoiceDetail(quantity: Decimal(Int.random(in: 1...5)), product: product)
                 }
                 // Set sync status based on company type
-                ccf.shouldSyncToCloudKit = !company.isTestAccount
+                ccf.shouldSyncToCloudKit = !safeCompany.isTestAccount
                 invoiceIndex += 1
                 
                 // Set control numbers
                 Extensions.generateControlNumberAndCode(ccf)
                 
-                viewModel.generatedInvoices.append(ccf)
+                self.generatedInvoices.append(ccf)
                 
                 // Create a credit note for this CCF
                 let note = generateCreditNotefromInvoice(ccf, invoiceNumber: String(format: "%05d", invoiceIndex))
                 invoiceIndex += 1
-                viewModel.generatedInvoices.append(note)
+                self.generatedInvoices.append(note)
             }
         } else {
             // Use existing CCF invoices
             for ccf in ccfInvoices {
                 let note = generateCreditNotefromInvoice(ccf, invoiceNumber: String(format: "%05d", invoiceIndex))
                 invoiceIndex += 1
-                viewModel.generatedInvoices.append(note)
+                self.generatedInvoices.append(note)
             }
         }
         
-        viewModel.hasProcessedCreditNotes = true
-        viewModel.alertMessage = "Se generaron 50 Notas de Crédito con datos de prueba."
-        viewModel.showAlert = true
+        self.hasProcessedCreditNotes = true
+        self.alertMessage = "Se generaron 50 Notas de Crédito con datos de prueba."
+        self.showAlert = true
     }
     
     func generateCreditNotefromInvoice(_ invoice: Invoice, invoiceNumber: String) -> Invoice{
@@ -386,31 +438,41 @@ extension PreProdStep1{
         note.relatedDocumentDate = invoice.date
         
         // Set sync status based on company type
-        note.shouldSyncToCloudKit = !company.isTestAccount
+        note.shouldSyncToCloudKit = !safeCompany.isTestAccount
         
-//        modelContext.insert(note)
-//        try? modelContext.save()
+//        safeModelContext.insert(note)
+//        try? safeModelContext.save()
         
         return note
     }
     
-    func sendInvoices() {
-        viewModel.isSyncing = true
-        viewModel.progress = 0.0
+    func sendInvoices(onCompletion: (() -> Void)? = nil) {
+        self.isSyncing = true
+        self.progress = 0.0
         Task {
             await validateCertificateCredentialasAsync()
             await validateCredentialsAsync()
             
-            if viewModel.showCertificateInvalidMessage || viewModel.showCredentialsInvalidMessage{
-                viewModel.alertMessage = "Por favor verifica los datos de tu certificado y las credenciales de hacienda"
-                viewModel.showAlert = true
+            if self.showCertificateInvalidMessage || self.showCredentialsInvalidMessage{
+                var errorMessage = "Error de validación: "
+                if self.showCertificateInvalidMessage && self.showCredentialsInvalidMessage {
+                    errorMessage += "Verifica los datos del certificado y las credenciales de hacienda"
+                } else if self.showCertificateInvalidMessage {
+                    errorMessage += "Verifica los datos del certificado (NIT y contraseña)"
+                } else {
+                    errorMessage += "Verifica las credenciales de hacienda"
+                }
+                
+                self.alertMessage = errorMessage
+                self.showAlert = true
+                self.isSyncing = false
                 return
             }
             
-            for (index, invoice) in viewModel.generatedInvoices.enumerated() {
+            for (index, invoice) in self.generatedInvoices.enumerated() {
                 
                 if invoice.status == .Completada {
-                    viewModel.progress = Double(index + 1) / Double(viewModel.invoices.count)
+                    self.progress = Double(index + 1) / Double(self.invoices.count)
                     continue
                 }
                 
@@ -423,70 +485,80 @@ extension PreProdStep1{
                 } catch {
                     print("ERROR SYNCING INVOICE: \(error)")
                 }
-                viewModel.progress = Double(index + 1) / Double(viewModel.invoices.count)
+                self.progress = Double(index + 1) / Double(self.invoices.count)
             }
-            viewModel.isSyncing = false
-            viewModel.alertMessage = "Facturas enviadas y completadas."
-            viewModel.showAlert = true
-            viewModel.hasCompleted = true
+            self.isSyncing = false
+            self.alertMessage = "Facturas enviadas y completadas."
+            self.showAlert = true
+            self.hasCompleted = true
+            
+            // Call completion callback if process was successful
+            if let onCompletion = onCompletion {
+                print("✅ RequestProductionAccess: SendInvoices completed successfully, calling completion callback")
+                onCompletion()
+            }
         }
     }
     
-    func ValidateProductionAccount() {
+    func validateProductionAccount(onCompletion: (() -> Void)? = nil) {
         
         
-        let nit = company.nit
+        let nit = safeCompany.nit
         let _fetchRequest = FetchDescriptor<Company>(predicate: #Predicate{
             $0.nit == nit && $0.isTestAccount == false
         })
         do {
-            let productionAccounts = try modelContext.fetch(_fetchRequest)
+            let productionAccounts = try safeModelContext.fetch(_fetchRequest)
             if !productionAccounts.isEmpty {
-                viewModel.alertMessage = "La cuenta de producción ya está configurada."
+                self.alertMessage = "La cuenta de producción ya está configurada."
             } else {
                 let productionCompanyAccount = Company(
-                    nit: company.nit,
-                    nrc: company.nrc,
-                    nombre: company.nombre,
-                    descActividad: company.descActividad,
-                    nombreComercial: company.nombreComercial,
-                    tipoEstablecimiento: company.tipoEstablecimiento,
-                    establecimiento: company.establecimiento,
-                    telefono: company.telefono,
-                    correo: company.correo,
-                    codEstableMH: company.codEstableMH,
-                    codEstable: company.codEstable,
-                    codPuntoVentaMH: company.codPuntoVentaMH,
-                    codPuntoVenta: company.codPuntoVenta,
-                    departamento: company.departamento,
-                    municipio: company.municipio,
-                    complemento: company.complemento,
-                    invoiceLogo: company.invoiceLogo,
-                    departamentoCode: company.departamentoCode,
-                    municipioCode: company.municipioCode,
-                    codActividad: company.codActividad,
-                    certificatePath: company.certificatePath,
-                    certificatePassword: company.certificatePassword,
-                    credentials: company.credentials,
+                    nit: safeCompany.nit,
+                    nrc: safeCompany.nrc,
+                    nombre: safeCompany.nombre,
+                    descActividad: safeCompany.descActividad,
+                    nombreComercial: safeCompany.nombreComercial,
+                    tipoEstablecimiento: safeCompany.tipoEstablecimiento,
+                    establecimiento: safeCompany.establecimiento,
+                    telefono: safeCompany.telefono,
+                    correo: safeCompany.correo,
+                    codEstableMH: safeCompany.codEstableMH,
+                    codEstable: safeCompany.codEstable,
+                    codPuntoVentaMH: safeCompany.codPuntoVentaMH,
+                    codPuntoVenta: safeCompany.codPuntoVenta,
+                    departamento: safeCompany.departamento,
+                    municipio: safeCompany.municipio,
+                    complemento: safeCompany.complemento,
+                    invoiceLogo: safeCompany.invoiceLogo,
+                    departamentoCode: safeCompany.departamentoCode,
+                    municipioCode: safeCompany.municipioCode,
+                    codActividad: safeCompany.codActividad,
+                    certificatePath: safeCompany.certificatePath,
+                    certificatePassword: safeCompany.certificatePassword,
+                    credentials: safeCompany.credentials,
                     isTestAccount: false
                 )
-                modelContext.insert(productionCompanyAccount)
+                safeModelContext.insert(productionCompanyAccount)
                 
                 // Save context to trigger iCloud sync for the production company
                 do {
-                    try modelContext.save()
-                    viewModel.alertMessage = "La cuenta de producción ha sido creada y configurada."
+                    try safeModelContext.save()
+                    self.alertMessage = "La cuenta de producción ha sido creada y configurada."
                 } catch {
-                    viewModel.alertMessage = "Error al guardar la cuenta de producción: \(error.localizedDescription)"
+                    self.alertMessage = "Error al guardar la cuenta de producción: \(error.localizedDescription)"
                 }
             }
         } catch {
-            viewModel.alertMessage = "Error al verificar la cuenta de producción: \(error.localizedDescription)"
+            self.alertMessage = "Error al verificar la cuenta de producción: \(error.localizedDescription)"
         }
-        viewModel.showAlert = true
+        self.showAlert = true
        
-        if viewModel.hasCompleted {
-            dismiss()
+        if self.hasCompleted {
+            // Call completion callback if process was successful
+            if let onCompletion = onCompletion {
+                print("✅ RequestProductionAccess: ValidateProductionAccount completed successfully, calling completion callback")
+                onCompletion()
+            }
         }
     }
     
@@ -495,11 +567,11 @@ extension PreProdStep1{
             let dte = GenerateInvoiceReferences(invoice)
             
             let credentials = ServiceCredentials(user: dte!.emisor.nit,
-                                                 credential: company.credentials,
-                                                 key: company.certificatePassword,
+                                                 credential: safeCompany.credentials,
+                                                 key: safeCompany.certificatePassword,
                                                  invoiceNumber: invoice.invoiceNumber)
             
-            let response = try await viewModel.invoiceService.Sync(dte: dte!, credentials: credentials,isProduction: company.isProduction)
+            let response = try await self.invoiceService.Sync(dte: dte!, credentials: credentials,isProduction: safeCompany.isProduction)
             
             
             
@@ -511,8 +583,8 @@ extension PreProdStep1{
             invoice.statusRawValue = invoice.status.id
             invoice.receptionSeal = response.selloRecibido
             
-//            modelContext.insert(invoice)
-//            try? modelContext.save()
+//            safeModelContext.insert(invoice)
+//            try? safeModelContext.save()
             
             if invoice.invoiceType == .NotaCredito {
                 
@@ -524,10 +596,10 @@ extension PreProdStep1{
                     }
                 )
                 
-                if let relatedInvoice = try? modelContext.fetch(descriptor).first{
+                if let relatedInvoice = try? safeModelContext.fetch(descriptor).first{
                     relatedInvoice.status = .Anulada
                     relatedInvoice.statusRawValue = relatedInvoice.status.id
-                    try? modelContext.save()
+                    try? safeModelContext.save()
                 }
             }
             
@@ -544,9 +616,9 @@ extension PreProdStep1{
         
         do {
             
-            let envCode  = viewModel.invoiceService.getEnvironmetCode(company.isProduction)
+            let envCode  = self.invoiceService.getEnvironmetCode(safeCompany.isProduction)
             
-            let dte = try MhClient.mapInvoice(invoice: invoice, company: company,environmentCode: envCode)
+            let dte = try MhClient.mapInvoice(invoice: invoice, company: safeCompany,environmentCode: envCode)
             
             print("DTE Numero control:\(dte.identificacion.numeroControl ?? "")")
             
@@ -559,7 +631,7 @@ extension PreProdStep1{
     
     private func getNextInoviceNumber() -> Int{
         
-        let id = company.id
+        let id = safeCompany.id
         let descriptor = FetchDescriptor<Invoice>(
             predicate: #Predicate<Invoice>{
                 $0.customer?.companyOwnerId == id
@@ -567,7 +639,7 @@ extension PreProdStep1{
             sortBy: [SortDescriptor(\.date, order: .reverse)]
         )
         
-        if let latestInvoice = try? modelContext.fetch(descriptor).first {
+        if let latestInvoice = try? safeModelContext.fetch(descriptor).first {
             if let currentNumber = Int(latestInvoice.invoiceNumber) {
                 return currentNumber
             } else {
@@ -581,17 +653,17 @@ extension PreProdStep1{
     }
     
     // Helper method to process all document types with individual progress tracking
-    func processAllDocuments(forceGenerate: Bool = false) {
-        viewModel.isProcessingAll = true
-        viewModel.isSyncing = true
+    func processAllDocuments(forceGenerate: Bool = false, onCompletion: (() -> Void)? = nil) {
+        self.isProcessingAll = true
+        self.isSyncing = true
         
         // Reset all progress and statuses
-        viewModel.facturasProgress = 0.0
-        viewModel.ccfProgress = 0.0
-        viewModel.creditNotesProgress = 0.0
-        viewModel.facturasStatus = .notStarted
-        viewModel.ccfStatus = .notStarted
-        viewModel.creditNotesStatus = .notStarted
+        self.facturasProgress = 0.0
+        self.ccfProgress = 0.0
+        self.creditNotesProgress = 0.0
+        self.facturasStatus = .notStarted
+        self.ccfStatus = .notStarted
+        self.creditNotesStatus = .notStarted
         
         prepareCustomersAndProducts()
         
@@ -605,11 +677,17 @@ extension PreProdStep1{
             await sendAllInvoicesWithProgress()
             
             await MainActor.run {
-                viewModel.isProcessingAll = false
-                viewModel.isSyncing = false
-                viewModel.alertMessage = "Se generaron y enviaron todos los documentos necesarios."
-                viewModel.showAlert = true
-                viewModel.hasCompleted = true
+                self.isProcessingAll = false
+                self.isSyncing = false
+                self.alertMessage = "Se generaron y enviaron todos los documentos necesarios."
+                self.showAlert = true
+                self.hasCompleted = true
+                
+                // Call completion callback if process was successful
+                if let onCompletion = onCompletion {
+                    print("✅ RequestProductionAccess: ProcessAllDocuments completed successfully, calling completion callback")
+                    onCompletion()
+                }
             }
         }
     }
@@ -617,84 +695,84 @@ extension PreProdStep1{
     // Individual processing methods for "todo" mode with progress tracking
     @MainActor
     private func processFacturasWithProgress(forceGenerate: Bool = false) async {
-        viewModel.facturasStatus = .generating
+        self.facturasStatus = .generating
         
-        if !forceGenerate && viewModel.invoices.count(where: { $0.invoiceType == .Factura && $0.status == .Completada }) >= viewModel.totalInvoices {
-            viewModel.hasProcessedFacturas = true
-            viewModel.facturasProgress = 1.0
-            viewModel.facturasStatus = .completed
+        if !forceGenerate && self.invoices.count(where: { $0.invoiceType == .Factura && $0.status == .Completada }) >= self.totalInvoices {
+            self.hasProcessedFacturas = true
+            self.facturasProgress = 1.0
+            self.facturasStatus = .completed
             return
         }
         
         var invoiceIndex = getNextInoviceNumber()
         
-        for i in 1...viewModel.totalInvoices {
-            let customer = viewModel.customers.randomElement()!
+        for i in 1...self.totalInvoices {
+            let customer = self.customers.randomElement()!
             let invoiceNumber = String(format: "%05d", invoiceIndex)
             let invoice = Invoice(invoiceNumber: invoiceNumber, date: Date(), status: .Nueva, customer: customer, invoiceType: .Factura)
-            invoice.items = viewModel.products.map { product in
+            invoice.items = self.products.map { product in
                 InvoiceDetail(quantity: Decimal(Int.random(in: 1...5)), product: product)
             }
             // Set sync status based on company type
-            invoice.shouldSyncToCloudKit = !company.isTestAccount
+            invoice.shouldSyncToCloudKit = !safeCompany.isTestAccount
             invoiceIndex += 1
-            viewModel.generatedInvoices.append(invoice)
+            self.generatedInvoices.append(invoice)
             
             // Update progress
-            viewModel.facturasProgress = Double(i) / Double(viewModel.totalInvoices)
+            self.facturasProgress = Double(i) / Double(self.totalInvoices)
             
             // Small delay to show progress
             try? await Task.sleep(nanoseconds: 10_000_000) // 0.01 seconds
         }
         
-        viewModel.hasProcessedFacturas = true
-        viewModel.facturasStatus = .completed
+        self.hasProcessedFacturas = true
+        self.facturasStatus = .completed
     }
     
     @MainActor
     private func processCCFWithProgress(forceGenerate: Bool = false) async {
-        viewModel.ccfStatus = .generating
+        self.ccfStatus = .generating
         
-        if !forceGenerate && viewModel.invoices.count(where: { $0.invoiceType == .CCF && $0.status == .Completada }) >= viewModel.totalInvoices {
-            viewModel.hasProcessedCCF = true
-            viewModel.ccfProgress = 1.0
-            viewModel.ccfStatus = .completed
+        if !forceGenerate && self.invoices.count(where: { $0.invoiceType == .CCF && $0.status == .Completada }) >= self.totalInvoices {
+            self.hasProcessedCCF = true
+            self.ccfProgress = 1.0
+            self.ccfStatus = .completed
             return
         }
         
         var invoiceIndex = getNextInoviceNumber()
         
-        for i in 1...viewModel.totalInvoices {
-            let customer = viewModel.customers.randomElement()!
+        for i in 1...self.totalInvoices {
+            let customer = self.customers.randomElement()!
             let invoiceNumber = String(format: "%05d", invoiceIndex)
             let ccf = Invoice(invoiceNumber: invoiceNumber, date: Date(), status: .Nueva, customer: customer, invoiceType: .CCF)
-            ccf.items = viewModel.products.map { product in
+            ccf.items = self.products.map { product in
                 InvoiceDetail(quantity: Decimal(Int.random(in: 1...5)), product: product)
             }
             // Set sync status based on company type
-            ccf.shouldSyncToCloudKit = !company.isTestAccount
+            ccf.shouldSyncToCloudKit = !safeCompany.isTestAccount
             invoiceIndex += 1
-            viewModel.generatedInvoices.append(ccf)
+            self.generatedInvoices.append(ccf)
             
             // Update progress
-            viewModel.ccfProgress = Double(i) / Double(viewModel.totalInvoices)
+            self.ccfProgress = Double(i) / Double(self.totalInvoices)
             
             // Small delay to show progress
             try? await Task.sleep(nanoseconds: 10_000_000) // 0.01 seconds
         }
         
-        viewModel.hasProcessedCCF = true
-        viewModel.ccfStatus = .completed
+        self.hasProcessedCCF = true
+        self.ccfStatus = .completed
     }
     
     @MainActor
     private func processCreditNotesWithProgress(forceGenerate: Bool = false) async {
-        viewModel.creditNotesStatus = .generating
+        self.creditNotesStatus = .generating
         
-        if !forceGenerate && viewModel.invoices.count(where: { $0.invoiceType == .NotaCredito && $0.status == .Completada }) >= 50 {
-            viewModel.hasProcessedCreditNotes = true
-            viewModel.creditNotesProgress = 1.0
-            viewModel.creditNotesStatus = .completed
+        if !forceGenerate && self.invoices.count(where: { $0.invoiceType == .NotaCredito && $0.status == .Completada }) >= 50 {
+            self.hasProcessedCreditNotes = true
+            self.creditNotesProgress = 1.0
+            self.creditNotesStatus = .completed
             return
         }
         
@@ -703,11 +781,11 @@ extension PreProdStep1{
         
         for i in 1...targetCount {
             // Create a new CCF for the credit note
-            let customer = viewModel.customers.randomElement()!
+            let customer = self.customers.randomElement()!
             let ccfNumber = String(format: "%05d", invoiceIndex)
             let ccf = Invoice(invoiceNumber: ccfNumber, date: Date(), status: .Nueva, customer: customer, invoiceType: .CCF)
             
-            ccf.items = viewModel.products.map { product in
+            ccf.items = self.products.map { product in
                 InvoiceDetail(quantity: Decimal(Int.random(in: 1...5)), product: product)
             }
             invoiceIndex += 1
@@ -715,54 +793,64 @@ extension PreProdStep1{
             
             // Mark the CCF as a helper invoice for credit notes (not to be shown in progress)
             ccf.isHelperForCreditNote = true
-            viewModel.generatedInvoices.append(ccf)
+            self.generatedInvoices.append(ccf)
             
             // Create a credit note for this CCF
             let note = generateCreditNotefromInvoice(ccf, invoiceNumber: String(format: "%05d", invoiceIndex))
             invoiceIndex += 1
-            viewModel.generatedInvoices.append(note)
+            self.generatedInvoices.append(note)
             
             // Update progress
-            viewModel.creditNotesProgress = Double(i) / Double(targetCount)
+            self.creditNotesProgress = Double(i) / Double(targetCount)
             
             // Small delay to show progress
             try? await Task.sleep(nanoseconds: 10_000_000) // 0.01 seconds
         }
         
-        viewModel.hasProcessedCreditNotes = true
-        viewModel.creditNotesStatus = .completed
+        self.hasProcessedCreditNotes = true
+        self.creditNotesStatus = .completed
     }
     
     @MainActor
     private func sendAllInvoicesWithProgress() async {
         // Update all statuses to sending
-        viewModel.facturasStatus = .sending
-        viewModel.ccfStatus = .sending
-        viewModel.creditNotesStatus = .sending
+        self.facturasStatus = .sending
+        self.ccfStatus = .sending
+        self.creditNotesStatus = .sending
         
         await validateCertificateCredentialasAsync()
         await validateCredentialsAsync()
         
-        if viewModel.showCertificateInvalidMessage || viewModel.showCredentialsInvalidMessage {
-            viewModel.facturasStatus = .error
-            viewModel.ccfStatus = .error
-            viewModel.creditNotesStatus = .error
-            viewModel.alertMessage = "Por favor verifica los datos de tu certificado y las credenciales de hacienda"
-            viewModel.showAlert = true
+        if self.showCertificateInvalidMessage || self.showCredentialsInvalidMessage {
+            self.facturasStatus = .error
+            self.ccfStatus = .error
+            self.creditNotesStatus = .error
+            
+            var errorMessage = "Error de validación: "
+            if self.showCertificateInvalidMessage && self.showCredentialsInvalidMessage {
+                errorMessage += "Verifica los datos del certificado y las credenciales de hacienda"
+            } else if self.showCertificateInvalidMessage {
+                errorMessage += "Verifica los datos del certificado (NIT y contraseña)"
+            } else {
+                errorMessage += "Verifica las credenciales de hacienda"
+            }
+            
+            self.alertMessage = errorMessage
+            self.showAlert = true
             return
         }
         
-        let totalInvoices = viewModel.generatedInvoices.count
-        let facturasCount = viewModel.generatedInvoices.filter { $0.invoiceType == .Factura }.count
+        let totalInvoices = self.generatedInvoices.count
+        let facturasCount = self.generatedInvoices.filter { $0.invoiceType == .Factura }.count
         // Exclude helper CCFs from the count that are only created for credit notes
-        let ccfCount = viewModel.generatedInvoices.filter { $0.invoiceType == .CCF && !$0.isHelperForCreditNote }.count
-        let notesCount = viewModel.generatedInvoices.filter { $0.invoiceType == .NotaCredito }.count
+        let ccfCount = self.generatedInvoices.filter { $0.invoiceType == .CCF && !$0.isHelperForCreditNote }.count
+        let notesCount = self.generatedInvoices.filter { $0.invoiceType == .NotaCredito }.count
         
         var facturasProcessed = 0
         var ccfProcessed = 0
         var notesProcessed = 0
         
-        for (index, invoice) in viewModel.generatedInvoices.enumerated() {
+        for (index, invoice) in self.generatedInvoices.enumerated() {
             if invoice.status == .Completada {
                 continue
             }
@@ -775,20 +863,20 @@ extension PreProdStep1{
                 case .Factura:
                     facturasProcessed += 1
                     if facturasCount > 0 {
-                        viewModel.facturasProgress = Double(facturasProcessed) / Double(facturasCount)
+                        self.facturasProgress = Double(facturasProcessed) / Double(facturasCount)
                     }
                 case .CCF:
                     // Only count CCF progress if it's not a helper CCF for credit notes
                     if !invoice.isHelperForCreditNote {
                         ccfProcessed += 1
                         if ccfCount > 0 {
-                            viewModel.ccfProgress = Double(ccfProcessed) / Double(ccfCount)
+                            self.ccfProgress = Double(ccfProcessed) / Double(ccfCount)
                         }
                     }
                 case .NotaCredito:
                     notesProcessed += 1
                     if notesCount > 0 {
-                        viewModel.creditNotesProgress = Double(notesProcessed) / Double(notesCount)
+                        self.creditNotesProgress = Double(notesProcessed) / Double(notesCount)
                     }
                 default:
                     break
@@ -799,40 +887,34 @@ extension PreProdStep1{
                 // Mark as error if any fails, but don't mark CCF as error for helper CCFs
                 switch invoice.invoiceType {
                 case .Factura:
-                    viewModel.facturasStatus = .error
+                    self.facturasStatus = .error
                 case .CCF:
                     // Only mark CCF as error if it's not a helper CCF for credit notes
                     if !invoice.isHelperForCreditNote {
-                        viewModel.ccfStatus = .error
+                        self.ccfStatus = .error
                     }
                 case .NotaCredito:
-                    viewModel.creditNotesStatus = .error
+                    self.creditNotesStatus = .error
                 default:
                     break
                 }
             }
             
             // Update overall progress
-            viewModel.progress = Double(index + 1) / Double(totalInvoices)
+            self.progress = Double(index + 1) / Double(totalInvoices)
         }
         
         // Mark completed statuses
-        if viewModel.facturasStatus != .error {
-            viewModel.facturasStatus = .completed
+        if self.facturasStatus != .error {
+            self.facturasStatus = .completed
         }
         // Only mark CCF as completed if there are actual CCF invoices (not just helpers)
-        if viewModel.ccfStatus != .error && ccfCount > 0 {
-            viewModel.ccfStatus = .completed
+        if self.ccfStatus != .error && ccfCount > 0 {
+            self.ccfStatus = .completed
         }
-        if viewModel.creditNotesStatus != .error {
-            viewModel.creditNotesStatus = .completed
+        if self.creditNotesStatus != .error {
+            self.creditNotesStatus = .completed
         }
     }
-
-    // Helper computed property to check if all document types are processed
-    var allProcessed: Bool {
-        return viewModel.hasProcessedFacturas && viewModel.hasProcessedCCF && viewModel.hasProcessedCreditNotes
-    }
-    
     
 }

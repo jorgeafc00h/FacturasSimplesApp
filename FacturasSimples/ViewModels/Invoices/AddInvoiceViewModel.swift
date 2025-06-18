@@ -107,19 +107,14 @@ extension AddInvoiceView {
             return
         }
         
-        // Production accounts need credit validation
+        // Production accounts need credit validation (but don't consume yet)
         guard storeKitManager.hasAvailableCredits(for: selectedCompany) else {
             showCreditsGate.wrappedValue = true
             return
         }
         
-        // Proceed with invoice creation and consume credit
+        // Proceed with invoice creation (credit will be consumed when synced)
         addInvoice()
-        
-        // Consume credit for production accounts
-        if selectedCompany.requiresPaidServices {
-            _ = storeKitManager.useInvoiceCredit(for: selectedCompany)
-        }
     }
     
     func deleteDetail(detail:InvoiceDetail){

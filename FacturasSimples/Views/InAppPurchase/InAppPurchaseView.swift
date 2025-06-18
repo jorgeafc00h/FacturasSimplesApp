@@ -10,7 +10,7 @@ import StoreKit
 
 struct InAppPurchaseView: View {
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var storeManager = StoreKitManager()
+    @EnvironmentObject var storeManager: StoreKitManager
     @State private var selectedBundle: InvoiceBundle?
     @State private var showPromoCodeView = false
     
@@ -153,7 +153,7 @@ struct InAppPurchaseView: View {
             }
             
             VStack(spacing: 12) {
-                ForEach(InvoiceBundle.allBundles, id: \.id) { bundle in
+                ForEach(InvoiceBundle.allBundles.filter{ !$0.isImplementationFee}, id: \.id) { bundle in
                     PurchaseBundleCard(
                         bundle: bundle,
                         product: storeManager.getProduct(for: bundle),

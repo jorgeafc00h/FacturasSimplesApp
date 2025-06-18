@@ -1,5 +1,30 @@
 import SwiftUI
 
+// MARK: - Helper Functions
+private func safePercentage(from value: Double) -> Int {
+    let percentage = value * 100
+    
+    // Check for invalid values (infinite or NaN)
+    if percentage.isInfinite || percentage.isNaN {
+        return 0
+    }
+    
+    // Clamp the value between 0 and 100
+    let clampedPercentage = max(0, min(100, percentage))
+    
+    return Int(clampedPercentage.rounded())
+}
+
+private func safeProgress(from value: Double) -> Double {
+    // Check for invalid values (infinite or NaN)
+    if value.isInfinite || value.isNaN {
+        return 0.0
+    }
+    
+    // Clamp the value between 0 and 1
+    return max(0.0, min(1.0, value))
+}
+
 // MARK: - Document Progress View
 struct DocumentProgressView: View {
     let title: String
@@ -27,12 +52,12 @@ struct DocumentProgressView: View {
                     .truncationMode(.tail)
             }
             
-            ProgressView(value: progress, total: 1.0)
+            ProgressView(value: safeProgress(from: progress), total: 1.0)
                 .progressViewStyle(LinearProgressViewStyle(tint: .accentColor))
                 .scaleEffect(y: 2.0)
             
             HStack {
-                Text("\(Int(progress * 100))%")
+                Text("\(safePercentage(from: progress))%")
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
@@ -80,12 +105,12 @@ struct EnhancedProgressView: View {
             }
             
             VStack(spacing: 8) {
-                ProgressView(value: animationProgress, total: 1.0)
+                ProgressView(value: safeProgress(from: animationProgress), total: 1.0)
                     .progressViewStyle(LinearProgressViewStyle(tint: showAsOverall ? .green : .accentColor))
                     .scaleEffect(y: showAsOverall ? 3.0 : 2.5)
                 
                 HStack {
-                    Text("\(Int(animationProgress * 100))%")
+                    Text("\(safePercentage(from: animationProgress))%")
                         .font(showAsOverall ? .title3 : .callout)
                         .fontWeight(showAsOverall ? .bold : .medium)
                         .foregroundColor(.secondary)
@@ -108,12 +133,12 @@ struct EnhancedProgressView: View {
         )
         .onAppear {
             withAnimation(.easeInOut(duration: 0.5)) {
-                animationProgress = progress
+                animationProgress = safeProgress(from: progress)
             }
         }
         .onChange(of: progress) { _, newValue in
             withAnimation(.easeInOut(duration: 0.3)) {
-                animationProgress = newValue
+                animationProgress = safeProgress(from: newValue)
             }
         }
     }

@@ -166,7 +166,7 @@ struct CompanyInAppPurchaseView: View {
             }
             
             VStack(spacing: 12) {
-                ForEach(InvoiceBundle.allBundles, id: \.id) { bundle in
+                ForEach(InvoiceBundle.allBundles.filter{ !$0.isImplementationFee}, id: \.id) { bundle in
                     CompanyPurchaseBundleCard(
                         bundle: bundle,
                         product: storeManager.getProduct(for: bundle),

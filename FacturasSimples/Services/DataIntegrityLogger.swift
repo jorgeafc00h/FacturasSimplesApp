@@ -70,4 +70,11 @@ class DataIntegrityLogger {
             print("[\(timestamp)] ERROR_ORPHAN_CHECK: \(error)")
         }
     }
+    
+    // Test function to verify logging is working
+    func testLogging() {
+        let timestamp = DateFormatter.localizedString(from: Date(), dateStyle: .short, timeStyle: .medium)
+        print("[\(timestamp)] 🧪 TEST_LOGGING: DataIntegrityLogger is working correctly")
+        logAppStorageState()
+    }
 }

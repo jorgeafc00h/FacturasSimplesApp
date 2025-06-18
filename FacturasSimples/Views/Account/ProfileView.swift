@@ -105,6 +105,8 @@ struct ProfileView: View {
             .onChange(of: selectedCompanyId) {
                 print("🔄 selectedCompanyId changed to: \(selectedCompanyId)")
                 loadProfileAndSelectedCompany()
+                // Refresh credits when company changes to ensure UI is current
+                storeKitManager.refreshUserCredits()
             }
             .onChange(of: companyId) {
                 print("🔄 companyId changed to: \(companyId)")
@@ -113,6 +115,8 @@ struct ProfileView: View {
             }
             .onAppear{
                 loadProfileAndSelectedCompany()
+                // Refresh credits to ensure UI shows current balance
+                storeKitManager.refreshUserCredits()
             }
         }
         content:{

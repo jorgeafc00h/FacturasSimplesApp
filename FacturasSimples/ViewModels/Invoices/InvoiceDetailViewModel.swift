@@ -166,7 +166,7 @@ extension InvoiceDetailView {
     
     
     
-    func SyncInvoice(){
+    func SyncInvoice(storeKitManager: StoreKitManager? = nil){
         
         try? modelContext.save()
         
@@ -183,6 +183,11 @@ extension InvoiceDetailView {
                     
                     udpateRelatedDocuemntFromCreditNote()
                     await viewModel.backupPDF(invoice)
+                    
+                    // Consume credit for production accounts after successful sync
+                    if let storeKitManager = storeKitManager {
+                        consumeCreditForCompletedInvoice(storeKitManager: storeKitManager)
+                    }
                 }
                 viewModel.isBusy = false
             }
@@ -209,7 +214,7 @@ extension InvoiceDetailView {
         }
     }
     
-    func deleteInvoice (){
+    func deleteInvoice() {
         if invoice.status == .Completada {
             viewModel.alertTitle = "Error"
             viewModel.alertMessage = "No se puede eliminar una factura Completada"
@@ -219,10 +224,11 @@ extension InvoiceDetailView {
         
         else{
             withAnimation{
-            modelContext.delete(invoice)
-            dismiss()
+                // No need to refund credits since they're only consumed when invoice is synced
+                modelContext.delete(invoice)
+                dismiss()
             }
-       }
+        }
     }
     
     func loadEmisor() {
@@ -336,5 +342,26 @@ extension InvoiceDetailView {
         
     }
     
+    /// Consume credit for a completed invoice
+    func consumeCreditForCompletedInvoice(storeKitManager: StoreKitManager) {
+        // Get the company associated with this invoice
+        if let customerId = invoice.customer?.companyOwnerId {
+            let descriptor = FetchDescriptor<Company>(
+                predicate: #Predicate<Company> { company in
+                    company.id == customerId
+                }
+            )
+            
+            if let company = try? modelContext.fetch(descriptor).first {
+                // Only consume credit for production companies
+                if company.requiresPaidServices && !company.isTestAccount {
+                    _ = storeKitManager.useInvoiceCredit(for: company)
+                    print("✅ Invoice completed - credit consumed for company: \(company.nombre)")
+                } else {
+                    print("ℹ️ No credit consumed - invoice is from test account or non-production company")
+                }
+            }
+        }
+    }
 }
 

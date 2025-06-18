@@ -392,7 +392,7 @@
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "4280AE8E-26C3-426C-BC0C-C83C7AA78F10"
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FacturasSimples/ViewModels/Account/RequestProductionAccessViewModel.swift"
@@ -416,7 +416,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "356"
             endingLineNumber = "356"
-            landmarkName = "body"
+            landmarkName = "allProgressView"
             landmarkType = "24">
          </BreakpointContent>
       </BreakpointProxy>

@@ -47,7 +47,7 @@ struct CompanyDetailsView : View {
         }
         .sheet(isPresented: $viewModel.showRequestProductionAccessSheet) {
             NavigationStack {
-                RequestProductionView(company: company)
+                RequestProductionView(company: company, onCompletion: handleProductionAccessCompletion)
                 
             }
         }
@@ -205,11 +205,11 @@ struct CompanyDetailsView : View {
                     viewModel.showRequestProductionAccessSheet.toggle()
                 }) {
                     MenuButton(
-                        title: "Solicitar Autorización a Producción",
-                        icon: "checkmark.seal.fill",
-                        color: Color(.darkCyan).opacity(0.95),
+                        title: viewModel.requiresToGenerateTestInvoices ? "Solicitar Autorización a Producción" : "Proceso Completado ✓",
+                        icon: viewModel.requiresToGenerateTestInvoices ? "checkmark.seal.fill" : "checkmark.circle.fill",
+                        color: viewModel.requiresToGenerateTestInvoices ? Color(.darkCyan).opacity(0.95) : Color(.green).opacity(0.95),
                         warning: viewModel.requiresToGenerateTestInvoices,
-                        warningMessage: "Inicia proceso de Autorización a Producción"
+                        warningMessage: viewModel.requiresToGenerateTestInvoices ? "Inicia proceso de Autorización a Producción" : "Proceso de autorización completado exitosamente"
                     )
                 }
             }
@@ -349,6 +349,13 @@ struct CompanyDetailsView : View {
         }
         .background(Color(UIColor.secondarySystemGroupedBackground))
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+    
+    // Handle completion of RequestProductionAccessView
+    private func handleProductionAccessCompletion() {
+        // Set requiresToGenerateTestInvoices to false to show green button
+        viewModel.requiresToGenerateTestInvoices = false
+        print("✅ Production access process completed, setting requiresToGenerateTestInvoices to false")
     }
 }
 

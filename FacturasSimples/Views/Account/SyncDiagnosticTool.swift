@@ -62,10 +62,6 @@ struct SyncDiagnosticTool: View {
                         let result = DataSyncFilterManager.shared.cleanupOrphanedData(context: modelContext)
                         print("Cleaned up \(result.customersRemoved) orphaned customers")
                     }
-                    
-                    NavigationLink("Advanced CloudKit Tools") {
-                        CloudKitDiagnosticView()
-                    }
                 }
             }
             .navigationTitle("Sync Diagnostic")

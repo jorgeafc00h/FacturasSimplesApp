@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct CreditsGateView: View {
-    @StateObject private var storeManager = StoreKitManager()
+    @EnvironmentObject var storeManager: StoreKitManager
     @State private var showPurchaseView = false
     @Environment(\.dismiss) private var dismiss
     
@@ -108,11 +108,16 @@ struct CreditsGateView: View {
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showPurchaseView) {
             InAppPurchaseView()
+                .environmentObject(storeManager)
         }
         .onChange(of: storeManager.userCredits.availableInvoices) { _, newValue in
             if newValue > 0 {
                 onProceed()
             }
+        }
+        .onAppear {
+            // Refresh credits when the gate appears to ensure current balance
+            storeManager.refreshUserCredits()
         }
     }
 }
@@ -128,6 +133,7 @@ extension View {
                 self
             } else {
                 CreditsGateView(onProceed: onProceed)
+                    .environmentObject(storeManager)
             }
         }
     }
@@ -139,5 +145,6 @@ extension View {
         CreditsGateView {
             print("Proceeding with invoice creation")
         }
+        .environmentObject(StoreKitManager())
     }
 }

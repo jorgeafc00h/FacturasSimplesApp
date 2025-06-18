@@ -66,6 +66,10 @@ import CloudKit
     var totalPurchasedCredits: Int = 0
     var lastPurchaseDate: Date?
     
+    // Implementation fee tracking - this should be per company
+    var hasImplementationFeePaid: Bool = false
+    var implementationFeePaidDate: Date?
+    
     var isProduction: Bool {
         return isTestAccount == false
     }
@@ -134,6 +138,14 @@ import CloudKit
             hasActiveSubscription = true
             subscriptionProductId = productId
             subscriptionExpiryDate = expiryDate
+        }
+    }
+    
+    // Helper method to mark implementation fee as paid for this company
+    func markImplementationFeePaid() {
+        if requiresPaidServices {
+            hasImplementationFeePaid = true
+            implementationFeePaidDate = Date()
         }
     }
     
@@ -206,6 +218,10 @@ import CloudKit
         self.availableInvoiceCredits = 0
         self.totalPurchasedCredits = 0
         self.lastPurchaseDate = nil
+        
+        // Initialize implementation fee properties
+        self.hasImplementationFeePaid = false
+        self.implementationFeePaidDate = nil
     }
 }
 
