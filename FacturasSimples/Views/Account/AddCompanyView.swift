@@ -16,34 +16,34 @@ struct AddCompanyView: View {
         
         VStack(spacing:10){
             CustomTextField(text:$company.nit,
-                            hint:"NIT",
+                            hint:"NIT *",
                             leadingIcon: "person.text.rectangle.fill",
-                            hintColor: intro.hintColor,
+                            hintColor: company.nit.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? .red : intro.hintColor,
                             keyboardType: .numberPad)
             
             CustomTextField(text:$company.nombre,
-                            hint:"Nombres y Apellidos",
+                            hint:"Nombres y Apellidos *",
                             leadingIcon:"person.fill",
-                            hintColor: intro.hintColor,
+                            hintColor: company.nombre.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? .red : intro.hintColor,
                             keyboardType: .default)
             
             CustomTextField(text:$company.nombreComercial,
-                            hint:"Nombre Comercial",
+                            hint:"Nombre Comercial *",
                             leadingIcon:"widget.small",
-                            hintColor: intro.hintColor,
+                            hintColor: company.nombreComercial.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? .red : intro.hintColor,
                             keyboardType: .default)
             
             CustomTextField(text:$company.nrc,
-                            hint:"NRC",
+                            hint:"NRC *",
                             leadingIcon: "building.columns.circle",
-                            hintColor: intro.hintColor,
+                            hintColor: company.nrc.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? .red : intro.hintColor,
                             keyboardType: .numberPad)
             
             Spacer()
             
             Spacer(minLength: 5)
         }
-        .onChange(of: [company.nit,company.nrc,company.nombreComercial]){
+        .onChange(of: [company.nit,company.nrc,company.nombreComercial, company.nombre]){
             intro.canContinue = canContinue()
         }
         .onAppear(){
@@ -57,7 +57,10 @@ struct AddCompanyView: View {
         
     }
     func canContinue()->Bool{
-        return !company.nit.isEmpty && !company.nombre.isEmpty && !company.nrc.isEmpty && !company.nombreComercial.isEmpty
+        return !company.nit.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && 
+               !company.nombre.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && 
+               !company.nrc.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && 
+               !company.nombreComercial.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
     
     func SyncCatalogsAsync() async {

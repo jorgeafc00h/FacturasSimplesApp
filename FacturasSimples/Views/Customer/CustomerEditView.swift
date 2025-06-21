@@ -23,6 +23,13 @@ struct CustomerEditView: View {
     @State var viewModel = CustomerEditViewModel()
     
     
+    var filteredMunicipios : [CatalogOption] {
+        if viewModel.departamento.isEmpty {
+             return []
+        }
+        
+        return municipios.filter( {$0.departamento  == viewModel.departamento})
+    }
     var body: some View {
         CustomerForm {
             Section(header: Text("Cliente")) {
@@ -109,7 +116,7 @@ struct CustomerEditView: View {
                     
                     Picker("Municipio",selection:$viewModel.municipio){
                         
-                        ForEach(municipios.filter{$0.departamento == viewModel.departamento},id:\.self){
+                        ForEach(filteredMunicipios,id:\.self){
                             munic in
                             Text(munic.details).tag(munic.code)
                         }

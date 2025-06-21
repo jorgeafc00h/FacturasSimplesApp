@@ -231,6 +231,12 @@ extension CustomerEditView {
         customer.departamentoCode = viewModel.departamento
         
         customer.departamento = departamentos.first(where: {$0.code == viewModel.departamento})!.details
+       _ = filteredMunicipios
+        
+        if viewModel.municipio.isEmpty{
+            viewModel.municipio = "01" 
+        }
+        
     }
     
     

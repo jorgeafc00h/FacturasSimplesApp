@@ -191,5 +191,6 @@ private struct InvoicesViewWrapper: View {
     
     var body: some View {
         InvoicesView(selectedCompanyId: $selectedCompanyId)
+            .environmentObject(StoreKitManager())
     }
 }

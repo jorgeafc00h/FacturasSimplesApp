@@ -382,4 +382,5 @@ struct ImplementationFeeView: View {
 
 #Preview {
     ImplementationFeeView(company: Company(nit: "123456789", nrc: "987654", nombre: "Empresa de Prueba"))
+        
 }

@@ -522,4 +522,5 @@ struct PurchaseBundleCard: View {
 // MARK: - Preview
 #Preview {
     InAppPurchaseView()
+        .environmentObject(StoreKitManager())
 }

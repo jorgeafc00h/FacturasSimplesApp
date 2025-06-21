@@ -24,8 +24,17 @@ struct EmisorEditView: View {
     
     @State var company: Company
     @State var viewModel = CompanyEditViewModel()
+    @State private var validationErrors: [String] = []
+    @State private var showValidationAlert = false
     
     @AppStorage("selectedCompanyName")  var selectedCompanyName : String = ""
+    
+    // Computed property to check if form is valid
+    private var isFormValid: Bool {
+        !company.nombre.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        !company.nombreComercial.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        !company.nit.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
     
     var body: some View {
         NavigationStack {
@@ -54,12 +63,16 @@ struct EmisorEditView: View {
             }
             ToolbarItem(placement: .confirmationAction) {
                 Button("Guardar") {
-                    // Save the changes using the view model
-                    Task {
-                        await saveChanges()
+                    if validateForm() {
+                        Task {
+                            await saveChanges()
+                        }
+                    } else {
+                        showValidationAlert = true
                     }
                 }
                 .fontWeight(.semibold)
+                .disabled(!isFormValid)
             }
         }
         .sheet(isPresented: $viewModel.displayCategoryPicker) {
@@ -73,6 +86,11 @@ struct EmisorEditView: View {
         }
         .alert(viewModel.message, isPresented: $viewModel.showAlertMessage) {
             Button("OK", role: .cancel) { }
+        }
+        .alert("Campos Requeridos", isPresented: $showValidationAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(validationErrors.joined(separator: "\n"))
         }
         .confirmationDialog(
             "¿Desea actualizar el certificado?",
@@ -110,16 +128,43 @@ extension EmisorEditView {
     // MARK: - Form Sections
     
     private var GeneralInformationSection: some View {
-        Section("Información General") {
-            TextField("Nombre", text: $company.nombre)
+        Section {
+            VStack(alignment: .leading, spacing: 4) {
+                TextField("Nombre *", text: $company.nombre)
+                if company.nombre.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    Text("Este campo es requerido")
+                        .font(.caption)
+                        .foregroundColor(.red)
+                }
+            }
                  
-            TextField("Nombre o Razón Social", text: $company.nombreComercial)
+            VStack(alignment: .leading, spacing: 4) {
+                TextField("Nombre Comercial / Razón Social *", text: $company.nombreComercial)
+                if company.nombreComercial.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    Text("Este campo es requerido")
+                        .font(.caption)
+                        .foregroundColor(.red)
+                }
+            }
                
-            TextField("NIT", text: $company.nit)
-                .keyboardType(.numberPad)
+            VStack(alignment: .leading, spacing: 4) {
+                TextField("NIT *", text: $company.nit)
+                    .keyboardType(.numberPad)
+                if company.nit.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    Text("Este campo es requerido")
+                        .font(.caption)
+                        .foregroundColor(.red)
+                }
+            }
             
             TextField("NRC", text: $company.nrc)
                 .keyboardType(.numberPad)
+        } header: {
+            Text("Información General")
+        } footer: {
+            Text("Los campos marcados con * son obligatorios")
+                .font(.caption)
+                .foregroundColor(.secondary)
         }
     }
     
@@ -228,6 +273,24 @@ extension EmisorEditView {
 
 extension EmisorEditView {
     // MARK: - Methods
+    
+    private func validateForm() -> Bool {
+        validationErrors.removeAll()
+        
+        if company.nombre.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            validationErrors.append("• El nombre es requerido")
+        }
+        
+        if company.nombreComercial.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            validationErrors.append("• El nombre comercial es requerido")
+        }
+        
+        if company.nit.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            validationErrors.append("• El NIT es requerido")
+        }
+        
+        return validationErrors.isEmpty
+    }
     
     @MainActor
     func saveChanges() async {

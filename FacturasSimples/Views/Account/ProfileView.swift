@@ -27,6 +27,7 @@ struct ProfileView: View {
             selectedCompanyId = companyId
         }
     }
+    @AppStorage("selectedCompanyName")  var selectedCompanyName : String = ""
     
     @AppStorage("showTestEnvironments") var testAccounts: Bool = true
     
@@ -266,6 +267,7 @@ private struct NavigationLabel : View {
 
 #Preview (traits: .sampleCompanies){
     ProfileViewWrapper()
+       
 }
 
 struct ProfileViewWrapper: View {
@@ -274,5 +276,6 @@ struct ProfileViewWrapper: View {
     
     var body: some View {
         ProfileView( selectedCompanyId: $selectedCompanyId)
+            .environmentObject(StoreKitManager())
     }
 }
