@@ -36,6 +36,8 @@ class RequestProductionAccessViewModel {
     // Dependencies
     private var company: Company?
     private var modelContext: ModelContext?
+    private var BatchLimit : Int = 75
+    private var customerBatchLimit : Int = 10
             
     var invoices: [Invoice] = []
         var generatedInvoices: [Invoice] = []
@@ -49,7 +51,7 @@ class RequestProductionAccessViewModel {
         var hasMinimumInvoices = false
         var hasCompleted: Bool = false
         
-        var totalInvoices: Int = 50
+        var totalInvoices: Int = 75
         
         // Individual progress tracking for "todo" mode
         var isProcessingAll: Bool = false
@@ -109,30 +111,7 @@ class RequestProductionAccessViewModel {
         return modelContext
     }
         
-    func loadAllInvoices() {
-        guard let company = company, let modelContext = modelContext else { return }
-        let id = safeCompany.id
-        let _fetchAll = FetchDescriptor<Invoice>(predicate: #Predicate{
-            $0.customer?.companyOwnerId == id
-        })
-        
-        let _invoices = try? safeModelContext.fetch(_fetchAll)
-        
-        let fetchCustomers = FetchDescriptor<Customer>(predicate: #Predicate{
-            $0.companyOwnerId == id &&
-            $0.nrc != "" &&
-            $0.codActividad != ""
-        })
-                                                       
-        let _customers = try? safeModelContext.fetch(fetchCustomers)
-        
-        
-       
-//
-        
-        self.invoices = _invoices ?? []
-        self.customers = _customers ?? []
-    }
+ 
     
     func generateAndSendInvoices() {
         generateInvoices()
@@ -234,13 +213,13 @@ class RequestProductionAccessViewModel {
     func prepareCustomersAndProducts()  {
         
         // Load existing invoices and customers
-        loadAllInvoices()
+        //loadAllInvoices()
        
         // Only create customers and products if they haven't been created yet
         if self.customers.isEmpty {
-            let firstNames = ["Juan", "María", "Carlos", "Ana", "Luis", "Sofía", "Miguel", "Lucía", "Javier", "Isabel"]
-            let lastNames = ["Pérez", "García", "Rodríguez", "López", "Martínez", "Hernández", "González", "Ramírez", "Sánchez", "Torres"]
-            self.customers = (1...5).map { i in
+            let firstNames = ["Juan", "María", "Carlos", "Ana", "Luis", "Sofía", "Miguel", "Lucía", "Javier", "Isabel","Diego","Marcelo", "Antonio", "Verónica", "Pedro", "Natalia"]
+            let lastNames = ["Pérez", "García", "Rodríguez", "López", "Martínez", "Hernández", "González", "Ramírez", "Sánchez", "Torres","Flores","Sequeira","Díaz","Vázquez","Jiménez","Álvarez"]
+            self.customers = (1...customerBatchLimit).map { i in
                 let firstName = firstNames.randomElement()!
                 let lastName = lastNames.randomElement()!
                 let c = Customer(firstName: firstName, lastName: lastName, nationalId: "03721600\(i)", email: "\(firstName.lowercased())\(i)@yopmail.com", phone: "7700120\(i)")
@@ -253,6 +232,7 @@ class RequestProductionAccessViewModel {
                 c.nrc = "3174"
                 c.descActividad = "Publicidad"
                 c.codActividad = "73100"
+                c.nationalId = "123456789"
                 // Set sync status based on company type - since this is for production test data, it should sync
                 c.shouldSyncToCloudKit = !safeCompany.isTestAccount
                 return c
@@ -260,7 +240,7 @@ class RequestProductionAccessViewModel {
         }
         
         if self.products.isEmpty {
-            self.products = (1...7).map { i in
+            self.products = (1...5).map { i in
                 let p = Product(productName: "Producto\(i)", unitPrice: Decimal(Double.random(in: 1...100)))
                 p.companyId = safeCompany.id
                 // Set sync status based on company type - since this is for production test data, it should sync
@@ -338,7 +318,7 @@ class RequestProductionAccessViewModel {
     
     // Generate Credit Notes
     func generateCreditNotes(forceGenerate: Bool = false) {
-        if !forceGenerate && self.invoices.count(where: { $0.invoiceType == .NotaCredito && $0.status == .Completada }) >= 50 {
+        if !forceGenerate && self.invoices.count(where: { $0.invoiceType == .NotaCredito && $0.status == .Completada }) >= BatchLimit {
             self.hasProcessedCreditNotes = true
             self.alertMessage = "Ya existen suficientes Notas de Crédito completadas."
             self.showAlert = true
@@ -353,7 +333,7 @@ class RequestProductionAccessViewModel {
             $0.invoiceType == .CCF && 
             $0.status == .Nueva && 
             calendar.isDate($0.date, inSameDayAs: Date())
-        }) >= 50
+        }) >= BatchLimit
         
         if !hasCCFAvailable {
             // Generate more CCF first if needed
@@ -365,12 +345,12 @@ class RequestProductionAccessViewModel {
             $0.invoiceType == .CCF && 
             $0.status == .Nueva &&
             calendar.isDate($0.date, inSameDayAs: Date())
-        }.suffix(50)
+        }.suffix(BatchLimit)
         
         var invoiceIndex = getNextInoviceNumber()
         
         // If we don't have enough from today, create a new CCF then a note
-        if ccfInvoices.count < 50 {
+        if ccfInvoices.count < BatchLimit {
             // Use a simple for loop instead of map
             for _ in 1...self.totalInvoices {
                 // Create a new CCF
@@ -472,7 +452,7 @@ class RequestProductionAccessViewModel {
             for (index, invoice) in self.generatedInvoices.enumerated() {
                 
                 if invoice.status == .Completada {
-                    self.progress = Double(index + 1) / Double(self.invoices.count)
+                    self.progress = Double(index + 1) / Double(self.generatedInvoices.count)
                     continue
                 }
                 
@@ -482,10 +462,18 @@ class RequestProductionAccessViewModel {
                 do {
                     try await Sync(invoice)
                     
+                    // Extract invoice type before MainActor.run to avoid capturing non-Sendable type
+                    let invoiceType = invoice.invoiceType
+                    
+                    // Update individual progress based on invoice type for single document processing
+                    await MainActor.run {
+                        updateIndividualProgress(for: invoiceType)
+                    }
+                    
                 } catch {
                     print("ERROR SYNCING INVOICE: \(error)")
                 }
-                self.progress = Double(index + 1) / Double(self.invoices.count)
+                self.progress = Double(index + 1) / Double(self.generatedInvoices.count)
             }
             self.isSyncing = false
             self.alertMessage = "Facturas enviadas y completadas."
@@ -565,6 +553,7 @@ class RequestProductionAccessViewModel {
     private func Sync(_ invoice: Invoice) async throws {
         do {
             let dte = GenerateInvoiceReferences(invoice)
+            
             
             let credentials = ServiceCredentials(user: dte!.emisor.nit,
                                                  credential: safeCompany.credentials,
@@ -914,6 +903,35 @@ class RequestProductionAccessViewModel {
         }
         if self.creditNotesStatus != .error {
             self.creditNotesStatus = .completed
+        }
+    }
+    
+    // Helper method to update individual progress during single document processing
+    private func updateIndividualProgress(for invoiceType: InvoiceType) {
+        let totalOfType: Int
+        var processedOfType: Int = 0
+        
+        switch invoiceType {
+        case .Factura:
+            totalOfType = self.generatedInvoices.filter { $0.invoiceType == .Factura }.count
+            processedOfType = self.generatedInvoices.filter { $0.invoiceType == .Factura && $0.status == .Completada }.count
+            if totalOfType > 0 {
+                self.facturasProgress = Double(processedOfType) / Double(totalOfType)
+            }
+        case .CCF:
+            totalOfType = self.generatedInvoices.filter { $0.invoiceType == .CCF && !$0.isHelperForCreditNote }.count
+            processedOfType = self.generatedInvoices.filter { $0.invoiceType == .CCF && !$0.isHelperForCreditNote && $0.status == .Completada }.count
+            if totalOfType > 0 {
+                self.ccfProgress = Double(processedOfType) / Double(totalOfType)
+            }
+        case .NotaCredito:
+            totalOfType = self.generatedInvoices.filter { $0.invoiceType == .NotaCredito }.count
+            processedOfType = self.generatedInvoices.filter { $0.invoiceType == .NotaCredito && $0.status == .Completada }.count
+            if totalOfType > 0 {
+                self.creditNotesProgress = Double(processedOfType) / Double(totalOfType)
+            }
+        default:
+            break
         }
     }
     

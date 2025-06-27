@@ -39,7 +39,7 @@ enum DTEValidationErrors: LocalizedError {
         case .fileNotFound:
             return NSLocalizedString("The data is invalid.", comment: "")
         case .stringGeneratedDoesntMatchExpectedPattern:
-            return NSLocalizedString("La cadena generada no coincide con el formato esperado.", comment: "")
+            return NSLocalizedString("el formato de hora generado no coincide con el formato esperado.", comment: "")
         case .stringPrefixCantBeEmpty:
             return NSLocalizedString("El prefijo no puede ser vacio.",comment: "")
         case .custom(let message):

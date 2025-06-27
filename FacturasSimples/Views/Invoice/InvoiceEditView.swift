@@ -84,7 +84,7 @@ struct InvoiceEditView: View {
                 }
             }
             .disabled(disableIfInvoiceTypeIsNotAvailableInOptions())
-            .pickerStyle(.segmented)
+            .pickerStyle(.menu)
             
         }
     }
@@ -171,21 +171,44 @@ struct InvoiceEditView: View {
     
    private var invoiceTotalSection : some View{
        VStack{
-           HStack{
-               Text("Sub Total:")
-               Spacer()
-               Text(invoice.subTotal.formatted(.currency(code: "USD")))
+           if invoice.invoiceType == .SujetoExcluido{
+               
+               HStack{
+                   Text("Sub Total")
+                   Spacer()
+                   Text(invoice.totalAmount.formatted(.currency(code:"USD")))
+               }
+               
+               HStack{
+                   Text("Renta Retenida:")
+                   Spacer()
+                   Text(invoice.reteRenta.formatted(.currency(code:"USD")))
+               }
+               
+               HStack{
+                   Text("Total")
+                   Spacer()
+                   Text(invoice.totalPagar.formatted(.currency(code:"USD")))
+               }
            }
-           HStack{
-               Text("IVA:")
-               Spacer()
-               Text(invoice.tax.formatted(.currency(code: "USD")))
+           else{
+               HStack{
+                   Text("Sub Total:")
+                   Spacer()
+                   Text(invoice.subTotal.formatted(.currency(code: "USD")))
+               }
+               HStack{
+                   Text("IVA:")
+                   Spacer()
+                   Text(invoice.tax.formatted(.currency(code: "USD")))
+               }
+               HStack{
+                   Text("Total:")
+                   Spacer()
+                   Text(invoice.totalAmount.formatted(.currency(code: "USD")))
+               }
            }
-           HStack{
-               Text("Total:")
-               Spacer()
-               Text(invoice.totalAmount.formatted(.currency(code: "USD")))
-           }
+           
        }
        .alert(isPresented: $viewModel.showErrorAlert) {
            Alert(

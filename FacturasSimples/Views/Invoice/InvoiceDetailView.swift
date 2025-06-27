@@ -285,15 +285,38 @@ struct InvoiceDetailView: View {
         Section{
             Group{
                 VStack(alignment: .leading) {
-                    HStack{
-                        Text("Sub Total")
-                        Spacer()
-                        Text(invoice.subTotal.formatted(.currency(code:"USD")))
+                    
+                    if invoice.invoiceType == .SujetoExcluido {
+                        HStack{
+                            Text("Sub Total")
+                            Spacer()
+                            Text(invoice.totalAmount.formatted(.currency(code:"USD")))
+                        }
+                        
+                        HStack{
+                            Text("Renta Retenida:")
+                            Spacer()
+                            Text(invoice.reteRenta.formatted(.currency(code:"USD")))
+                        }
+                        
+                        HStack{
+                            Text("Total")
+                            Spacer()
+                            Text(invoice.totalPagar.formatted(.currency(code:"USD")))
+                        }
                     }
-                    HStack{
-                        Text("Total")
-                        Spacer()
-                        Text(invoice.totalAmount.formatted(.currency(code:"USD")))
+                    else{
+                        HStack{
+                            Text("Sub Total")
+                            Spacer()
+                            Text(invoice.subTotal.formatted(.currency(code:"USD")))
+                        }
+                        
+                        HStack{
+                            Text("Total")
+                            Spacer()
+                            Text(invoice.totalAmount.formatted(.currency(code:"USD")))
+                        }
                     }
                 }
             }

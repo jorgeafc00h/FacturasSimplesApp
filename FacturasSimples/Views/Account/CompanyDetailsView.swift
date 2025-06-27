@@ -60,7 +60,8 @@ struct CompanyDetailsView : View {
             EmisorEditView(company: company)
         }
         .sheet(isPresented: $viewModel.showEditCertificateCredentials){
-            CertificateUpdate(company: company)
+            CertificateUpdate(company: company,
+                              areInvalidCredentials: $viewModel.showCertificateInvalidMessage)
         }
         .onAppear(){
             refreshLabels()

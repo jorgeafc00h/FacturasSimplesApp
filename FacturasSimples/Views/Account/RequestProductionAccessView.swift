@@ -387,10 +387,19 @@ struct PreProdStep1:View{
         VStack(spacing: 16) {
             EnhancedProgressView(
                 title: "Procesando \(selectedDocType.rawValue)",
-                progress: viewModel.progress,
+                progress: getSingleDocumentProgress(for: selectedDocType),
                 icon: selectedDocType.iconName,
                 isActive: viewModel.isSyncing
             )
+            
+            // Invoice count label
+            HStack {
+                Text(getInvoiceCountText(for: selectedDocType))
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                Spacer()
+            }
+            .padding(.horizontal)
         }
         .padding()
     }
@@ -408,6 +417,7 @@ struct PreProdStep1:View{
     private var completionButton: some View {
         Button(action: { 
             viewModel.validateProductionAccount(onCompletion: onCompletion)
+            dismiss()
         }) {
             Text("Completar")
                 .fontWeight(.bold)
@@ -485,7 +495,7 @@ struct PreProdStep1:View{
         }
         .onAppear {
             viewModel.configure(company: company, modelContext: modelContext)
-            viewModel.loadAllInvoices()
+           
         }
         .onChange(of: viewModel.isSyncing) { oldValue, newValue in
             isSyncing = newValue
@@ -597,6 +607,49 @@ struct PreProdStep1:View{
     private func confirmForceAll() {
         showCloseButton = false
         viewModel.processAllDocuments(forceGenerate: true, onCompletion: onCompletion)
+    }
+    
+    // MARK: - Helper Methods
+    
+    /// Returns the appropriate progress value for a specific document type
+    private func getSingleDocumentProgress(for docType: DocumentType) -> Double {
+        switch docType {
+        case .factura:
+            return viewModel.facturasProgress
+        case .ccf:
+            return viewModel.ccfProgress
+        case .notaCredito:
+            return viewModel.creditNotesProgress
+        case .todo:
+            return viewModel.progress // Overall progress for "todo"
+        }
+    }
+    
+    /// Returns the count text for synced and pending invoices for a specific document type
+    private func getInvoiceCountText(for docType: DocumentType) -> String {
+        let syncedCount: Int
+        let totalCount: Int
+        
+        switch docType {
+        case .factura:
+            let facturaInvoices = viewModel.generatedInvoices.filter { $0.invoiceType == .Factura }
+            syncedCount = facturaInvoices.count(where: { $0.status == .Completada })
+            totalCount = facturaInvoices.count
+        case .ccf:
+            let ccfInvoices = viewModel.generatedInvoices.filter { $0.invoiceType == .CCF && !$0.isHelperForCreditNote }
+            syncedCount = ccfInvoices.count(where: { $0.status == .Completada })
+            totalCount = ccfInvoices.count
+        case .notaCredito:
+            let creditNoteInvoices = viewModel.generatedInvoices.filter { $0.invoiceType == .NotaCredito }
+            syncedCount = creditNoteInvoices.count(where: { $0.status == .Completada })
+            totalCount = creditNoteInvoices.count
+        case .todo:
+            syncedCount = viewModel.generatedInvoices.count(where: { $0.status == .Completada })
+            totalCount = viewModel.generatedInvoices.count
+        }
+        
+        let pendingCount = totalCount - syncedCount
+        return "Sincronizadas: \(syncedCount) | Pendientes: \(pendingCount)"
     }
 }
  

@@ -18,25 +18,25 @@ struct AddCompanyView: View {
             CustomTextField(text:$company.nit,
                             hint:"NIT *",
                             leadingIcon: "person.text.rectangle.fill",
-                            hintColor: company.nit.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? .red : intro.hintColor,
+                            hintColor: getFieldColor(for: company.nit),
                             keyboardType: .numberPad)
             
             CustomTextField(text:$company.nombre,
                             hint:"Nombres y Apellidos *",
                             leadingIcon:"person.fill",
-                            hintColor: company.nombre.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? .red : intro.hintColor,
+                            hintColor: getFieldColor(for: company.nombre),
                             keyboardType: .default)
             
             CustomTextField(text:$company.nombreComercial,
                             hint:"Nombre Comercial *",
                             leadingIcon:"widget.small",
-                            hintColor: company.nombreComercial.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? .red : intro.hintColor,
+                            hintColor: getFieldColor(for: company.nombreComercial),
                             keyboardType: .default)
             
             CustomTextField(text:$company.nrc,
                             hint:"NRC *",
                             leadingIcon: "building.columns.circle",
-                            hintColor: company.nrc.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? .red : intro.hintColor,
+                            hintColor: getFieldColor(for: company.nrc),
                             keyboardType: .numberPad)
             
             Spacer()
@@ -48,7 +48,7 @@ struct AddCompanyView: View {
         }
         .onAppear(){
             intro.canContinue = canContinue()
-            intro.hintColor = .tabBar
+            // Don't set intro.hintColor here as it can interfere with validation colors
         }
         .task {await SyncCatalogsAsync() }
         
@@ -81,7 +81,13 @@ struct AddCompanyView: View {
         }
     }
     
-     
+    // MARK: - Helper Methods
+    
+    /// Returns the appropriate color for a field based on validation state
+    private func getFieldColor(for fieldValue: String) -> Color {
+        let isEmpty = fieldValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        return isEmpty ? .red : .tabBar
+    }
 }
 
 private struct ButtonPicker: View {

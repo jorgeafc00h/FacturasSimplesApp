@@ -319,6 +319,13 @@ struct LoginSectionView: View {
                         .allowsHitTesting(false)
                 }
             }
+            
+            // Terms text
+            Text("Al crear una cuenta, aceptas nuestros términos de servicio y política de privacidad")
+                .font(.caption)
+                .foregroundColor(.white.opacity(0.6))
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 20)
              
         }
         .task {
@@ -486,8 +493,8 @@ struct RegistroView: View {
             .opacity(isFormValid ? 1.0 : 0.6)
             
             // Terms text
-            Text("Al crear una cuenta, aceptas nuestros términos de servicio y política de privacidad")
-                .font(.caption)
+            Text("Al iniciar sesión con tu cuenta Apple, aceptas nuestros términos de servicio y política de privacidad")
+                .font(.footnote)
                 .foregroundColor(.white.opacity(0.6))
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 20)

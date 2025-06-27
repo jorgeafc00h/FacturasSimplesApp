@@ -111,18 +111,36 @@ class Extensions
     }
     
      
-    static func generateHourString(date: Date)throws -> String {
-        // Format the Date object to match the regex pattern
+    static func generateHourString(date: Date) throws -> String {
+        // Format the Date object to match the regex pattern with explicit locale settings
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm:ss"
+        formatter.locale = Locale(identifier: "en_US_POSIX") // Use POSIX locale to ensure consistent formatting
+        formatter.timeZone = TimeZone.current // Use current timezone
         let hourString = formatter.string(from: date)
 
         // Validate the result against the regex
-        let pattern = "^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]?$"
+        let pattern = "^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$"
         let regex = try! NSRegularExpression(pattern: pattern)
         let range = NSRange(location: 0, length: hourString.utf16.count)
+        
+        // Check if the hourString matches the regex pattern
         if regex.firstMatch(in: hourString, options: [], range: range) == nil {
+            // Generate a valid hour string as fallback
+            let components = Calendar.current.dateComponents([.hour, .minute, .second], from: date)
+            let hour = max(0, min(23, components.hour ?? 0))
+            let minute = max(0, min(59, components.minute ?? 0))
+            let second = max(0, min(59, components.second ?? 0))
             
+            let validHourString = String(format: "%02d:%02d:%02d", hour, minute, second)
+            
+            // Validate the generated string
+            let validRange = NSRange(location: 0, length: validHourString.utf16.count)
+            if regex.firstMatch(in: validHourString, options: [], range: validRange) != nil {
+                return validHourString
+            }
+            
+            // If still invalid, throw error
             throw DTEValidationErrors.stringGeneratedDoesntMatchExpectedPattern
         }
 
@@ -153,6 +171,7 @@ class Extensions
         case .Factura: return "01"
         case .CCF: return  "03"
         case .NotaCredito: return "05"
+        case .SujetoExcluido: return "14"
         }
     }
     

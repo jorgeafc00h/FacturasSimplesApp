@@ -23,7 +23,7 @@ extension CertificateUpdate{
         var showConfirmUpdatePassword: Bool = false
         
         var showValidationMessage: Bool = false
-        
+        var areValidCredentials: Bool = false
         
     }
     
@@ -55,10 +55,12 @@ extension CertificateUpdate{
                 company.certificatePassword = encryptedPassword
                 viewModel.showAlertMessage = true
                 viewModel.message = "Contraseña del certificado actualizada"
+                viewModel.areValidCredentials = true
                 try? modelContext.save()
             }
             else{
                 viewModel.showValidationMessage = true
+                viewModel.areValidCredentials = false 
                 viewModel.message = "Error al actualizar Contraseña, actualize y verifique la contraseña del certificado en el portal de Hacienda"
             }
         

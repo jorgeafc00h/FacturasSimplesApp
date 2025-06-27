@@ -11,7 +11,8 @@ struct DTE_Base: Codable {
     var resumen: Resumen
     var extensionField: ExtensionObject??
     var apendice: [Apendice]??
-
+    var sujetoExcluido: Emisor??
+    
     init(identificacion: Identificacion, documentoRelacionado: [DocumentoRelacionado]? = nil, emisor: Emisor, receptor: Receptor, otrosDocumentos: [OtroDocumento]? = nil, ventaTercero: VentaTercero? = nil, cuerpoDocumento: [CuerpoDocumento]? = nil, resumen: Resumen, extensionField: ExtensionObject? = nil, apendice: [Apendice]? = nil) {
         self.identificacion = identificacion
         self.documentoRelacionado = documentoRelacionado

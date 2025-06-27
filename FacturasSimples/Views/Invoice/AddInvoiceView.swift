@@ -14,6 +14,9 @@ struct AddInvoiceView: View {
     @Environment(\.dismiss)  var dismiss
     @Environment(\.timeZone) private var timeZone
     @EnvironmentObject var storeKitManager: StoreKitManager
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
+    
     
     @AppStorage("selectedCompanyIdentifier")  var companyIdentifier : String = ""
     @Query var companies: [Company]
@@ -26,6 +29,10 @@ struct AddInvoiceView: View {
     
     var selectedCompany: Company? {
         companies.first { $0.id == companyIdentifier }
+    }
+    
+    private var isIPad: Bool {
+        horizontalSizeClass == .regular && verticalSizeClass == .regular
     }
     
     var shouldDisableForCredits: Bool {
@@ -69,7 +76,7 @@ struct AddInvoiceView: View {
     
     var body: some View {
         
-        NavigationStack { 
+        NavigationStack {
             Form{
                 // Credits Status Section
                 Section {
@@ -80,6 +87,7 @@ struct AddInvoiceView: View {
                 CustomerSection
                 InvoiceDataSection
                 ProductDetailsSection
+                TotalSection
                 Section {
                     Button(action: { handleCreateInvoice(storeKitManager: storeKitManager, showCreditsGate: $showCreditsGate) }, label: {
                         HStack {
@@ -118,6 +126,9 @@ struct AddInvoiceView: View {
                 }
                 .environmentObject(storeKitManager)
             }
+            .onChange(of: viewModel.invoiceType){
+                getNextInoviceOrCCFNumber(invoiceType: viewModel.invoiceType)
+            }
             .onChange(of: showCreditsGate) { oldValue, newValue in
                 // Refresh credits when CreditsGateView is dismissed
                 if oldValue == true && newValue == false {
@@ -146,7 +157,7 @@ struct AddInvoiceView: View {
                 }
                 ToolbarItem(placement: .primaryAction) {
                     Button("Guardar", action: { handleCreateInvoice(storeKitManager: storeKitManager, showCreditsGate: $showCreditsGate) })
-                    .disabled(viewModel.disableAddInvoice || shouldDisableForCredits)
+                        .disabled(viewModel.disableAddInvoice || shouldDisableForCredits)
                 }
             }.accentColor(.darkCyan)
         }
@@ -155,9 +166,7 @@ struct AddInvoiceView: View {
             // Refresh credits when AddInvoiceView appears to ensure current balance
             storeKitManager.refreshUserCredits()
         }
-        .onChange(of: viewModel.invoiceType){
-            getNextInoviceOrCCFNumber(invoiceType: viewModel.invoiceType)
-        }
+       
         .onChange(of: selectedCompany?.hasImplementationFeePaid ?? false) { oldValue, newValue in
             if oldValue != newValue {
                 print("🔄 Implementation fee status changed for company: \(newValue)")
@@ -216,7 +225,6 @@ struct AddInvoiceView: View {
                         .labelsHidden()
                     
                 }
-               
                 HStack{
                     Text("Tipo Documento:")
                         .font(.caption)
@@ -228,9 +236,9 @@ struct AddInvoiceView: View {
                             Text(invoiceType.stringValue()).tag(invoiceType)
                         }
                     }
-                    //.onChange(of: viewModel.invoiceType, action: getNextInoviceOrCCFNumber(invoiceType: viewModel.invoiceType))
-                    .pickerStyle(.segmented)
+                    .pickerStyle(.menu)
                 }
+                
                 
             }
             
@@ -277,8 +285,8 @@ struct AddInvoiceView: View {
                 .frame(height: 1)
                 .background(Color("Dark-Cyan")).padding(.bottom)
             
-             TextField("Precio Unitario", value: $viewModel.unitPrice, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
-                   
+            TextField("Precio Unitario", value: $viewModel.unitPrice, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
+            
             // .padding(.vertical, 10)
             Divider()
                 .frame(height: 1)
@@ -301,9 +309,9 @@ struct AddInvoiceView: View {
                     Text("Precio mas IVA: $\(viewModel.productUnitPricePlusTax)")
                 }
                 
-               
+                
             }
-             
+            
             Button(action: AddNewProduct,label: {
                 HStack{
                     Image(systemName: "checkmark.circle.fill")
@@ -314,6 +322,48 @@ struct AddInvoiceView: View {
             }).disabled(viewModel.isDisabledAddProduct).padding(.vertical)
             
         }.buttonStyle(BorderlessButtonStyle())
+    }
+    
+    private var TotalSection : some View {
+        Section{
+            Group{
+                VStack(alignment: .leading) {
+                    
+                    if viewModel.invoiceType == .SujetoExcluido {
+                        HStack{
+                            Text("Sub Total")
+                            Spacer()
+                            Text(viewModel.totalAmount.formatted(.currency(code:"USD")))
+                        }
+                        
+                        HStack{
+                            Text("Renta Retenida:")
+                            Spacer()
+                            Text(viewModel.reteRenta.formatted(.currency(code:"USD")))
+                        }
+                        
+                        HStack{
+                            Text("Total")
+                            Spacer()
+                            Text(viewModel.totalPagar.formatted(.currency(code:"USD")))
+                        }
+                    }
+                    else{
+                        HStack{
+                            Text("Sub Total")
+                            Spacer()
+                            Text(viewModel.subTotal.formatted(.currency(code:"USD")))
+                        }
+                        
+                        HStack{
+                            Text("Total")
+                            Spacer()
+                            Text(viewModel.totalAmount.formatted(.currency(code:"USD")))
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -329,5 +379,6 @@ private struct AddInoviceViewWrapper: View {
     @State var selectedInovice: Invoice?
     var body: some View {
         AddInvoiceView(selectedInvoice: $selectedInovice)
+            .environmentObject(StoreKitManager())
     }
 }

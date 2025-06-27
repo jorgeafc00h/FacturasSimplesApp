@@ -70,7 +70,12 @@ import CloudKit
     }
     
     var subTotal: Decimal {
+        
+       
         return (totalAmount > 0 ? totalAmount - tax : 0).rounded()
+    }
+    var reteRenta: Decimal{
+        return (totalAmount > 0 ? totalAmount * 0.10 : 0)
     }
     
     var isCCF: Bool {
@@ -96,6 +101,15 @@ import CloudKit
         return isCCF ? 3 : 1
     }
     
+    var totalPagar : Decimal{
+        
+        if invoiceType == .SujetoExcluido{
+            return (totalAmount > 0 ? totalAmount - reteRenta : 0)
+        }
+        
+        return totalAmount
+    }
+   
     
     
     init(invoiceNumber: String,
@@ -157,6 +171,7 @@ enum InvoiceType: Int, Codable, CaseIterable, Identifiable, Hashable {
     case Factura
     case CCF
     case NotaCredito
+    case SujetoExcluido
     var id: Int { rawValue }
     func stringValue() -> String {
         switch(self) {
@@ -167,6 +182,8 @@ enum InvoiceType: Int, Codable, CaseIterable, Identifiable, Hashable {
             
         case .NotaCredito:
             return "NOTA DE CRÉDITO"
+        case .SujetoExcluido:
+            return "SUJETO EXCLUIDO"
         }
     }
 }

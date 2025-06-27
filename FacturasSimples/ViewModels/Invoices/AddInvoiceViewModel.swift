@@ -17,7 +17,7 @@ extension AddInvoiceView {
         
         
         var details:[InvoiceDetail] = []
-        var invoiceTypes :[InvoiceType] = [.Factura,.CCF]
+        var invoiceTypes :[InvoiceType] = [.Factura,.CCF,.SujetoExcluido]
         var invoiceStatuses :[InvoiceStatus] = [.Nueva,.Completada,.Anulada]
         
         var productName :String = ""
@@ -50,8 +50,31 @@ extension AddInvoiceView {
         var productUnitPricePlusTax: Decimal {
             return unitPrice + productPlusTax
         }
-       
-       
+        
+        // Computed properties don't sync to CloudKit (which is what we want)
+        var totalAmount: Decimal {
+            return (details).reduce(0){
+                ($0 + $1.productTotal).rounded()
+            }
+        }
+        
+         
+        var subTotal: Decimal {
+            
+           
+            return (totalAmount > 0 ? totalAmount - tax : 0).rounded()
+        }
+        var reteRenta: Decimal{
+            return (totalAmount > 0 ? totalAmount * 0.10 : 0)
+        }
+        var totalPagar : Decimal{
+            
+            if invoiceType == .SujetoExcluido{
+                return (totalAmount > 0 ? totalAmount - reteRenta : 0)
+            }
+            
+            return totalAmount
+        }
     }
     
     func addInvoice()
@@ -67,6 +90,7 @@ extension AddInvoiceView {
             if invoice.documentType.isEmpty{
                 invoice.documentType = Extensions.documentTypeFromInvoiceType(viewModel.invoiceType)
             }
+             
             
             // Set correct sync status based on company type (through customer)
             if let customerId = viewModel.customer?.companyOwnerId {
@@ -180,6 +204,7 @@ extension AddInvoiceView {
         }
     }
     func getNextInoviceOrCCFNumber(invoiceType:InvoiceType){
+       print("Get Next Invoice number \(invoiceType) ")
        let _type =  Extensions.documentTypeFromInvoiceType(invoiceType)
         let descriptor = FetchDescriptor<Invoice>(
             predicate: #Predicate<Invoice>{
@@ -191,6 +216,7 @@ extension AddInvoiceView {
         
         if let latestInvoice = try? modelContext.fetch(descriptor).first {
             if let currentNumber = Int(latestInvoice.invoiceNumber) {
+                print("# \(currentNumber)")
                 viewModel.invoiceNumber = String(format: "%05d", currentNumber + 1)
             } else {
                 viewModel.invoiceNumber = "00001"

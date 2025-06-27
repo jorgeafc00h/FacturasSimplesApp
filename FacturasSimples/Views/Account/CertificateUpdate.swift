@@ -17,14 +17,8 @@ struct CertificateUpdate: View {
     
     @Bindable var company : Company
     
-//    @Environment(\.horizontalSizeClass) var horizontalSizeClass
-//    @Environment(\.verticalSizeClass) var verticalSizeClass
-//       
+    @Binding var areInvalidCredentials: Bool
     
-//    var isIPad: Bool {
-//            horizontalSizeClass == .regular && verticalSizeClass == .regular
-//        }
-     
     var body: some View {
             ZStack {
                 Color("Marine").ignoresSafeArea()
@@ -125,6 +119,7 @@ struct CertificateUpdate: View {
                      viewModel.isValidatingCertificateCredentials = true
                      Task{
                          _ =  await updateCertCredentials()
+                         areInvalidCredentials = !viewModel.areValidCredentials
                      }
                  }
                  label: {
@@ -198,6 +193,6 @@ struct CertificateUpdateViewWrapper: View {
     @Query var companies: [Company]
    
     var body: some View {
-        CertificateUpdate(company: companies.first!)
+        CertificateUpdate(company: companies.first!,areInvalidCredentials: .constant(false))
     }
 }
