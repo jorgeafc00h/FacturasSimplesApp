@@ -8,8 +8,11 @@
 import SwiftUI
 
 struct PurchaseHistoryView: View {
-    @StateObject private var storeManager = StoreKitManager()
+    @EnvironmentObject var storeManager: StoreKitManager
     @Environment(\.dismiss) private var dismiss
+    
+    // Optional callback to handle "Browse Bundles" action
+    var onBrowseBundles: (() -> Void)? = nil
     
     var body: some View {
         NavigationView {
@@ -61,7 +64,8 @@ struct PurchaseHistoryView: View {
             }
             
             Button("Browse Bundles") {
-                // This would navigate to purchase view
+                dismiss()
+                onBrowseBundles?()
             }
             .buttonStyle(.borderedProminent)
         }
@@ -201,4 +205,5 @@ struct TransactionRow: View {
 // MARK: - Preview
 #Preview {
     PurchaseHistoryView()
+        .environmentObject(StoreKitManager())
 }

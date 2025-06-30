@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct CreditsStatusView: View {
-    @StateObject private var storeManager = StoreKitManager()
+    @EnvironmentObject var storeManager: StoreKitManager
     @State private var showPurchaseView = false
     let company: Company?
     
@@ -24,8 +24,8 @@ struct CreditsStatusView: View {
             return true
         }
         
-        // Production accounts need subscription or credits
-        return company.canCreateInvoices || storeManager.hasAvailableCredits()
+        // Use StoreKitManager's comprehensive credit checking
+        return storeManager.hasAvailableCredits(for: company)
     }
     
     var creditsText: String {
@@ -35,20 +35,31 @@ struct CreditsStatusView: View {
             return "Ilimitadas (Pruebas)"
         }
         
-        if company.isSubscriptionActive {
+        // Check for active subscriptions (company or global) - with proper validation
+        let companyHasActiveSubscription = company.hasActiveSubscription && company.isSubscriptionActive
+        let globalHasActiveSubscription = storeManager.userCredits.hasActiveSubscription && storeManager.userCredits.isSubscriptionActive
+        
+        if companyHasActiveSubscription || globalHasActiveSubscription {
             return "Ilimitadas"
         }
         
-        // Combine company credits with global promo benefits
-        var totalCredits = company.availableInvoiceCredits
-        
-        if storeManager.promoCodeService.userPromoBenefits.freeInvoicesFromPromos > 0 {
-            totalCredits += storeManager.promoCodeService.userPromoBenefits.freeInvoicesFromPromos
-        }
-        
-        if storeManager.promoCodeService.hasActivePromotionalSubscription() {
+        // Check for promotional subscriptions - with proper validation
+        let hasActivePromoSubscription = storeManager.promoCodeService.hasActivePromotionalSubscription()
+        if hasActivePromoSubscription {
             return "Ilimitadas"
         }
+        
+        // Calculate total available credits from all sources
+        var totalCredits = 0
+        
+        // Add company-specific credits
+        totalCredits += company.availableInvoiceCredits
+        
+        // Add global StoreKit credits
+        totalCredits += storeManager.userCredits.availableInvoices
+        
+        // Add promotional credits
+        totalCredits += storeManager.promoCodeService.userPromoBenefits.freeInvoicesFromPromos
         
         return "\(totalCredits) disponibles"
     }
@@ -104,9 +115,29 @@ struct CreditsStatusView: View {
         .padding(.vertical, 8)
         .background(Color(UIColor.secondarySystemBackground))
         .cornerRadius(8)
+        .onAppear {
+            // Refresh credits when view appears to ensure latest data
+            storeManager.refreshUserCredits()
+            
+            // Debug logging to help identify the issue
+            if let company = company {
+                print("🔍 CreditsStatusView Debug for company: \(company.nombreComercial)")
+                print("  • isTestAccount: \(company.isTestAccount)")
+                print("  • hasActiveSubscription: \(company.hasActiveSubscription)")
+                print("  • isSubscriptionActive: \(company.isSubscriptionActive)")
+                print("  • availableInvoiceCredits: \(company.availableInvoiceCredits)")
+                print("  • Global userCredits.hasActiveSubscription: \(storeManager.userCredits.hasActiveSubscription)")
+                print("  • Global userCredits.isSubscriptionActive: \(storeManager.userCredits.isSubscriptionActive)")
+                print("  • Global userCredits.availableInvoices: \(storeManager.userCredits.availableInvoices)")
+                print("  • hasActivePromotionalSubscription: \(storeManager.promoCodeService.hasActivePromotionalSubscription())")
+                print("  • Promo freeInvoicesFromPromos: \(storeManager.promoCodeService.userPromoBenefits.freeInvoicesFromPromos)")
+                print("  • Final creditsText: '\(creditsText)'")
+            }
+        }
         .sheet(isPresented: $showPurchaseView) {
             if showPurchaseOptions {
                 CompanyInAppPurchaseView(company: company!)
+                    .environmentObject(storeManager)
             }
         }
     }
@@ -137,6 +168,7 @@ struct CreditsStatusView: View {
             municipioCode: "05",
             codActividad: "01234"
         ).apply { $0.isTestAccount = false })
+        .environmentObject(StoreKitManager())
         
         // Test account preview
         CreditsStatusView(company: Company(
@@ -160,6 +192,7 @@ struct CreditsStatusView: View {
             municipioCode: "05",
             codActividad: "01234"
         ).apply { $0.isTestAccount = true })
+        .environmentObject(StoreKitManager())
         
         // Preview with different states
         HStack(spacing: 12) {

@@ -60,8 +60,13 @@ struct mainView : View{
             if viewModel.needsCloudKitSync && !viewModel.cloudKitSyncCompleted {
                 CloudKitInitializationView {
                     viewModel.cloudKitSyncCompleted = true
-                    // Refresh onboarding status after sync
-                    RefreshRequiresOnboardingPage()
+                    // Add small delay to ensure CloudKit data is fully synced to SwiftData
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                        // Refresh onboarding status after sync with delay
+                        Task { @MainActor in
+                            await RefreshRequiresOnboardingPage()
+                        }
+                    }
                 }
             }
             else if viewModel.requiresOnboarding{
@@ -105,7 +110,7 @@ struct mainView : View{
         .toolbarColorScheme(.dark, for: .tabBar)
         .accentColor(.darkCyan)
         .task {
-            RefreshRequiresOnboardingPage()
+            await RefreshRequiresOnboardingPage()
         }
     }
 }

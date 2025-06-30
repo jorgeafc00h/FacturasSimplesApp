@@ -34,6 +34,7 @@ struct ProfileView: View {
     
     @State var viewModel = ProfileViewModel()
     @State private var showPurchaseView = false
+    @State private var showPurchaseHistory = false
     @State private var showProductionRequestSheet = false
     @State private var companyForProductionRequest: Company?
     
@@ -244,6 +245,28 @@ struct ProfileView: View {
             })
             .background(Color("Blue-Gray"))
                 .clipShape(RoundedRectangle(cornerRadius: 1.0)).padding(.horizontal, 8.0)
+            
+            // Purchase History Button
+            Button(action: {
+                showPurchaseHistory = true
+            }, label: {
+                HStack {
+                    Image(systemName: "doc.text.fill").padding(.horizontal, 5.0)
+                        .foregroundColor(Color.white)
+                    VStack(alignment: .leading) {
+                        Text("Historial de Compras")
+                            .foregroundColor(Color.white)
+                        Text("Ver transacciones anteriores")
+                            .font(.caption)
+                            .foregroundColor(Color.white.opacity(0.8))
+                    }
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(Color.white)
+                }.padding()
+            })
+            .background(Color("Blue-Gray"))
+                .clipShape(RoundedRectangle(cornerRadius: 1.0)).padding(.horizontal, 8.0)
         }
         .sheet(isPresented: $viewModel.showOnboardingSheet) {
              
@@ -256,6 +279,12 @@ struct ProfileView: View {
             }
         .sheet(isPresented: $showPurchaseView) {
             InAppPurchaseView()
+                .environmentObject(storeKitManager)
+        }
+        .sheet(isPresented: $showPurchaseHistory) {
+            PurchaseHistoryView(onBrowseBundles: {
+                showPurchaseView = true
+            })
                 .environmentObject(storeKitManager)
         }
         .sheet(isPresented: $viewModel.showProductionCompanySelectionDialog) {

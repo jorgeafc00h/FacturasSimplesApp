@@ -223,9 +223,22 @@ class DataSyncFilterManager {
         let descriptor = FetchDescriptor<Company>()
         let companyCount = (try? context.fetchCount(descriptor)) ?? 0
         
+        // Debug logging
+        print("🏢 shouldShowOnboarding: Found \(companyCount) companies")
+        
+        if companyCount > 0 {
+            // Log details about existing companies
+            let companies = (try? context.fetch(descriptor)) ?? []
+            let productionCount = companies.filter { !$0.isTestAccount }.count
+            let testCount = companies.filter { $0.isTestAccount }.count
+            print("🏢 Company breakdown: \(productionCount) production, \(testCount) test")
+        }
+        
         // Skip onboarding if ANY companies exist (regardless of type)
         // This allows CloudKit sync to work properly
-        return companyCount == 0
+        let shouldShow = companyCount == 0
+        print("🔄 shouldShowOnboarding result: \(shouldShow)")
+        return shouldShow
     }
      
     /// Check if there are any production companies available

@@ -15,6 +15,7 @@ struct CompanyInAppPurchaseView: View {
     @StateObject private var storeManager = StoreKitManager()
     @State private var selectedBundle: InvoiceBundle?
     @State private var showPromoCodeView = false
+    @State private var showPurchaseHistory = false
     
     let company: Company
     
@@ -62,6 +63,10 @@ struct CompanyInAppPurchaseView: View {
         }
         .sheet(isPresented: $showPromoCodeView) {
             PromoCodeView()
+        }
+        .sheet(isPresented: $showPurchaseHistory) {
+            PurchaseHistoryView()
+                .environmentObject(storeManager)
         }
         .task {
             await storeManager.loadProducts()
@@ -209,6 +214,21 @@ struct CompanyInAppPurchaseView: View {
                 .cornerRadius(10)
             }
             .disabled(storeManager.isLoading)
+            
+            // Purchase History Button
+            Button(action: {
+                showPurchaseHistory = true
+            }) {
+                HStack {
+                    Image(systemName: "doc.text")
+                    Text("Ver Historial de Compras")
+                }
+                .foregroundColor(.green)
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(Color.green.opacity(0.1))
+                .cornerRadius(10)
+            }
             
             Text("Restaura compras anteriores para recuperar tus créditos de facturas para esta empresa")
                 .font(.caption)

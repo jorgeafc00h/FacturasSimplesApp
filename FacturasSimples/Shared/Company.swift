@@ -86,8 +86,8 @@ import CloudKit
             return true
         }
         
-        // Production accounts need either active subscription or available credits
-        return hasActiveSubscription || availableInvoiceCredits > 0
+        // Production accounts need either active subscription (with proper validation) or available credits
+        return isSubscriptionActive || availableInvoiceCredits > 0
     }
     
     // Helper property to check if subscription is still active
