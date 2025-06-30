@@ -392,26 +392,72 @@ class MhClient {
         var index = 1
         
         let items = (invoice.items ?? []).map { detail -> CuerpoDocumento in
-            var item = formatFromProductDetail(detail: detail, isCCF: false)
+            let item = CuerpoDocumento(
+                ivaItem: nil,
+                cantidad: detail.quantity,
+                numItem: index,
+                codigo: nil, // ???
+                codTributo: nil,
+                descripcion: detail.product?.productName ?? "Unknown Product",
+                precioUni: detail.product?.unitPrice.rounded() ?? 0,
+                ventaGravada: 0,
+                psv: 0,
+                noGravado: 0,
+                montoDescu: 0,
+                ventaNoSuj: 0,
+                uniMedida: 99, // 59 unidad, 99 otro
+                tributos: nil,
+                ventaExenta: 0,
+                tipoItem: 2, // 1 producto, 2 Servicios
+                numeroDocumento: nil,
+                compra: detail.product?.unitPrice.rounded() ?? 0,
+            )
             
-            let productTotal = (detail.quantity * (detail.product?.unitPrice ?? 0)).rounded()
-            
-            item.numeroDocumento = invoice.relatedDocumentNumber
-            item.numItem = index
-            item.ventaGravada = productTotal
+            //let productTotal = (detail.quantity * (detail.product?.unitPrice ?? 0)).rounded()
+          
             index += 1
             return item
         }
         
         let emisor = mapEmisor(company)
         
-        let resumen = mapResumenForCreditNote(invoice: invoice, items: items,isCCF: false)
+        //let total = invoice.totalAmount.asDoubleRounded
+        //let totalLabel = Extensions.numberToWords(total)
+        
+        let resumen = Resumen(
+            totalNoSuj: 0.0,
+            totalExenta: 0.0,
+            totalGravada: 0,
+            subTotalVentas: 0,
+            descuNoSuj: 0.0,
+            descuExenta: 0.0,
+            descuGravada: 0.0,
+            porcentajeDescuento: nil,
+            totalDescu: 0.0,
+            tributos: nil,
+            subTotal: invoice.totalAmount.rounded(),
+            ivaRete1: 0.0,
+            reteRenta: invoice.reteRenta.rounded(),
+            montoTotalOperacion: 0,
+            totalNoGravado: nil,
+            totalPagar: invoice.totalPagar,
+            totalLetras: Extensions.numberToWords(invoice.totalPagar.asDoubleRounded),
+            totalIva: nil,
+            saldoFavor: nil,
+            condicionOperacion: 1,
+            pagos: [
+                Pago(codigo:"99",montoPago: invoice.totalPagar,referencia: nil,plazo: nil,periodo: 0.0)
+            ],
+            //numPagoElectronico: nil,
+            ivaPerci1: nil,
+            totalCompra: invoice.totalAmount.rounded()
+        )
         
         let documentType = Extensions.documentTypeFromInvoiceType(invoice.invoiceType)
         //let version =  (documentType as NSString).integerValue
         
         let identificacion = Identificacion(
-            version: 3,// hardcoded version credit note
+            version: 1,// hardcoded version sujeto e.
             ambiente: environmentCode,
             tipoDte: documentType, //invoice.isCCF ? "03" : invoice.invoiceType == .NotaCredito ? "05" : "01",
             numeroControl: invoice.controlNumber,
@@ -427,16 +473,16 @@ class MhClient {
         )
         let customer = invoice.customer
         
-        var isCCF = !customer!.nrc.isEmpty && !customer!.nit.isEmpty
+        var isCompany = !customer!.nrc.isEmpty && !customer!.nit.isEmpty
         
-        let receptor = Receptor(
+        let sujeto = Receptor(
             nrc: customer?.nrc,
-            nombre: customer?.fullName ?? "Unknown Customer",
-            nombreComercial: isCCF ?
-            customer?.company :nil,
-            codActividad: isCCF ?
+            nombre: customer?.fullName ?? "",
+            nombreComercial: isCompany ?
+                            customer?.company :nil,
+            codActividad: isCompany ?
             customer?.codActividad : nil,
-            descActividad: isCCF ?
+            descActividad: isCompany ?
             customer?.descActividad : nil,
             direccion: Direccion(
                 departamento: customer?.departamentoCode,
@@ -444,21 +490,25 @@ class MhClient {
                 complemento: customer?.address),
             telefono: customer?.phone,
             correo : customer?.email,
-            tipoDocumento: invoice.invoiceType == .Factura ? "13" : nil,
-            numDocumento: isCCF ? nil :
-                try Extensions.formatNationalId(customer?.nationalId ?? ""),
-            nit: isCCF ? customer?.nit : nil
+            tipoDocumento: isCompany ? "36" :  "36",
+            numDocumento: isCompany ? nil :
+                customer?.nationalId ?? "",
+            nit: isCompany ? customer?.nit : nil
         )
         
         let dte = DTE_Base(
             identificacion: identificacion,
             documentoRelacionado: [],
             emisor: emisor,
-            receptor: receptor,
+            receptor: sujeto,
             otrosDocumentos: nil,
             cuerpoDocumento: items,
-            resumen: resumen
+            resumen: resumen,
+            sujetoE: sujeto
         )
+        
+        
+        
         return dte
     }
 

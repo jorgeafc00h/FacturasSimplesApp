@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 import UIKit
 
 struct ProfileView: View {
@@ -33,6 +34,8 @@ struct ProfileView: View {
     
     @State var viewModel = ProfileViewModel()
     @State private var showPurchaseView = false
+    @State private var showProductionRequestSheet = false
+    @State private var companyForProductionRequest: Company?
     
     @Binding var selectedCompanyId: String 
     
@@ -44,16 +47,6 @@ struct ProfileView: View {
     
     // MARK: - Computed Properties for Validation
     
-    /// Determines if the credits button should be disabled
-    /// Credits can only be purchased for production companies (isTestAccount = false)
-    private var isCreditsButtonDisabled: Bool {
-        // If no company is selected, disable the button
-        guard let company = defaultSectedCompany else { return true }
-        
-        // Only production companies (isTestAccount = false) can purchase credits
-        return company.isTestAccount
-    }
-    
     /// Helper to check if current company is a production company
     private var isProductionCompany: Bool {
         guard let company = defaultSectedCompany else { return false }
@@ -62,10 +55,10 @@ struct ProfileView: View {
     
     /// Dynamic subtitle for the credits button
     private var creditsButtonSubtitle: String {
-        if isCreditsButtonDisabled {
-            return "Solo disponible para empresas de producción"
-        } else {
+        if let company = defaultSectedCompany, !company.isTestAccount {
             return "\(storeKitManager.userCredits.availableInvoices) créditos disponibles"
+        } else {
+            return "Selecciona empresa de producción"
         }
     }
     
@@ -113,12 +106,27 @@ struct ProfileView: View {
                 print("🔄 companyId changed to: \(companyId)")
                 // The didSet already updates selectedCompanyId, so loadProfileAndSelectedCompany 
                 // will be called by the selectedCompanyId onChange
+            }        .onAppear{
+            loadProfileAndSelectedCompany()
+            // Refresh credits to ensure UI shows current balance
+            storeKitManager.refreshUserCredits()
+            
+            // Add notification observer for production request navigation
+            NotificationCenter.default.addObserver(
+                forName: NSNotification.Name("NavigateToProductionRequest"),
+                object: nil,
+                queue: .main
+            ) { notification in
+                if let company = notification.object as? Company {
+                    companyForProductionRequest = company
+                    showProductionRequestSheet = true
+                }
             }
-            .onAppear{
-                loadProfileAndSelectedCompany()
-                // Refresh credits to ensure UI shows current balance
-                storeKitManager.refreshUserCredits()
-            }
+        }
+        .onDisappear {
+            // Remove notification observer
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name("NavigateToProductionRequest"), object: nil)
+        }
         }
         content:{
             NavigationStack{
@@ -206,23 +214,34 @@ struct ProfileView: View {
             }) .background(Color("Blue-Gray"))
                 .clipShape(RoundedRectangle(cornerRadius: 1.0)).padding(.horizontal, 8.0)
             
-            Button(action: {showPurchaseView = true}, label: {
+            Button(action: {
+                // Check if current company is a test account
+                if let company = defaultSectedCompany, company.isTestAccount {
+                    // Show dialog to select a production company
+                    viewModel.showProductionCompanySelectionDialog = true
+                } else if defaultSectedCompany == nil {
+                    // No company selected, show production company selection
+                    viewModel.showProductionCompanySelectionDialog = true
+                } else {
+                    // Current company is production, proceed with purchase flow
+                    showPurchaseView = true
+                }
+            }, label: {
                 HStack {
                     Image(systemName: "creditcard.fill").padding(.horizontal, 5.0)
-                        .foregroundColor(isCreditsButtonDisabled ? Color.gray : Color.white)
+                        .foregroundColor(Color.white)
                     VStack(alignment: .leading) {
                         Text("Comprar Créditos")
-                            .foregroundColor(isCreditsButtonDisabled ? Color.gray : Color.white)
+                            .foregroundColor(Color.white)
                         Text(creditsButtonSubtitle)
                             .font(.caption)
-                            .foregroundColor((isCreditsButtonDisabled ? Color.gray : Color.white).opacity(0.8))
+                            .foregroundColor(Color.white.opacity(0.8))
                     }
                     Spacer()
                     Image(systemName: "chevron.right")
-                        .foregroundColor(isCreditsButtonDisabled ? Color.gray : Color.white)
+                        .foregroundColor(Color.white)
                 }.padding()
             })
-            .disabled(isCreditsButtonDisabled)
             .background(Color("Blue-Gray"))
                 .clipShape(RoundedRectangle(cornerRadius: 1.0)).padding(.horizontal, 8.0)
         }
@@ -239,12 +258,99 @@ struct ProfileView: View {
             InAppPurchaseView()
                 .environmentObject(storeKitManager)
         }
+        .sheet(isPresented: $viewModel.showProductionCompanySelectionDialog) {
+            NavigationStack {
+                ProductionCompanySelectionView(
+                    selectedCompany: $viewModel.selectedProductionCompany,
+                    onConfirm: {
+                        viewModel.showSetProductionCompanyConfirmDialog = true
+                    }
+                )
+            }
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
+        }
+        .confirmationDialog(
+            "¿Desea establecer \(viewModel.selectedProductionCompany?.nombreComercial ?? "") como empresa predeterminada para gestionar facturas y comprar créditos?",
+            isPresented: $viewModel.showSetProductionCompanyConfirmDialog,
+            titleVisibility: .visible
+        ) {
+            Button("Confirmar", action: setProductionCompanyAsDefault)
+            Button("Cancelar", role: .cancel) {
+                viewModel.selectedProductionCompany = nil
+            }
+        }
+        .sheet(isPresented: $showProductionRequestSheet) {
+            if let company = companyForProductionRequest {
+                NavigationStack {
+                    RequestProductionView(company: company) { createdProductionCompany in
+                        // On completion, handle the created production company
+                        showProductionRequestSheet = false
+                        companyForProductionRequest = nil
+                        
+                        if let productionCompany = createdProductionCompany {
+                            // Set the created production company as default
+                            setCreatedProductionCompanyAsDefault(productionCompany)
+                        } else {
+                            // Just refresh the view if no company was created
+                            loadProfileAndSelectedCompany()
+                        }
+                    }
+                }
+                .presentationDragIndicator(.visible)
+            }
+        }
         
         
     }
+    
+    // New function for setting production company as default
+    private func setProductionCompanyAsDefault() {
+        guard let company = viewModel.selectedProductionCompany else { return }
+        
+        withAnimation {
+            companyId = company.id
+            selectedCompanyId = company.id
+            selectedCompanyName = company.nombreComercial
+            defaultSectedCompany = company
+            
+            print("✅ Set production company as default: \(company.nombre)")
+            print("🏢 Company Type: \(company.isTestAccount ? "TEST" : "PRODUCTION")")
+        }
+        
+        // Close dialogs
+        viewModel.showSetProductionCompanyConfirmDialog = false
+        viewModel.showProductionCompanySelectionDialog = false
+        
+        // Refresh credits after company change
+        storeKitManager.refreshUserCredits()
+        
+        // Now show the purchase view
+        showPurchaseView = true
+    }
+    
+    // Function for setting created production company as default and showing purchase view
+    private func setCreatedProductionCompanyAsDefault(_ company: Company) {
+        withAnimation {
+            companyId = company.id
+            selectedCompanyId = company.id
+            selectedCompanyName = company.nombreComercial
+            defaultSectedCompany = company
+            
+            print("✅ Set created production company as default: \(company.nombre)")
+            print("🏢 Company Type: \(company.isTestAccount ? "TEST" : "PRODUCTION")")
+        }
+        
+        // Refresh credits after company change
+        storeKitManager.refreshUserCredits()
+        
+        // Refresh the view to update UI
+        loadProfileAndSelectedCompany()
+        
+        // Show the purchase view automatically
+        showPurchaseView = true
+    }
 }
-
- 
 
 private struct NavigationLabel : View {
     

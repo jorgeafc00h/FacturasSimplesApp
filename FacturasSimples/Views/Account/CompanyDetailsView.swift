@@ -353,10 +353,14 @@ struct CompanyDetailsView : View {
     }
     
     // Handle completion of RequestProductionAccessView
-    private func handleProductionAccessCompletion() {
+    private func handleProductionAccessCompletion(_ createdCompany: Company?) {
         // Set requiresToGenerateTestInvoices to false to show green button
         viewModel.requiresToGenerateTestInvoices = false
         print("✅ Production access process completed, setting requiresToGenerateTestInvoices to false")
+        
+        if let productionCompany = createdCompany {
+            print("✅ Production company created: \(productionCompany.nombreComercial)")
+        }
     }
 }
 

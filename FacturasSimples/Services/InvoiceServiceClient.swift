@@ -132,7 +132,12 @@ class InvoiceServiceClient
         print(jsonString)
         print("END DTE JSON")
         
-        let endpoint = getBaseUrl(isProduction)+"/document/dte/sync"
+        var endpoint = getBaseUrl(isProduction)+"/document/dte/sync"
+        
+        
+        if dte.identificacion.tipoDte == "14" {
+            endpoint = getBaseUrl(isProduction)+"/document/dte/se/sync/"
+        }
         
         guard let url = URL(string: endpoint) else {
             throw ApiErrors.invalidURL

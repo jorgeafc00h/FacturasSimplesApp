@@ -338,9 +338,7 @@ extension InvoiceDetailView {
         
     }
     
-    func invalidateDocument(){
-        
-    }
+    
     
     /// Consume credit for a completed invoice
     func consumeCreditForCompletedInvoice(storeKitManager: StoreKitManager) {

@@ -488,7 +488,7 @@ class RequestProductionAccessViewModel {
         }
     }
     
-    func validateProductionAccount(onCompletion: (() -> Void)? = nil) {
+    func validateProductionAccount(onCompletion: ((Company?) -> Void)? = nil) {
         
         
         let nit = safeCompany.nit
@@ -497,8 +497,11 @@ class RequestProductionAccessViewModel {
         })
         do {
             let productionAccounts = try safeModelContext.fetch(_fetchRequest)
+            var createdOrExistingCompany: Company?
+            
             if !productionAccounts.isEmpty {
                 self.alertMessage = "La cuenta de producción ya está configurada."
+                createdOrExistingCompany = productionAccounts.first
             } else {
                 let productionCompanyAccount = Company(
                     nit: safeCompany.nit,
@@ -532,20 +535,33 @@ class RequestProductionAccessViewModel {
                 do {
                     try safeModelContext.save()
                     self.alertMessage = "La cuenta de producción ha sido creada y configurada."
+                    createdOrExistingCompany = productionCompanyAccount
                 } catch {
                     self.alertMessage = "Error al guardar la cuenta de producción: \(error.localizedDescription)"
                 }
             }
+            
+            self.showAlert = true
+           
+            // Always call completion callback when validateProductionAccount is called
+            // regardless of hasCompleted status (which is only for invoice processing)
+            // Use DispatchQueue to ensure proper timing with alert dismissal
+            DispatchQueue.main.async {
+                if let onCompletion = onCompletion {
+                    print("✅ RequestProductionAccess: ValidateProductionAccount completed successfully, calling completion callback with company: \(createdOrExistingCompany?.nombreComercial ?? "nil")")
+                    onCompletion(createdOrExistingCompany)
+                }
+            }
         } catch {
             self.alertMessage = "Error al verificar la cuenta de producción: \(error.localizedDescription)"
-        }
-        self.showAlert = true
-       
-        if self.hasCompleted {
-            // Call completion callback if process was successful
-            if let onCompletion = onCompletion {
-                print("✅ RequestProductionAccess: ValidateProductionAccount completed successfully, calling completion callback")
-                onCompletion()
+            self.showAlert = true
+            
+            // Call completion callback with nil in case of error
+            DispatchQueue.main.async {
+                if let onCompletion = onCompletion {
+                    print("❌ RequestProductionAccess: ValidateProductionAccount failed with error, calling completion callback with nil")
+                    onCompletion(nil)
+                }
             }
         }
     }

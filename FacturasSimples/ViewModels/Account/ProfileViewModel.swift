@@ -16,6 +16,11 @@ extension ProfileView{
         
         var showAccountSummary: Bool = false 
         
+        // New state for production company selection dialog
+        var showProductionCompanySelectionDialog: Bool = false
+        var selectedProductionCompany: Company?
+        var showSetProductionCompanyConfirmDialog: Bool = false
+        
     }
     
     func returnUiImage(named: String) -> UIImage? {

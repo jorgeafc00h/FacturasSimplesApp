@@ -195,7 +195,9 @@ class Extensions
             let hasInvalidControlNumberPrefix =
             (invoice.invoiceType == .Factura && !invoice.controlNumber!.hasPrefix("DTE-01")) ||
             (invoice.invoiceType == .CCF && !invoice.controlNumber!.hasPrefix("DTE-03")) ||
-            (invoice.invoiceType == .NotaCredito && !invoice.controlNumber!.hasPrefix("DTE-05"))
+            (invoice.invoiceType == .NotaCredito && !invoice.controlNumber!.hasPrefix("DTE-05")) ||
+            (invoice.invoiceType == .SujetoExcluido && !invoice.controlNumber!.hasPrefix("DTE-14"))
+            
             
             
             if (hasInvalidControlNumberPrefix){
@@ -210,6 +212,8 @@ class Extensions
             try? Extensions.generateString(baseString: "DTE-03",pattern: nil) :
             invoice.invoiceType == .NotaCredito ?
             try? Extensions.generateString(baseString: "DTE-05",pattern: nil) :
+            invoice.invoiceType == .SujetoExcluido ?
+            try? Extensions.generateString(baseString: "DTE-14",pattern: nil) :
             try? Extensions.generateString(baseString: "DTE",pattern: "^DTE-01-[A-Z0-9]{8}-[0-9]{15}$")
         }
         

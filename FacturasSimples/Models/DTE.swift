@@ -11,9 +11,12 @@ struct DTE_Base: Codable {
     var resumen: Resumen
     var extensionField: ExtensionObject??
     var apendice: [Apendice]??
-    var sujetoExcluido: Emisor??
+    var sujetoExcluido: Receptor?
     
-    init(identificacion: Identificacion, documentoRelacionado: [DocumentoRelacionado]? = nil, emisor: Emisor, receptor: Receptor, otrosDocumentos: [OtroDocumento]? = nil, ventaTercero: VentaTercero? = nil, cuerpoDocumento: [CuerpoDocumento]? = nil, resumen: Resumen, extensionField: ExtensionObject? = nil, apendice: [Apendice]? = nil) {
+    init(identificacion: Identificacion, documentoRelacionado: [DocumentoRelacionado]? = nil, emisor: Emisor, receptor: Receptor, otrosDocumentos: [OtroDocumento]? = nil, ventaTercero: VentaTercero? = nil, cuerpoDocumento: [CuerpoDocumento]? = nil, resumen: Resumen,
+         extensionField: ExtensionObject? = nil,
+         apendice: [Apendice]? = nil,
+         sujetoE: Receptor? = nil) {
         self.identificacion = identificacion
         self.documentoRelacionado = documentoRelacionado
         self.emisor = emisor
@@ -24,6 +27,7 @@ struct DTE_Base: Codable {
         self.resumen = resumen
         self.extensionField = extensionField
         self.apendice = apendice
+        self.sujetoExcluido = sujetoE
     }
 
     enum CodingKeys: String, CodingKey {
@@ -37,6 +41,7 @@ struct DTE_Base: Codable {
         case resumen
         case extensionField = "extension"
         case apendice
+        case sujetoExcluido
     }
     
     // Custom encoder to conditionally include otrosDocumentos
@@ -73,6 +78,11 @@ struct DTE_Base: Codable {
         
         if let apendice = apendice {
             try container.encode(apendice, forKey: .apendice)
+        }
+        
+        // Conditionally encode sujetoExcluido if it's not nil
+        if let sujetoExcluido = sujetoExcluido {
+            try container.encode(sujetoExcluido, forKey: .sujetoExcluido)
         }
     }
 }
@@ -203,7 +213,7 @@ struct CuerpoDocumento: Codable {
     var ventaExenta: Decimal
     var tipoItem: Int
     var numeroDocumento: String?? = nil
-    
+    var compra: Decimal?? = nil
     
 }
  
@@ -231,6 +241,7 @@ struct Resumen: Codable {
     var pagos: [Pago]?? = nil
     var numPagoElectronico: PagoElectronico?? = nil
     var ivaPerci1 : Decimal? = nil
+    var totalCompra : Decimal?? = nil
 }
 
 struct Tributo: Codable {
@@ -242,10 +253,10 @@ struct Tributo: Codable {
   
 struct Pago: Codable {
     var codigo: String
-    var montoPago: Double
-    var referencia: String
-    var plazo: String
-    var periodo: Double
+    var montoPago: Decimal
+    var referencia: String?
+    var plazo: String?
+    var periodo: Double?
 }
 
 import Foundation

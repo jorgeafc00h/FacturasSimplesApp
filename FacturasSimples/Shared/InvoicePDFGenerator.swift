@@ -350,10 +350,10 @@ class InvoicePDFGenerator {
                 ("20 - Impuesto al Valor Agregado 13%:",invoice.isCCF ?  invoice.tax : 0),
                 ("Sub Total:", invoice.isCCF ? invoice.subTotal: invoice.totalAmount),
                 ("(-) IVA Retenido:", Decimal(0)),
-                ("(-) Retención Renta:", Decimal(0)),
+                ("(-) Retención Renta:", invoice.invoiceType == .SujetoExcluido ? invoice.reteRenta : Decimal(0)),
                 ("Monto Total de la Operación:", invoice.totalAmount),
                 ("Total Otros Montos No Afectos:", Decimal(0)),
-                ("Total a Pagar:", invoice.totalAmount)
+                ("Total a Pagar:",invoice.invoiceType == .SujetoExcluido ? invoice.totalPagar : invoice.totalAmount)
             ]
             
             for (index, (label, amount)) in summaryRows.enumerated() {
