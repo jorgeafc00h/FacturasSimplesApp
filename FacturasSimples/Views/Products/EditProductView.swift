@@ -27,6 +27,9 @@ struct EditProductView: View {
                         .keyboardType(.decimalPad)
                         .disabled(disableEditPrice)
                 }
+                
+                Toggle("Archivado", isOn: $product.archived)
+                    .foregroundColor(product.archived ? .red : .primary)
             }
             
         }

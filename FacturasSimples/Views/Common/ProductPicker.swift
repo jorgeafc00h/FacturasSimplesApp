@@ -26,24 +26,19 @@ struct ProductPicker: View {
     @AppStorage("selectedCompanyIdentifier")  var companyIdentifier : String = ""
     
     var filteredProducts: [Product] {
+        let activeProducts = products.filter { !$0.archived && $0.companyId == companyIdentifier }
+        
         if searchText.isEmpty {
-            products
+            return activeProducts
         } else {
-            products.filter{searchText.isEmpty ?
-                $0.companyId == companyIdentifier:
-                $0.productName.localizedStandardContains(searchText) &&
-                $0.companyId == companyIdentifier
-            }
+            return activeProducts.filter { $0.productName.localizedStandardContains(searchText) }
         }
     }
     
     init(details: Binding<[InvoiceDetail]>) {
         _details = details
-        let predicate = #Predicate<Product> {
-            searchText.isEmpty ?
-            $0.companyId == companyIdentifier :
-            $0.productName.localizedStandardContains(searchText) &&
-            $0.companyId == companyIdentifier
+        let predicate = #Predicate<Product> { product in
+            !product.archived && product.companyId == companyIdentifier
         }
         _products = Query(filter: predicate, sort: \Product.productName)
     }

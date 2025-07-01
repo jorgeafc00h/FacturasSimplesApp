@@ -27,6 +27,9 @@ import SwiftData
     
     var companyId: String = ""
     
+    // Archive flag to exclude products from ProductPicker
+    var archived: Bool = false
+    
     // CloudKit sync control - only sync products from production companies
     var shouldSyncToCloudKit: Bool = true  // Default to true for backwards compatibility
     
@@ -35,16 +38,22 @@ import SwiftData
         return !shouldSyncToCloudKit
     }
     
+    // Helper computed property to check if product is available for selection
+    var isAvailable: Bool {
+        return !archived
+    }
+    
     var priceWithoutTax: Decimal {
         return   unitPrice / Constants.includedTax
     }
     
-    init(productName:String,unitPrice:Decimal, productDescription:String = "",companyId:String = "")
+    init(productName:String,unitPrice:Decimal, productDescription:String = "",companyId:String = "", archived: Bool = false)
     {
         self.productName = productName
         self.unitPrice = unitPrice
         self.productDescription = ""
         self.companyId = companyId
+        self.archived = archived
     }
 }
 
