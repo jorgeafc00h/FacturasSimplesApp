@@ -46,8 +46,8 @@ struct InvoicesListView: View {
         }
         .toolbar{
             ToolbarItem(placement: .navigationBarLeading) {
-                CreditsStatusView(company: selectedCompany)
-                    .environmentObject(storeKitManager)
+//                CreditsStatusView(company: selectedCompany)
+//                    .environmentObject(storeKitManager)
             }
             
             ToolbarItemGroup(placement: .primaryAction) {

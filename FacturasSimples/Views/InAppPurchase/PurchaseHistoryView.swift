@@ -4,9 +4,12 @@
 //
 //  Created by Jorge Flores on 6/3/25.
 //
+// COMMENTED OUT FOR APP SUBMISSION - REMOVE StoreKit DEPENDENCY
+// Uncomment this entire file to re-enable in-app purchases
 
 import SwiftUI
 
+/*
 struct PurchaseHistoryView: View {
     @EnvironmentObject var storeManager: StoreKitManager
     @Environment(\.dismiss) private var dismiss
@@ -206,4 +209,15 @@ struct TransactionRow: View {
 #Preview {
     PurchaseHistoryView()
         .environmentObject(StoreKitManager())
+}
+*/
+
+// PLACEHOLDER VIEW FOR COMPILATION
+struct PurchaseHistoryView: View {
+    var onBrowseBundles: (() -> Void)? = nil
+    
+    var body: some View {
+        Text("Purchase History Disabled")
+            .navigationTitle("Historial de Compras")
+    }
 }

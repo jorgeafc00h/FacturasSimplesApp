@@ -4,10 +4,13 @@
 //
 //  Created by Jorge Flores on 6/3/25.
 //
+// COMMENTED OUT FOR APP SUBMISSION - REMOVE StoreKit DEPENDENCY
+// Uncomment this entire file to re-enable in-app purchases
 
 import Foundation
-import StoreKit
+// import StoreKit // COMMENTED OUT - Remove StoreKit dependency
 
+/*
 // MARK: - Product Types
 enum ProductType {
     case consumable
@@ -268,4 +271,49 @@ struct StoredTransaction: Codable, Identifiable {
         self.invoiceCount = transaction.invoiceCount
         self.isRestored = transaction.isRestored
     }
+}
+*/
+
+// MINIMAL ENUMS REQUIRED FOR COMPILATION
+enum PurchaseState {
+    case unknown
+    case purchasing
+    case purchased
+    case failed
+    case restored
+}
+
+// MINIMAL STRUCTS REQUIRED FOR COMPILATION
+struct UserPurchaseCredits: Codable {
+    var availableInvoices: Int = 0
+    var isSubscriptionActive: Bool = false
+    var lastPurchaseDate: Date?
+    var subscriptionExpirationDate: Date?
+    
+    init() {
+        self.availableInvoices = 0
+        self.isSubscriptionActive = false
+        self.lastPurchaseDate = nil
+        self.subscriptionExpirationDate = nil
+    }
+}
+
+// Additional placeholder structs
+struct InvoiceBundle: Identifiable, Hashable {
+    let id: String
+    let name: String
+    let description: String
+    let invoiceCount: Int
+    let basePrice: Decimal
+    
+    static let allBundles: [InvoiceBundle] = []
+    static let allProductIDs: [String] = []
+}
+
+struct StoredTransaction: Identifiable, Codable {
+    let id: String
+    let productID: String
+    let purchaseDate: Date
+    let invoiceCount: Int
+    let isRestored: Bool
 }

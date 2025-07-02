@@ -4,11 +4,14 @@
 //
 //  Created by Jorge Flores on 6/3/25.
 //
+// COMMENTED OUT FOR APP SUBMISSION - REMOVE StoreKit DEPENDENCY
+// Uncomment this entire file to re-enable in-app purchases
 
 import Foundation
-import StoreKit
+// import StoreKit // COMMENTED OUT - Remove StoreKit dependency
 import SwiftUI
 
+/*
 @MainActor
 @Observable
 class StoreKitManager: NSObject, ObservableObject {
@@ -147,6 +150,11 @@ class StoreKitManager: NSObject, ObservableObject {
     
     /// Use one invoice credit (checking promo benefits first, then subscription, then paid credits)
     func useInvoiceCredit() -> Bool {
+        // When IAP is disabled, don't consume credits
+        if FeatureFlags.shouldProvideUnlimitedCredits {
+            return true
+        }
+        
         // First, check if user has promotional subscription active
         if promoCodeService.hasActivePromotionalSubscription() {
             return true
@@ -174,6 +182,11 @@ class StoreKitManager: NSObject, ObservableObject {
     
     /// Use invoice credit with company awareness
     func useInvoiceCredit(for company: Company?) -> Bool {
+        // When IAP is disabled, don't consume credits
+        if FeatureFlags.shouldProvideUnlimitedCredits {
+            return true
+        }
+        
         guard let company = company else {
             return useInvoiceCredit()
         }
@@ -189,6 +202,11 @@ class StoreKitManager: NSObject, ObservableObject {
     
     /// Check if user has available invoice credits (including promo benefits)
     func hasAvailableCredits() -> Bool {
+        // When IAP is disabled, provide unlimited credits
+        if FeatureFlags.shouldProvideUnlimitedCredits {
+            return true
+        }
+        
         return promoCodeService.hasActivePromotionalSubscription() ||
                userCredits.isSubscriptionActive || 
                promoCodeService.canCreateInvoicesWithPromo() ||
@@ -197,6 +215,11 @@ class StoreKitManager: NSObject, ObservableObject {
     
     /// Check if user has available credits for a specific company
     func hasAvailableCredits(for company: Company?) -> Bool {
+        // When IAP is disabled, provide unlimited credits
+        if FeatureFlags.shouldProvideUnlimitedCredits {
+            return true
+        }
+        
         guard let company = company else {
             return hasAvailableCredits()
         }
@@ -212,6 +235,11 @@ class StoreKitManager: NSObject, ObservableObject {
     
     /// Get total available credits text (including promo benefits)
     func getTotalCreditsText() -> String {
+        // When IAP is disabled, show unlimited credits
+        if FeatureFlags.shouldProvideUnlimitedCredits {
+            return "Créditos ilimitados (IAP deshabilitado)"
+        }
+        
         var creditSources: [String] = []
         
         if promoCodeService.hasActivePromotionalSubscription() {
@@ -292,6 +320,11 @@ class StoreKitManager: NSObject, ObservableObject {
     
     /// Check if implementation fee needs to be paid for a production company
     func requiresImplementationFee(for company: Company?) -> Bool {
+        // When IAP is disabled, no implementation fee required
+        if FeatureFlags.shouldProvideUnlimitedCredits {
+            return false
+        }
+        
         guard let company = company else { return false }
         
         // Test accounts don't need implementation fee
@@ -471,4 +504,42 @@ enum StoreError: Error, LocalizedError {
             return "An unknown error occurred"
         }
     }
+}
+*/
+
+// TEMPORARY REPLACEMENT CLASS FOR APP SUBMISSION
+// This provides basic functionality without StoreKit dependency
+@MainActor
+@Observable  
+class StoreKitManager: NSObject, ObservableObject {
+    // Minimal implementation to prevent compilation errors
+    var products: [Any] = []
+    var purchaseState: PurchaseState = .unknown
+    var userCredits = UserPurchaseCredits()
+    var isLoading = false
+    var errorMessage: String?
+    
+    // Promo Code Integration - commented out
+    // var promoCodeService = PromoCodeService()
+    
+    override init() {
+        super.init()
+        // All StoreKit functionality disabled
+    }
+    
+    // Provide unlimited credits for all methods
+    func hasAvailableCredits() -> Bool { return true }
+    func hasAvailableCredits(for company: Company?) -> Bool { return true }
+    func requiresImplementationFee(for company: Company?) -> Bool { return false }
+    func useInvoiceCredit() -> Bool { return true }
+    func useInvoiceCredit(for company: Company?) -> Bool { return true }
+    func getTotalCreditsText() -> String { return "Créditos ilimitados (IAP deshabilitado)" }
+    func canCreateProductionInvoice(for company: Company?) -> Bool { return true }
+    func refreshUserCredits() { }
+    func migrateGlobalImplementationFeeToCompany(_ company: Company) { }
+    
+    // Additional methods that might be called
+    func loadProducts() async { }
+    func purchase(_ product: Any) async { }
+    func restorePurchases() async { }
 }

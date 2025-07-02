@@ -4,10 +4,13 @@
 //
 //  Created by Jorge Flores on 6/3/25.
 //
+// COMMENTED OUT FOR APP SUBMISSION - REMOVE StoreKit DEPENDENCY
+// Uncomment this entire file to re-enable in-app purchases
 
 import SwiftUI
-import StoreKit
+// import StoreKit // COMMENTED OUT - Remove StoreKit dependency
 
+/*
 struct InAppPurchaseView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var storeManager: StoreKitManager
@@ -543,4 +546,13 @@ struct PurchaseBundleCard: View {
 #Preview {
     InAppPurchaseView()
         .environmentObject(StoreKitManager())
+}
+*/
+
+// PLACEHOLDER VIEW FOR COMPILATION
+struct InAppPurchaseView: View {
+    var body: some View {
+        Text("In-App Purchases Disabled")
+            .navigationTitle("Comprar Créditos")
+    }
 }

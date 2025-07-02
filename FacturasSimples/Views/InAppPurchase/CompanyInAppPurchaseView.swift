@@ -4,11 +4,14 @@
 //
 //  Created by Jorge Flores on 6/9/25.
 //
+// COMMENTED OUT FOR APP SUBMISSION - REMOVE StoreKit DEPENDENCY
+// Uncomment this entire file to re-enable in-app purchases
 
 import SwiftUI
-import StoreKit
+// import StoreKit // COMMENTED OUT - Remove StoreKit dependency
 import SwiftData
 
+/*
 struct CompanyInAppPurchaseView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
@@ -602,4 +605,15 @@ struct CompanyPurchaseBundleCard: View {
         nombreComercial: "Test Company S.A.",
         isTestAccount: false
     ))
+}
+*/
+
+// PLACEHOLDER VIEW FOR COMPILATION
+struct CompanyInAppPurchaseView: View {
+    let company: Company
+    
+    var body: some View {
+        Text("Company In-App Purchases Disabled")
+            .navigationTitle("Comprar Créditos para \(company.nombre)")
+    }
 }

@@ -4,10 +4,13 @@
 //
 //  Created by GitHub Copilot on 6/12/25.
 //
+// COMMENTED OUT FOR APP SUBMISSION - REMOVE StoreKit DEPENDENCY
+// Uncomment this entire file to re-enable in-app purchases
 
 import SwiftUI
-import StoreKit
+// import StoreKit // COMMENTED OUT - Remove StoreKit dependency
 
+/*
 struct ImplementationFeeView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var storeManager: StoreKitManager
@@ -383,4 +386,15 @@ struct ImplementationFeeView: View {
 #Preview {
     ImplementationFeeView(company: Company(nit: "123456789", nrc: "987654", nombre: "Empresa de Prueba"))
         
+}
+*/
+
+// PLACEHOLDER VIEW FOR COMPILATION
+struct ImplementationFeeView: View {
+    let company: Company
+    
+    var body: some View {
+        Text("Implementation Fee Disabled")
+            .navigationTitle("Costo de Implementación")
+    }
 }

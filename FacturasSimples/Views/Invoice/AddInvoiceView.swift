@@ -13,7 +13,9 @@ struct AddInvoiceView: View {
     @Environment(\.calendar) private var calendar
     @Environment(\.dismiss)  var dismiss
     @Environment(\.timeZone) private var timeZone
-    @EnvironmentObject var storeKitManager: StoreKitManager
+    // COMMENTED OUT FOR APP SUBMISSION - REMOVE StoreKit DEPENDENCY
+    // @EnvironmentObject var storeKitManager: StoreKitManager
+    @EnvironmentObject var storeKitManager: StoreKitManager // Placeholder without StoreKit
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.verticalSizeClass) private var verticalSizeClass
     
@@ -36,6 +38,9 @@ struct AddInvoiceView: View {
     }
     
     var shouldDisableForCredits: Bool {
+        // COMMENTED OUT FOR APP SUBMISSION - IAP functionality disabled
+        return false
+        /*
         guard let company = selectedCompany else { return false }
         
         // Test accounts don't need credit validation
@@ -48,9 +53,13 @@ struct AddInvoiceView: View {
         
         // Production accounts need implementation fee and credits
         return storeKitManager.requiresImplementationFee(for: company) || !storeKitManager.hasAvailableCredits(for: company)
+        */
     }
     
     var shouldShowCreditsWarning: Bool {
+        // COMMENTED OUT FOR APP SUBMISSION - IAP functionality disabled
+        return false
+        /*
         guard let company = selectedCompany else { return false }
         
         // Migrate global implementation fee to company-specific if needed
@@ -58,9 +67,13 @@ struct AddInvoiceView: View {
         
         // Only show warning for production accounts that lack credits or implementation fee
         return company.requiresPaidServices && shouldDisableForCredits
+        */
     }
     
     var creditsWarningMessage: String {
+        // COMMENTED OUT FOR APP SUBMISSION - IAP functionality disabled
+        return ""
+        /*
         guard let company = selectedCompany else { return "" }
         
         if company.requiresPaidServices {
@@ -72,17 +85,21 @@ struct AddInvoiceView: View {
         }
         
         return ""
+        */
     }
     
     var body: some View {
         
         NavigationStack {
             Form{
+                // COMMENTED OUT FOR APP SUBMISSION - IAP functionality disabled
+                /*
                 // Credits Status Section
                 Section {
                     CreditsStatusView(company: selectedCompany)
                         .environmentObject(storeKitManager)
                 }
+                */
                 
                 CustomerSection
                 InvoiceDataSection
@@ -102,12 +119,15 @@ struct AddInvoiceView: View {
                     .background(.darkCyan)
                     .cornerRadius(10)
                     
+                    // COMMENTED OUT FOR APP SUBMISSION - IAP functionality disabled
+                    /*
                     if shouldShowCreditsWarning {
                         Text(creditsWarningMessage)
                             .font(.caption)
                             .foregroundColor(.red)
                             .frame(maxWidth: .infinity, alignment: .center)
                     }
+                    */
                 }
             }
             .frame(idealWidth: LayoutConstants.sheetIdealWidth,
@@ -119,6 +139,8 @@ struct AddInvoiceView: View {
             .sheet(isPresented: $viewModel.displayProductPickerSheet){
                 ProductPicker(details: $viewModel.details)
             }
+            // COMMENTED OUT FOR APP SUBMISSION - IAP functionality disabled
+            /*
             .sheet(isPresented: $showCreditsGate) {
                 CreditsGateView {
                     // When user proceeds after getting credits, dismiss the gate
@@ -126,9 +148,12 @@ struct AddInvoiceView: View {
                 }
                 .environmentObject(storeKitManager)
             }
+            */
             .onChange(of: viewModel.invoiceType){
                 getNextInoviceOrCCFNumber(invoiceType: viewModel.invoiceType)
             }
+            // COMMENTED OUT FOR APP SUBMISSION - IAP functionality disabled
+            /*
             .onChange(of: showCreditsGate) { oldValue, newValue in
                 // Refresh credits when CreditsGateView is dismissed
                 if oldValue == true && newValue == false {
@@ -149,6 +174,7 @@ struct AddInvoiceView: View {
                     storeKitManager.refreshUserCredits()
                 }
             }
+            */
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancelar") {

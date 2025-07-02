@@ -4,9 +4,12 @@
 //
 //  Created by Jorge Flores on 6/9/25.
 //
+// COMMENTED OUT FOR APP SUBMISSION - REMOVE StoreKit DEPENDENCY
+// Uncomment this entire file to re-enable in-app purchases
 
 import Foundation
 
+/*
 // MARK: - Promo Code Types
 enum PromoCodeType: String, Codable, CaseIterable {
     case freeAccess = "free_access"
@@ -160,3 +163,4 @@ struct UserPromoBenefits: Codable {
         return benefits.isEmpty ? "Sin beneficios activos" : benefits.joined(separator: ", ")
     }
 }
+*/

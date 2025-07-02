@@ -4,9 +4,12 @@
 //
 //  Created by Jorge Flores on 6/9/25.
 //
+// COMMENTED OUT FOR APP SUBMISSION - REMOVE StoreKit DEPENDENCY
+// Uncomment this entire file to re-enable in-app purchases
 
 import Foundation
 
+/*
 @MainActor
 @Observable
 class PromoCodeService: ObservableObject {
@@ -267,4 +270,47 @@ class PromoCodeService: ObservableObject {
             )
         ]
     }
+}
+*/
+
+// PLACEHOLDER CLASS FOR COMPILATION
+@MainActor
+@Observable
+class PromoCodeService: ObservableObject {
+    var userPromoBenefits = UserPromoBenefits()
+    var isValidatingCode = false
+    var validationMessage: String?
+    var lastValidatedCode: PromoCode?
+    
+    init() {}
+    
+    func hasActivePromotionalSubscription() -> Bool { return false }
+    func canCreateInvoicesWithPromo() -> Bool { return false }
+    func usePromoInvoiceCredit() -> Bool { return false }
+    func validatePromoCode(_ code: String) async -> Bool { return false }
+}
+
+// PLACEHOLDER STRUCTS FOR COMPILATION
+struct UserPromoBenefits: Codable {
+    var freeInvoicesFromPromos: Int = 0
+    var hasPromotionalSubscription: Bool = false
+    var promotionalSubscriptionExpiry: Date?
+    var redeemedPromoCodes: [String] = []
+}
+
+struct PromoCode: Codable, Identifiable {
+    let id = UUID()
+    let code: String
+    let benefits: PromoBenefits
+    let validFrom: Date
+    let validUntil: Date
+    let maxUses: Int
+    var currentUses: Int
+    let isActive: Bool
+}
+
+struct PromoBenefits: Codable {
+    let freeInvoices: Int
+    let subscriptionDays: Int
+    let description: String
 }

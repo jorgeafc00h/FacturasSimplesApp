@@ -4,9 +4,12 @@
 //
 //  Created by Jorge Flores on 6/3/25.
 //
+// COMMENTED OUT FOR APP SUBMISSION - REMOVE StoreKit DEPENDENCY
+// Uncomment this entire file to re-enable in-app purchases
 
 import SwiftUI
 
+/*
 struct CreditsStatusView: View {
     @EnvironmentObject var storeManager: StoreKitManager
     @State private var showPurchaseView = false
@@ -234,5 +237,24 @@ extension Company {
     func apply(_ closure: (Company) -> Void) -> Company {
         closure(self)
         return self
+    }
+}
+*/
+
+// PLACEHOLDER VIEW FOR COMPILATION
+struct CreditsStatusView: View {
+    let company: Company?
+    
+    var body: some View {
+        HStack {
+            Image(systemName: "creditcard.fill")
+                .foregroundColor(.green)
+            Text("Créditos: Ilimitados (IAP deshabilitado)")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+        }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(8)
     }
 }
