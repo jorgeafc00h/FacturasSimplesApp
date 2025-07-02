@@ -279,12 +279,14 @@ struct PreProdStep1:View{
     @State private var showFacturasDialog = false
     @State private var showCCFDialog = false
     @State private var showNotasDialog = false
+    @State private var showSujetoExcluidoDialog = false
     @State private var showProcessAllDialog = false
     
     // Add state variables for force regeneration dialogs
     @State private var showForceFacturasDialog = false
     @State private var showForceCCFDialog = false 
     @State private var showForceNotasDialog = false
+    @State private var showForceSujetoExcluidoDialog = false
     @State private var showForceAllDialog = false
     
     // Add state to track selected document type
@@ -296,6 +298,7 @@ struct PreProdStep1:View{
         case factura = "Facturas"
         case ccf = "Créditos Fiscales"
         case notaCredito = "Notas de Crédito"
+        case sujetoExcluido = "Sujetos Excluidos"
         case todo = "Todo"
         
         var id: String { self.rawValue }
@@ -305,6 +308,7 @@ struct PreProdStep1:View{
             case .factura: return "doc.text"
             case .ccf: return "doc.text.fill"
             case .notaCredito: return "arrow.left.and.right.doc"
+            case .sujetoExcluido: return "person.badge.minus"
             case .todo: return "doc.on.doc.fill"
             }
         }
@@ -314,8 +318,10 @@ struct PreProdStep1:View{
             case .factura: return { $0.hasProcessedFacturas }
             case .ccf: return { $0.hasProcessedCCF }
             case .notaCredito: return { $0.hasProcessedCreditNotes }
-            case .todo: return { $0.hasProcessedFacturas && $0.hasProcessedCCF && $0.hasProcessedCreditNotes }
-            }        }
+            case .sujetoExcluido: return { $0.hasProcessedSujetoExcluido }
+            case .todo: return { $0.hasProcessedFacturas && $0.hasProcessedCCF && $0.hasProcessedCreditNotes && $0.hasProcessedSujetoExcluido }
+            }
+        }
     }
     
     // MARK: - Computed Properties
@@ -367,6 +373,13 @@ struct PreProdStep1:View{
                     progress: viewModel.creditNotesProgress,
                     status: viewModel.creditNotesStatus.displayText,
                     icon: "arrow.left.and.right.doc"
+                )
+                
+                DocumentProgressView(
+                    title: "Sujetos Excluidos",
+                    progress: viewModel.sujetoExcluidoProgress,
+                    status: viewModel.sujetoExcluidoStatus.displayText,
+                    icon: "person.badge.minus"
                 )
                 
                 EnhancedProgressView(
@@ -514,6 +527,8 @@ struct PreProdStep1:View{
             showForceCCFDialog: $showForceCCFDialog,
             showNotasDialog: $showNotasDialog,
             showForceNotasDialog: $showForceNotasDialog,
+            showSujetoExcluidoDialog: $showSujetoExcluidoDialog,
+            showForceSujetoExcluidoDialog: $showForceSujetoExcluidoDialog,
             showProcessAllDialog: $showProcessAllDialog,
             showForceAllDialog: $showForceAllDialog,
             onConfirmFacturas: confirmFacturas,
@@ -522,6 +537,8 @@ struct PreProdStep1:View{
             onConfirmForceCCF: confirmForceCCF,
             onConfirmCreditNotes: confirmCreditNotes,
             onConfirmForceCreditNotes: confirmForceCreditNotes,
+            onConfirmSujetoExcluido: confirmSujetoExcluido,
+            onConfirmForceSujetoExcluido: confirmForceSujetoExcluido,
             onConfirmProcessAll: confirmProcessAll,
             onConfirmForceAll: confirmForceAll
         ))
@@ -536,6 +553,8 @@ struct PreProdStep1:View{
             showCCFDialog = true
         case .notaCredito:
             showNotasDialog = true
+        case .sujetoExcluido:
+            showSujetoExcluidoDialog = true
         case .todo:
             showProcessAllDialog = true
         }
@@ -594,13 +613,31 @@ struct PreProdStep1:View{
         viewModel.sendInvoices(onCompletion: wrapCompletion)
     }
 
+    private func confirmSujetoExcluido() {
+        viewModel.prepareCustomersAndProducts()
+        if viewModel.invoices.count(where: { $0.invoiceType == .SujetoExcluido && $0.status == .Completada }) >= viewModel.totalInvoices {
+            showForceSujetoExcluidoDialog = true
+        } else {
+            showCloseButton = false
+            viewModel.generateSujetoExcluido()
+            viewModel.sendInvoices(onCompletion: wrapCompletion)
+        }
+    }
+
+    private func confirmForceSujetoExcluido() {
+        showCloseButton = false
+        viewModel.generateSujetoExcluido(forceGenerate: true)
+        viewModel.sendInvoices(onCompletion: wrapCompletion)
+    }
+
     private func confirmProcessAll() {
         viewModel.prepareCustomersAndProducts()
         let hasEnoughFacturas = viewModel.invoices.count(where: { $0.invoiceType == .Factura && $0.status == .Completada }) >= viewModel.totalInvoices
         let hasEnoughCCF = viewModel.invoices.count(where: { $0.invoiceType == .CCF && $0.status == .Completada }) >= viewModel.totalInvoices
         let hasEnoughNotes = viewModel.invoices.count(where: { $0.invoiceType == .NotaCredito && $0.status == .Completada }) >= 50
+        let hasEnoughSujetoExcluido = viewModel.invoices.count(where: { $0.invoiceType == .SujetoExcluido && $0.status == .Completada }) >= viewModel.totalInvoices
         
-        if hasEnoughFacturas || hasEnoughCCF || hasEnoughNotes {
+        if hasEnoughFacturas || hasEnoughCCF || hasEnoughNotes || hasEnoughSujetoExcluido {
             showForceAllDialog = true
         } else {
             showCloseButton = false
@@ -634,6 +671,8 @@ struct PreProdStep1:View{
             return viewModel.ccfProgress
         case .notaCredito:
             return viewModel.creditNotesProgress
+        case .sujetoExcluido:
+            return viewModel.sujetoExcluidoProgress
         case .todo:
             return viewModel.progress // Overall progress for "todo"
         }
@@ -657,6 +696,10 @@ struct PreProdStep1:View{
             let creditNoteInvoices = viewModel.generatedInvoices.filter { $0.invoiceType == .NotaCredito }
             syncedCount = creditNoteInvoices.count(where: { $0.status == .Completada })
             totalCount = creditNoteInvoices.count
+        case .sujetoExcluido:
+            let sujetoExcluidoInvoices = viewModel.generatedInvoices.filter { $0.invoiceType == .SujetoExcluido }
+            syncedCount = sujetoExcluidoInvoices.count(where: { $0.status == .Completada })
+            totalCount = sujetoExcluidoInvoices.count
         case .todo:
             syncedCount = viewModel.generatedInvoices.count(where: { $0.status == .Completada })
             totalCount = viewModel.generatedInvoices.count
@@ -696,6 +739,8 @@ struct ConfirmationDialogsModifier: ViewModifier {
     @Binding var showForceCCFDialog: Bool
     @Binding var showNotasDialog: Bool
     @Binding var showForceNotasDialog: Bool
+    @Binding var showSujetoExcluidoDialog: Bool
+    @Binding var showForceSujetoExcluidoDialog: Bool
     @Binding var showProcessAllDialog: Bool
     @Binding var showForceAllDialog: Bool
     
@@ -705,6 +750,8 @@ struct ConfirmationDialogsModifier: ViewModifier {
     let onConfirmForceCCF: () -> Void
     let onConfirmCreditNotes: () -> Void
     let onConfirmForceCreditNotes: () -> Void
+    let onConfirmSujetoExcluido: () -> Void
+    let onConfirmForceSujetoExcluido: () -> Void
     let onConfirmProcessAll: () -> Void
     let onConfirmForceAll: () -> Void
     
@@ -732,6 +779,14 @@ struct ConfirmationDialogsModifier: ViewModifier {
             }
             .confirmationDialog("Ya existen suficientes Notas de Crédito completadas. ¿Desea generar una nueva tanda de todas formas?", isPresented: $showForceNotasDialog, titleVisibility: .visible) {
                 Button("Sí, generar nueva tanda", action: onConfirmForceCreditNotes)
+                Button("No, cancelar", role: .cancel) {}
+            }
+            .confirmationDialog("¿Desea generar y enviar Sujetos Excluidos?", isPresented: $showSujetoExcluidoDialog, titleVisibility: .visible) {
+                Button("Confirmar", action: onConfirmSujetoExcluido)
+                Button("Cancelar", role: .cancel) {}
+            }
+            .confirmationDialog("Ya existen suficientes Sujetos Excluidos completados. ¿Desea generar una nueva tanda de todas formas?", isPresented: $showForceSujetoExcluidoDialog, titleVisibility: .visible) {
+                Button("Sí, generar nueva tanda", action: onConfirmForceSujetoExcluido)
                 Button("No, cancelar", role: .cancel) {}
             }
             .confirmationDialog("¿Desea generar y enviar todos los tipos de documentos?", isPresented: $showProcessAllDialog, titleVisibility: .visible) {

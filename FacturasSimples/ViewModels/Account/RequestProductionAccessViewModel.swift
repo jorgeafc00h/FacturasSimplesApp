@@ -58,9 +58,11 @@ class RequestProductionAccessViewModel {
         var facturasProgress: Double = 0.0
         var ccfProgress: Double = 0.0
         var creditNotesProgress: Double = 0.0
+        var sujetoExcluidoProgress: Double = 0.0
         var facturasStatus: ProcessingStatus = .notStarted
         var ccfStatus: ProcessingStatus = .notStarted
         var creditNotesStatus: ProcessingStatus = .notStarted
+        var sujetoExcluidoStatus: ProcessingStatus = .notStarted
         
         let invoiceService = InvoiceServiceClient()
         var dteService = MhClient()
@@ -69,6 +71,7 @@ class RequestProductionAccessViewModel {
         var hasProcessedFacturas: Bool = false
         var hasProcessedCCF: Bool = false
         var hasProcessedCreditNotes: Bool = false
+        var hasProcessedSujetoExcluido: Bool = false
         
         // Flag to force generation even when minimum is met
         var forceGeneration: Bool = false
@@ -136,6 +139,11 @@ class RequestProductionAccessViewModel {
         
         if !self.hasProcessedCreditNotes {
             generateCreditNotes()
+            processed = true
+        }
+        
+        if !self.hasProcessedSujetoExcluido {
+            generateSujetoExcluido()
             processed = true
         }
         
@@ -426,6 +434,35 @@ class RequestProductionAccessViewModel {
         return note
     }
     
+    // Generate Sujeto Excluido invoices
+    func generateSujetoExcluido(forceGenerate: Bool = false) {
+        if !forceGenerate && self.invoices.count(where: { $0.invoiceType == .SujetoExcluido && $0.status == .Completada }) >= self.totalInvoices {
+            self.hasProcessedSujetoExcluido = true
+            self.alertMessage = "Ya existen suficientes Sujetos Excluidos completados."
+            self.showAlert = true
+            return
+        }
+        
+        var invoiceIndex = getNextInoviceNumber()
+        
+        for _ in 1...self.totalInvoices {  
+            let customer = self.customers.randomElement()!
+            let invoiceNumber = String(format: "%05d", invoiceIndex)
+            let invoice = Invoice(invoiceNumber: invoiceNumber, date: Date(), status: .Nueva, customer: customer, invoiceType: .SujetoExcluido)
+            invoice.items = self.products.map { product in
+                return InvoiceDetail(quantity: Decimal(Int.random(in: 1...5)), product: product)
+            }
+            // Set sync status based on company type
+            invoice.shouldSyncToCloudKit = !safeCompany.isTestAccount
+            invoiceIndex += 1
+            self.generatedInvoices.append(invoice)
+        }
+        
+        self.hasProcessedSujetoExcluido = true
+        self.alertMessage = "Se generaron \(self.totalInvoices) Sujetos Excluidos con datos de prueba."
+        self.showAlert = true
+    }
+    
     func sendInvoices(onCompletion: (() -> Void)? = nil) {
         self.isSyncing = true
         self.progress = 0.0
@@ -666,9 +703,11 @@ class RequestProductionAccessViewModel {
         self.facturasProgress = 0.0
         self.ccfProgress = 0.0
         self.creditNotesProgress = 0.0
+        self.sujetoExcluidoProgress = 0.0
         self.facturasStatus = .notStarted
         self.ccfStatus = .notStarted
         self.creditNotesStatus = .notStarted
+        self.sujetoExcluidoStatus = .notStarted
         
         prepareCustomersAndProducts()
         
@@ -677,6 +716,7 @@ class RequestProductionAccessViewModel {
             await processFacturasWithProgress(forceGenerate: forceGenerate)
             await processCCFWithProgress(forceGenerate: forceGenerate)
             await processCreditNotesWithProgress(forceGenerate: forceGenerate)
+            await processSujetoExcluidoWithProgress(forceGenerate: forceGenerate)
             
             // Send all invoices at the end
             await sendAllInvoicesWithProgress()
@@ -817,11 +857,48 @@ class RequestProductionAccessViewModel {
     }
     
     @MainActor
+    private func processSujetoExcluidoWithProgress(forceGenerate: Bool = false) async {
+        self.sujetoExcluidoStatus = .generating
+        
+        if !forceGenerate && self.invoices.count(where: { $0.invoiceType == .SujetoExcluido && $0.status == .Completada }) >= self.totalInvoices {
+            self.hasProcessedSujetoExcluido = true
+            self.sujetoExcluidoProgress = 1.0
+            self.sujetoExcluidoStatus = .completed
+            return
+        }
+        
+        var invoiceIndex = getNextInoviceNumber()
+        
+        for i in 1...self.totalInvoices {
+            let customer = self.customers.randomElement()!
+            let invoiceNumber = String(format: "%05d", invoiceIndex)
+            let invoice = Invoice(invoiceNumber: invoiceNumber, date: Date(), status: .Nueva, customer: customer, invoiceType: .SujetoExcluido)
+            invoice.items = self.products.map { product in
+                return InvoiceDetail(quantity: Decimal(Int.random(in: 1...5)), product: product)
+            }
+            // Set sync status based on company type
+            invoice.shouldSyncToCloudKit = !safeCompany.isTestAccount
+            invoiceIndex += 1
+            self.generatedInvoices.append(invoice)
+            
+            // Update progress
+            self.sujetoExcluidoProgress = Double(i) / Double(self.totalInvoices)
+            
+            // Small delay to show progress
+            try? await Task.sleep(nanoseconds: 10_000_000) // 0.01 seconds
+        }
+        
+        self.hasProcessedSujetoExcluido = true
+        self.sujetoExcluidoStatus = .completed
+    }
+    
+    @MainActor
     private func sendAllInvoicesWithProgress() async {
         // Update all statuses to sending
         self.facturasStatus = .sending
         self.ccfStatus = .sending
         self.creditNotesStatus = .sending
+        self.sujetoExcluidoStatus = .sending
         
         await validateCertificateCredentialasAsync()
         await validateCredentialsAsync()
@@ -830,6 +907,7 @@ class RequestProductionAccessViewModel {
             self.facturasStatus = .error
             self.ccfStatus = .error
             self.creditNotesStatus = .error
+            self.sujetoExcluidoStatus = .error
             
             var errorMessage = "Error de validación: "
             if self.showCertificateInvalidMessage && self.showCredentialsInvalidMessage {
@@ -850,10 +928,12 @@ class RequestProductionAccessViewModel {
         // Exclude helper CCFs from the count that are only created for credit notes
         let ccfCount = self.generatedInvoices.filter { $0.invoiceType == .CCF && !$0.isHelperForCreditNote }.count
         let notesCount = self.generatedInvoices.filter { $0.invoiceType == .NotaCredito }.count
+        let sujetoExcluidoCount = self.generatedInvoices.filter { $0.invoiceType == .SujetoExcluido }.count
         
         var facturasProcessed = 0
         var ccfProcessed = 0
         var notesProcessed = 0
+        var sujetoExcluidoProcessed = 0
         
         for (index, invoice) in self.generatedInvoices.enumerated() {
             if invoice.status == .Completada {
@@ -883,6 +963,11 @@ class RequestProductionAccessViewModel {
                     if notesCount > 0 {
                         self.creditNotesProgress = Double(notesProcessed) / Double(notesCount)
                     }
+                case .SujetoExcluido:
+                    sujetoExcluidoProcessed += 1
+                    if sujetoExcluidoCount > 0 {
+                        self.sujetoExcluidoProgress = Double(sujetoExcluidoProcessed) / Double(sujetoExcluidoCount)
+                    }
                 default:
                     break
                 }
@@ -900,6 +985,8 @@ class RequestProductionAccessViewModel {
                     }
                 case .NotaCredito:
                     self.creditNotesStatus = .error
+                case .SujetoExcluido:
+                    self.sujetoExcluidoStatus = .error
                 default:
                     break
                 }
@@ -919,6 +1006,9 @@ class RequestProductionAccessViewModel {
         }
         if self.creditNotesStatus != .error {
             self.creditNotesStatus = .completed
+        }
+        if self.sujetoExcluidoStatus != .error {
+            self.sujetoExcluidoStatus = .completed
         }
     }
     
@@ -945,6 +1035,12 @@ class RequestProductionAccessViewModel {
             processedOfType = self.generatedInvoices.filter { $0.invoiceType == .NotaCredito && $0.status == .Completada }.count
             if totalOfType > 0 {
                 self.creditNotesProgress = Double(processedOfType) / Double(totalOfType)
+            }
+        case .SujetoExcluido:
+            totalOfType = self.generatedInvoices.filter { $0.invoiceType == .SujetoExcluido }.count
+            processedOfType = self.generatedInvoices.filter { $0.invoiceType == .SujetoExcluido && $0.status == .Completada }.count
+            if totalOfType > 0 {
+                self.sujetoExcluidoProgress = Double(processedOfType) / Double(totalOfType)
             }
         default:
             break
