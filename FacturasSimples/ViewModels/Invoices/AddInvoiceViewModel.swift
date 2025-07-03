@@ -184,6 +184,8 @@ extension AddInvoiceView {
             viewModel.showAddProductSection.toggle()
         }
     }
+    
+    // TODO centralize this on extension.
     func getNextInoviceNumber(){
         
         let descriptor = FetchDescriptor<Invoice>(
@@ -203,6 +205,8 @@ extension AddInvoiceView {
             viewModel.invoiceNumber = "00001"
         }
     }
+    
+    //TODO centralize this on extension
     func getNextInoviceOrCCFNumber(invoiceType:InvoiceType){
        print("Get Next Invoice number \(invoiceType) ")
        let _type =  Extensions.documentTypeFromInvoiceType(invoiceType)

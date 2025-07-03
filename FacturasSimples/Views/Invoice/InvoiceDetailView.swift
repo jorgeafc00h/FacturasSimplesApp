@@ -41,6 +41,7 @@ struct InvoiceDetailView: View {
             ToolbarItem(placement: .primaryAction) {
                 Menu {
                     CreditNoteButton()
+                    DebitNoteButton()
                     EditButon()
                         .help("Editar Información General de la factura")
                     PrintButton()
@@ -149,7 +150,22 @@ struct InvoiceDetailView: View {
             } label: {
                 Text("Generar Nota de crédito")
             }
-            .help("Genera Nota de credito a partir de la factura seleccionada.")
+            .help("Genera Nota de credito a partir del comprobante de crédito fiscal seleccionada.")
+        }
+        else {
+            EmptyView()
+        }
+    }
+    
+    @ViewBuilder
+    private func DebitNoteButton() -> some View {
+        if invoice.invoiceType == .CCF, invoice.status == .Completada{
+            Button {
+                viewModel.showConfirmDebitNote = true
+            } label: {
+                Text("Generar Nota de Dédito")
+            }
+            .help("Genera Nota de Dedito a partir del comprobante de crédito fiscal seleccionada.")
         }
         else {
             EmptyView()
@@ -431,6 +447,17 @@ struct InvoiceDetailView: View {
                         }
                         Button("Cancelar", role: .cancel) {}
                     }
+                    .confirmationDialog(
+                        "¿Está seguro que desea Generar una Nota de crédito para esta Factura?",
+                        isPresented: $viewModel.showConfirmDebitNote,
+                        titleVisibility: .visible
+                    ) {
+                        Button("OK") {
+                            generateDebitNote()
+                        }
+                        Button("Cancelar", role: .cancel) {}
+                    }
+                        
                 if viewModel.sendingAutomaticEmail {
                     Label("Enviando correo con documento adjunto...",systemImage: "progress.indicator")
                         .foregroundColor(.darkCyan)

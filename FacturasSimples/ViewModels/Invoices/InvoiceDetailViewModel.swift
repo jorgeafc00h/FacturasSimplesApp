@@ -14,6 +14,7 @@ extension InvoiceDetailView {
         var sendingAutomaticEmail : Bool = false
         var emailSent : Bool = false
         var showConfirmCreditNote: Bool = false
+        var showConfirmDebitNote: Bool = false
         
         var alertTitle: String = ""
         var alertMessage: String = ""
@@ -47,20 +48,26 @@ extension InvoiceDetailView {
                                                      key: company.certificatePassword,
                                                      invoiceNumber: invoice.invoiceNumber)
                 
-                dteResponse  = try await invoiceService.Sync(dte: dte!,credentials:credentials,isProduction: company.isProduction)
+                let response = try await invoiceService.Sync(dte: dte!,credentials:credentials,isProduction: company.isProduction)
                 
-                print("\(dteResponse?.estado ?? "")")
-                print("SELLO \(dteResponse?.selloRecibido ?? "")")
+                await MainActor.run {
+                    dteResponse = response
+                }
+                
+                print("\(response.estado ?? "")")
+                print("SELLO \(response.selloRecibido ?? "")")
                 
                 
-                return dteResponse
+                return response
                 
             }
             catch (let error){
                 print(" error al firmar: \(error)")
-                errorMessage = error.localizedDescription
-                showErrorAlert = true
-                dteResponse = nil
+                await MainActor.run {
+                    errorMessage = error.localizedDescription
+                    showErrorAlert = true
+                    dteResponse = nil
+                }
                 return nil
             }
             
@@ -68,18 +75,26 @@ extension InvoiceDetailView {
         
         func backupPDF(_ invoice: Invoice)async {
             
-            sendingAutomaticEmail = true
+            await MainActor.run {
+                sendingAutomaticEmail = true
+            }
             
             let _data = InvoicePDFGenerator.generatePDF(from: invoice, company:  company)
             
-            pdfData = _data
+            await MainActor.run {
+                pdfData = _data
+            }
+            
             do{
                 try await invoiceService.uploadPDF(data: _data, controlNum: invoice.controlNumber!, nit: company.nit,isProduction: company.isProduction)
             }
             catch(let e){
                 print("Error al subir el pdf \(e)")
             }
-            sendingAutomaticEmail = false
+            
+            await MainActor.run {
+                sendingAutomaticEmail = false
+            }
         }
         
         func testDeserialize(_ invoice: Invoice) async -> DTE_Base? {
@@ -102,41 +117,53 @@ extension InvoiceDetailView {
             let serviceClient  = InvoiceServiceClient()
             
             if company.credentials.isEmpty {
-                isBusy = false
-                showErrorAlert = true
-                errorMessage = "La contraseña de hacienda aun no se ha configurado correctamente, seleccione perfil y configure la contraseña"
+                await MainActor.run {
+                    isBusy = false
+                    showErrorAlert = true
+                    errorMessage = "La contraseña de hacienda aun no se ha configurado correctamente, seleccione perfil y configure la contraseña"
+                }
                 return
             }
             
             if company.certificatePassword.isEmpty {
-                isBusy = false
-                showErrorAlert = true
-                errorMessage = "La contraseña de su certificado firmador aun no se ha configurado correctamente, seleccione perfil y luego contraseña de certificado"
+                await MainActor.run {
+                    isBusy = false
+                    showErrorAlert = true
+                    errorMessage = "La contraseña de su certificado firmador aun no se ha configurado correctamente, seleccione perfil y luego contraseña de certificado"
+                }
                 return 
             }
-            syncLabel = "Validando Credenciales de Hacienda....."
-            isBusy = true
+            
+            await MainActor.run {
+                syncLabel = "Validando Credenciales de Hacienda....."
+                isBusy = true
+            }
             
             dte = GenerateInvoiceReferences(invoice)
             
             if dte == nil {
-                isBusy = false
+                await MainActor.run {
+                    isBusy = false
+                }
                 return
             }
             
             do{
                 _ =  try await serviceClient.validateCredentials(nit: company.nit, password: company.credentials,isProduction: company.isProduction)
-                syncLabel = "Enviando..."
-                isBusy = false
-                
-                showConfirmSyncSheet = true
+                await MainActor.run {
+                    syncLabel = "Enviando..."
+                    isBusy = false
+                    showConfirmSyncSheet = true
+                }
                 //return result
             }
             catch(let message){
                 print("\(message)")
-                isBusy = false
-                showErrorAlert = true
-                errorMessage = "Usuario o contraseña incorrectos"
+                await MainActor.run {
+                    isBusy = false
+                    showErrorAlert = true
+                    errorMessage = "Usuario o contraseña incorrectos"
+                }
                 
                 //return false
             }
@@ -278,6 +305,30 @@ extension InvoiceDetailView {
     }
     
     
+    // TODO centralize this on extension
+    func getNextInoviceOrCCFNumber(invoiceType:InvoiceType) -> String{
+       print("Get Next Invoice number \(invoiceType) ")
+       let _type =  Extensions.documentTypeFromInvoiceType(invoiceType)
+        let descriptor = FetchDescriptor<Invoice>(
+            predicate: #Predicate<Invoice>{
+                $0.customer?.companyOwnerId == companyIdentifier &&
+                $0.documentType == _type
+            },
+            sortBy: [SortDescriptor(\.date, order: .reverse)]
+        )
+        
+        if let latestInvoice = try? modelContext.fetch(descriptor).first {
+            if let currentNumber = Int(latestInvoice.invoiceNumber) {
+                print("# \(currentNumber)")
+               return String(format: "%05d", currentNumber + 1)
+            } else {
+                return "00001"
+            }
+        } else {
+            return "00001"
+        }
+    }
+    
     func generateCreditNote(){
         
         let note = Invoice(invoiceNumber: invoice.invoiceNumber,
@@ -290,25 +341,8 @@ extension InvoiceDetailView {
             
         }
         
-        let descriptor = FetchDescriptor<Invoice>(
-            predicate: #Predicate<Invoice>{
-                $0.customer?.companyOwnerId == companyIdentifier
-            },
-            sortBy: [SortDescriptor(\.date, order: .reverse)]
-        )
-        
-        if let latestInvoice = try? modelContext.fetch(descriptor).first {
-            if let currentNumber = Int(latestInvoice.invoiceNumber) {
-                note.invoiceNumber = String(format: "%05d", currentNumber + 1)
-            } else {
-                let currentNumber = Int(invoice.invoiceNumber)
-                note.invoiceNumber = String(format: "%05d", currentNumber! + 1)
-            }
-        } else {
-            let currentNumber = Int(invoice.invoiceNumber)
-            note.invoiceNumber = String(format: "%05d", currentNumber! + 1)
-        }
-        
+        note.invoiceNumber = getNextInoviceOrCCFNumber(invoiceType: .CCF)
+         
         note.status = .Nueva
         note.date = Date()
         note.invoiceType = .NotaCredito
@@ -339,7 +373,44 @@ extension InvoiceDetailView {
     }
     
     
-    
+    func generateDebitNote(){
+        let note = Invoice(invoiceNumber: invoice.invoiceNumber,
+                           date: invoice.date,
+                           status: invoice.status, customer: invoice.customer,
+                           invoiceType: .NotaDebito)
+        
+        let items = (invoice.items ?? []).map { detail -> InvoiceDetail in
+            return InvoiceDetail(quantity: detail.quantity, product: detail.product)
+            
+        }
+        
+        note.invoiceNumber = getNextInoviceOrCCFNumber(invoiceType: .CCF)
+        note.status = .Nueva
+        note.date = Date()
+        note.invoiceType = .NotaDebito
+        note.documentType = Extensions.documentTypeFromInvoiceType(.NotaDebito)
+        note.relatedDocumentNumber = invoice.generationCode
+        note.relatedDocumentType = invoice.documentType
+        note.relatedInvoiceType = invoice.invoiceType
+        note.relatedId = invoice.inoviceId
+        note.items = items
+        note.relatedDocumentDate = invoice.date
+        
+        // Set correct sync status based on company type (through customer)
+        if let customerId = invoice.customer?.companyOwnerId {
+            let isProductionCompany = !customerId.isEmpty &&
+                                    DataSyncFilterManager.shared.getProductionCompanies(context: modelContext)
+                                        .contains { $0.id == customerId }
+            note.shouldSyncToCloudKit = isProductionCompany
+        } else {
+            note.shouldSyncToCloudKit = false
+        }
+        
+        modelContext.insert(note)
+        try? modelContext.save()
+        
+        dismiss()
+    }
     /// Consume credit for a completed invoice
     func consumeCreditForCompletedInvoice(storeKitManager: StoreKitManager) {
         // Get the company associated with this invoice

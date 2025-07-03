@@ -172,6 +172,8 @@ enum InvoiceType: Int, Codable, CaseIterable, Identifiable, Hashable {
     case CCF
     case NotaCredito
     case SujetoExcluido
+    case NotaDebito
+    
     var id: Int { rawValue }
     func stringValue() -> String {
         switch(self) {
@@ -184,6 +186,8 @@ enum InvoiceType: Int, Codable, CaseIterable, Identifiable, Hashable {
             return "NOTA DE CRÉDITO"
         case .SujetoExcluido:
             return "SUJETO EXCLUIDO"
+        case .NotaDebito:
+            return "NOTA DE DÉBITO"
         }
     }
 }

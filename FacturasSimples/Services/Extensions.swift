@@ -172,6 +172,7 @@ class Extensions
         case .CCF: return  "03"
         case .NotaCredito: return "05"
         case .SujetoExcluido: return "14"
+        case .NotaDebito: return "06"
         }
     }
     
@@ -196,7 +197,8 @@ class Extensions
             (invoice.invoiceType == .Factura && !invoice.controlNumber!.hasPrefix("DTE-01")) ||
             (invoice.invoiceType == .CCF && !invoice.controlNumber!.hasPrefix("DTE-03")) ||
             (invoice.invoiceType == .NotaCredito && !invoice.controlNumber!.hasPrefix("DTE-05")) ||
-            (invoice.invoiceType == .SujetoExcluido && !invoice.controlNumber!.hasPrefix("DTE-14"))
+            (invoice.invoiceType == .SujetoExcluido && !invoice.controlNumber!.hasPrefix("DTE-14")) ||
+            (invoice.invoiceType == .NotaDebito && !invoice.controlNumber!.hasPrefix("DTE-06"))
             
             
             
@@ -214,6 +216,8 @@ class Extensions
             try? Extensions.generateString(baseString: "DTE-05",pattern: nil) :
             invoice.invoiceType == .SujetoExcluido ?
             try? Extensions.generateString(baseString: "DTE-14",pattern: nil) :
+            invoice.invoiceType == .NotaDebito ?
+            try? Extensions.generateString(baseString: "DTE-06",pattern: nil) :
             try? Extensions.generateString(baseString: "DTE",pattern: "^DTE-01-[A-Z0-9]{8}-[0-9]{15}$")
         }
         

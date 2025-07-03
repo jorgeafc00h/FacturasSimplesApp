@@ -280,6 +280,7 @@ struct PreProdStep1:View{
     @State private var showCCFDialog = false
     @State private var showNotasDialog = false
     @State private var showSujetoExcluidoDialog = false
+    @State private var showNotaDebitoDialog = false
     @State private var showProcessAllDialog = false
     
     // Add state variables for force regeneration dialogs
@@ -287,6 +288,7 @@ struct PreProdStep1:View{
     @State private var showForceCCFDialog = false 
     @State private var showForceNotasDialog = false
     @State private var showForceSujetoExcluidoDialog = false
+    @State private var showForceNotaDebitoDialog = false
     @State private var showForceAllDialog = false
     
     // Add state to track selected document type
@@ -299,6 +301,7 @@ struct PreProdStep1:View{
         case ccf = "Créditos Fiscales"
         case notaCredito = "Notas de Crédito"
         case sujetoExcluido = "Sujetos Excluidos"
+        case notaDebito = "Notas de Débito"
         case todo = "Todo"
         
         var id: String { self.rawValue }
@@ -309,6 +312,7 @@ struct PreProdStep1:View{
             case .ccf: return "doc.text.fill"
             case .notaCredito: return "arrow.left.and.right.doc"
             case .sujetoExcluido: return "person.badge.minus"
+            case .notaDebito: return "arrow.right.and.left.doc"
             case .todo: return "doc.on.doc.fill"
             }
         }
@@ -319,7 +323,8 @@ struct PreProdStep1:View{
             case .ccf: return { $0.hasProcessedCCF }
             case .notaCredito: return { $0.hasProcessedCreditNotes }
             case .sujetoExcluido: return { $0.hasProcessedSujetoExcluido }
-            case .todo: return { $0.hasProcessedFacturas && $0.hasProcessedCCF && $0.hasProcessedCreditNotes && $0.hasProcessedSujetoExcluido }
+            case .notaDebito: return { $0.hasProcessedNotaDebito }
+            case .todo: return { $0.hasProcessedFacturas && $0.hasProcessedCCF && $0.hasProcessedCreditNotes && $0.hasProcessedSujetoExcluido && $0.hasProcessedNotaDebito }
             }
         }
     }
@@ -380,6 +385,13 @@ struct PreProdStep1:View{
                     progress: viewModel.sujetoExcluidoProgress,
                     status: viewModel.sujetoExcluidoStatus.displayText,
                     icon: "person.badge.minus"
+                )
+                
+                DocumentProgressView(
+                    title: "Notas de Débito",
+                    progress: viewModel.notaDebitoProgress,
+                    status: viewModel.notaDebitoStatus.displayText,
+                    icon: "arrow.right.and.left.doc"
                 )
                 
                 EnhancedProgressView(
@@ -529,6 +541,8 @@ struct PreProdStep1:View{
             showForceNotasDialog: $showForceNotasDialog,
             showSujetoExcluidoDialog: $showSujetoExcluidoDialog,
             showForceSujetoExcluidoDialog: $showForceSujetoExcluidoDialog,
+            showNotaDebitoDialog: $showNotaDebitoDialog,
+            showForceNotaDebitoDialog: $showForceNotaDebitoDialog,
             showProcessAllDialog: $showProcessAllDialog,
             showForceAllDialog: $showForceAllDialog,
             onConfirmFacturas: confirmFacturas,
@@ -539,6 +553,8 @@ struct PreProdStep1:View{
             onConfirmForceCreditNotes: confirmForceCreditNotes,
             onConfirmSujetoExcluido: confirmSujetoExcluido,
             onConfirmForceSujetoExcluido: confirmForceSujetoExcluido,
+            onConfirmNotaDebito: confirmNotaDebito,
+            onConfirmForceNotaDebito: confirmForceNotaDebito,
             onConfirmProcessAll: confirmProcessAll,
             onConfirmForceAll: confirmForceAll
         ))
@@ -555,6 +571,8 @@ struct PreProdStep1:View{
             showNotasDialog = true
         case .sujetoExcluido:
             showSujetoExcluidoDialog = true
+        case .notaDebito:
+            showNotaDebitoDialog = true
         case .todo:
             showProcessAllDialog = true
         }
@@ -630,14 +648,32 @@ struct PreProdStep1:View{
         viewModel.sendInvoices(onCompletion: wrapCompletion)
     }
 
+    private func confirmNotaDebito() {
+        viewModel.prepareCustomersAndProducts()
+        if viewModel.invoices.count(where: { $0.invoiceType == .NotaDebito && $0.status == .Completada }) >= 50 {
+            showForceNotaDebitoDialog = true
+        } else {
+            showCloseButton = false
+            viewModel.generateNotaDebito()
+            viewModel.sendInvoices(onCompletion: wrapCompletion)
+        }
+    }
+
+    private func confirmForceNotaDebito() {
+        showCloseButton = false
+        viewModel.generateNotaDebito(forceGenerate: true)
+        viewModel.sendInvoices(onCompletion: wrapCompletion)
+    }
+
     private func confirmProcessAll() {
         viewModel.prepareCustomersAndProducts()
         let hasEnoughFacturas = viewModel.invoices.count(where: { $0.invoiceType == .Factura && $0.status == .Completada }) >= viewModel.totalInvoices
         let hasEnoughCCF = viewModel.invoices.count(where: { $0.invoiceType == .CCF && $0.status == .Completada }) >= viewModel.totalInvoices
         let hasEnoughNotes = viewModel.invoices.count(where: { $0.invoiceType == .NotaCredito && $0.status == .Completada }) >= 50
         let hasEnoughSujetoExcluido = viewModel.invoices.count(where: { $0.invoiceType == .SujetoExcluido && $0.status == .Completada }) >= viewModel.totalInvoices
+        let hasEnoughNotaDebito = viewModel.invoices.count(where: { $0.invoiceType == .NotaDebito && $0.status == .Completada }) >= 50
         
-        if hasEnoughFacturas || hasEnoughCCF || hasEnoughNotes || hasEnoughSujetoExcluido {
+        if hasEnoughFacturas || hasEnoughCCF || hasEnoughNotes || hasEnoughSujetoExcluido || hasEnoughNotaDebito {
             showForceAllDialog = true
         } else {
             showCloseButton = false
@@ -673,6 +709,8 @@ struct PreProdStep1:View{
             return viewModel.creditNotesProgress
         case .sujetoExcluido:
             return viewModel.sujetoExcluidoProgress
+        case .notaDebito:
+            return viewModel.notaDebitoProgress
         case .todo:
             return viewModel.progress // Overall progress for "todo"
         }
@@ -700,6 +738,10 @@ struct PreProdStep1:View{
             let sujetoExcluidoInvoices = viewModel.generatedInvoices.filter { $0.invoiceType == .SujetoExcluido }
             syncedCount = sujetoExcluidoInvoices.count(where: { $0.status == .Completada })
             totalCount = sujetoExcluidoInvoices.count
+        case .notaDebito:
+            let notaDebitoInvoices = viewModel.generatedInvoices.filter { $0.invoiceType == .NotaDebito }
+            syncedCount = notaDebitoInvoices.count(where: { $0.status == .Completada })
+            totalCount = notaDebitoInvoices.count
         case .todo:
             syncedCount = viewModel.generatedInvoices.count(where: { $0.status == .Completada })
             totalCount = viewModel.generatedInvoices.count
@@ -741,6 +783,8 @@ struct ConfirmationDialogsModifier: ViewModifier {
     @Binding var showForceNotasDialog: Bool
     @Binding var showSujetoExcluidoDialog: Bool
     @Binding var showForceSujetoExcluidoDialog: Bool
+    @Binding var showNotaDebitoDialog: Bool
+    @Binding var showForceNotaDebitoDialog: Bool
     @Binding var showProcessAllDialog: Bool
     @Binding var showForceAllDialog: Bool
     
@@ -752,6 +796,8 @@ struct ConfirmationDialogsModifier: ViewModifier {
     let onConfirmForceCreditNotes: () -> Void
     let onConfirmSujetoExcluido: () -> Void
     let onConfirmForceSujetoExcluido: () -> Void
+    let onConfirmNotaDebito: () -> Void
+    let onConfirmForceNotaDebito: () -> Void
     let onConfirmProcessAll: () -> Void
     let onConfirmForceAll: () -> Void
     
@@ -787,6 +833,14 @@ struct ConfirmationDialogsModifier: ViewModifier {
             }
             .confirmationDialog("Ya existen suficientes Sujetos Excluidos completados. ¿Desea generar una nueva tanda de todas formas?", isPresented: $showForceSujetoExcluidoDialog, titleVisibility: .visible) {
                 Button("Sí, generar nueva tanda", action: onConfirmForceSujetoExcluido)
+                Button("No, cancelar", role: .cancel) {}
+            }
+            .confirmationDialog("¿Desea generar y enviar Notas de Débito?", isPresented: $showNotaDebitoDialog, titleVisibility: .visible) {
+                Button("Confirmar", action: onConfirmNotaDebito)
+                Button("Cancelar", role: .cancel) {}
+            }
+            .confirmationDialog("Ya existen suficientes Notas de Débito completadas. ¿Desea generar una nueva tanda de todas formas?", isPresented: $showForceNotaDebitoDialog, titleVisibility: .visible) {
+                Button("Sí, generar nueva tanda", action: onConfirmForceNotaDebito)
                 Button("No, cancelar", role: .cancel) {}
             }
             .confirmationDialog("¿Desea generar y enviar todos los tipos de documentos?", isPresented: $showProcessAllDialog, titleVisibility: .visible) {
