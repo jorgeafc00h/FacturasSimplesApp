@@ -452,10 +452,18 @@ class RequestProductionAccessViewModel {
         
         Extensions.generateControlNumberAndCode(note)
         
-        let items = (invoice.items ?? []).map { detail -> InvoiceDetail in
-            return InvoiceDetail(quantity: detail.quantity, product: detail.product)
-            
+        // Take only the first item from the original invoice for the credit note
+        // This creates a partial credit note for the first item only
+        let firstItem = (invoice.items ?? []).first
+        
+        let finalItems: [InvoiceDetail]
+        if let item = firstItem {
+            finalItems = [InvoiceDetail(quantity: item.quantity, product: item.product)]
+        } else {
+            // Safety fallback: if no items exist, create a default item
+            finalItems = [InvoiceDetail(quantity: Decimal(1), product: self.products.first ?? Product(productName: "Default Product", unitPrice: Decimal(1)))]
         }
+    
         
         note.invoiceNumber = invoiceNumber
         note.status = .Nueva
@@ -466,7 +474,7 @@ class RequestProductionAccessViewModel {
         note.relatedDocumentType = invoice.documentType
         note.relatedInvoiceType = invoice.invoiceType
         note.relatedId = invoice.inoviceId
-        note.items = items
+        note.items = finalItems
         note.relatedDocumentDate = invoice.date
         
         // Set sync status based on company type
