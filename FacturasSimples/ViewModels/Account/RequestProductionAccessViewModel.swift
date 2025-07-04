@@ -58,9 +58,13 @@ class RequestProductionAccessViewModel {
         var facturasProgress: Double = 0.0
         var ccfProgress: Double = 0.0
         var creditNotesProgress: Double = 0.0
+        var sujetoExcluidoProgress: Double = 0.0
+        var notaDebitoProgress: Double = 0.0
         var facturasStatus: ProcessingStatus = .notStarted
         var ccfStatus: ProcessingStatus = .notStarted
         var creditNotesStatus: ProcessingStatus = .notStarted
+        var sujetoExcluidoStatus: ProcessingStatus = .notStarted
+        var notaDebitoStatus: ProcessingStatus = .notStarted
         
         let invoiceService = InvoiceServiceClient()
         var dteService = MhClient()
@@ -69,6 +73,8 @@ class RequestProductionAccessViewModel {
         var hasProcessedFacturas: Bool = false
         var hasProcessedCCF: Bool = false
         var hasProcessedCreditNotes: Bool = false
+        var hasProcessedSujetoExcluido: Bool = false
+        var hasProcessedNotaDebito: Bool = false
         
         // Flag to force generation even when minimum is met
         var forceGeneration: Bool = false
@@ -139,6 +145,16 @@ class RequestProductionAccessViewModel {
             processed = true
         }
         
+        if !self.hasProcessedSujetoExcluido {
+            generateSujetoExcluido()
+            processed = true
+        }
+        
+        if !self.hasProcessedNotaDebito {
+            generateNotaDebito()
+            processed = true
+        }
+        
         if processed {
             try? safeModelContext.save()
             self.alertMessage = "Se generaron facturas con datos de prueba."
@@ -151,9 +167,11 @@ class RequestProductionAccessViewModel {
     }
     
     func validateCertificateCredentialasAsync() async  {
-        self.isLoadingCertificateStatus = true
-        // Reset error state when starting validation
-        self.showCertificateInvalidMessage = false
+        await MainActor.run {
+            self.isLoadingCertificateStatus = true
+            // Reset error state when starting validation
+            self.showCertificateInvalidMessage = false
+        }
         
         let service = InvoiceServiceClient()
         
@@ -162,26 +180,34 @@ class RequestProductionAccessViewModel {
             
             print("Certificate Validation Result: \(result)")
             
-            if result == false {
-                self.showCertificateInvalidMessage = true
-                print("❌ Certificate validation failed - invalid credentials")
-            } else {
-                self.showCertificateInvalidMessage = false
-                print("✅ Certificate validation successful")
+            await MainActor.run {
+                if result == false {
+                    self.showCertificateInvalidMessage = true
+                    print("❌ Certificate validation failed - invalid credentials")
+                } else {
+                    self.showCertificateInvalidMessage = false
+                    print("✅ Certificate validation successful")
+                }
             }
         } catch {
             // Network or other errors
-            self.showCertificateInvalidMessage = true
+            await MainActor.run {
+                self.showCertificateInvalidMessage = true
+            }
             print("❌ Certificate validation error: \(error)")
         }
         
-        self.isLoadingCertificateStatus = false
+        await MainActor.run {
+            self.isLoadingCertificateStatus = false
+        }
     }
     
     func validateCredentialsAsync() async  {
-        self.isLoadingCredentialsStatus = true
-        // Reset error state when starting validation
-        self.showCredentialsInvalidMessage = false
+        await MainActor.run {
+            self.isLoadingCredentialsStatus = true
+            // Reset error state when starting validation
+            self.showCredentialsInvalidMessage = false
+        }
         
         let service = InvoiceServiceClient()
         
@@ -193,20 +219,26 @@ class RequestProductionAccessViewModel {
             
             print("Credentials Validation Result: \(result)")
             
-            if result == false {
-                self.showCredentialsInvalidMessage = true
-                print("❌ Credentials validation failed - invalid credentials")
-            } else {
-                self.showCredentialsInvalidMessage = false
-                print("✅ Credentials validation successful")
+            await MainActor.run {
+                if result == false {
+                    self.showCredentialsInvalidMessage = true
+                    print("❌ Credentials validation failed - invalid credentials")
+                } else {
+                    self.showCredentialsInvalidMessage = false
+                    print("✅ Credentials validation successful")
+                }
             }
         } catch {
             // Network or other errors
-            self.showCredentialsInvalidMessage = true
+            await MainActor.run {
+                self.showCredentialsInvalidMessage = true
+            }
             print("❌ Credentials validation error: \(error)")
         }
         
-        self.isLoadingCredentialsStatus = false
+        await MainActor.run {
+            self.isLoadingCredentialsStatus = false
+        }
     }
     
     // Helper method to prepare customers and products
@@ -268,8 +300,16 @@ class RequestProductionAccessViewModel {
             invoice.items = self.products.map { product in
                 InvoiceDetail(quantity: Decimal(Int.random(in: 1...5)), product: product)
             }
+            
+            // Set document type - CRITICAL for proper sync
+            invoice.documentType = Extensions.documentTypeFromInvoiceType(.Factura)
+            
             // Set sync status based on company type
             invoice.shouldSyncToCloudKit = !safeCompany.isTestAccount
+            
+            // Generate control number and code
+            Extensions.generateControlNumberAndCode(invoice)
+            
             invoiceIndex += 1
             //safeModelContext.insert(invoice)
             self.generatedInvoices.append(invoice)
@@ -290,7 +330,7 @@ class RequestProductionAccessViewModel {
             self.alertMessage = "Ya existen suficientes Créditos Fiscales completados."
             self.showAlert = true
             return
-        }
+        }	
         
         var invoiceIndex = getNextInoviceNumber()
         
@@ -301,8 +341,16 @@ class RequestProductionAccessViewModel {
             ccf.items = self.products.map { product in
                 InvoiceDetail(quantity: Decimal(Int.random(in: 1...5)), product: product)
             }
+            
+            // Set document type - CRITICAL for proper sync
+            ccf.documentType = Extensions.documentTypeFromInvoiceType(.CCF)
+            
             // Set sync status based on company type
             ccf.shouldSyncToCloudKit = !safeCompany.isTestAccount
+            
+            // Generate control number and code
+            Extensions.generateControlNumberAndCode(ccf)
+            
             invoiceIndex += 1
             self.generatedInvoices.append(ccf)
             //safeModelContext.insert(ccf)
@@ -362,6 +410,10 @@ class RequestProductionAccessViewModel {
                 ccf.items = self.products.map { product in
                     InvoiceDetail(quantity: Decimal(Int.random(in: 1...5)), product: product)
                 }
+                
+                // Set document type - CRITICAL for proper sync
+                ccf.documentType = Extensions.documentTypeFromInvoiceType(.CCF)
+                
                 // Set sync status based on company type
                 ccf.shouldSyncToCloudKit = !safeCompany.isTestAccount
                 invoiceIndex += 1
@@ -386,7 +438,7 @@ class RequestProductionAccessViewModel {
         }
         
         self.hasProcessedCreditNotes = true
-        self.alertMessage = "Se generaron 50 Notas de Crédito con datos de prueba."
+        self.alertMessage = "Se generaron \(BatchLimit) Notas de Crédito con datos de prueba."
         self.showAlert = true
     }
     
@@ -400,10 +452,18 @@ class RequestProductionAccessViewModel {
         
         Extensions.generateControlNumberAndCode(note)
         
-        let items = (invoice.items ?? []).map { detail -> InvoiceDetail in
-            return InvoiceDetail(quantity: detail.quantity, product: detail.product)
-            
+        // Take only the first item from the original invoice for the credit note
+        // This creates a partial credit note for the first item only
+        let firstItem = (invoice.items ?? []).first
+        
+        let finalItems: [InvoiceDetail]
+        if let item = firstItem {
+            finalItems = [InvoiceDetail(quantity: item.quantity, product: item.product)]
+        } else {
+            // Safety fallback: if no items exist, create a default item
+            finalItems = [InvoiceDetail(quantity: Decimal(1), product: self.products.first ?? Product(productName: "Default Product", unitPrice: Decimal(1)))]
         }
+    
         
         note.invoiceNumber = invoiceNumber
         note.status = .Nueva
@@ -414,7 +474,7 @@ class RequestProductionAccessViewModel {
         note.relatedDocumentType = invoice.documentType
         note.relatedInvoiceType = invoice.invoiceType
         note.relatedId = invoice.inoviceId
-        note.items = items
+        note.items = finalItems
         note.relatedDocumentDate = invoice.date
         
         // Set sync status based on company type
@@ -422,6 +482,148 @@ class RequestProductionAccessViewModel {
         
 //        safeModelContext.insert(note)
 //        try? safeModelContext.save()
+        
+        return note
+    }
+    
+    // Generate Sujeto Excluido invoices
+    func generateSujetoExcluido(forceGenerate: Bool = false) {
+        if !forceGenerate && self.invoices.count(where: { $0.invoiceType == .SujetoExcluido && $0.status == .Completada }) >= self.totalInvoices {
+            self.hasProcessedSujetoExcluido = true
+            self.alertMessage = "Ya existen suficientes Sujetos Excluidos completados."
+            self.showAlert = true
+            return
+        }
+        
+        var invoiceIndex = getNextInoviceNumber()
+        
+        for _ in 1...self.totalInvoices {  
+            let customer = self.customers.randomElement()!
+            let invoiceNumber = String(format: "%05d", invoiceIndex)
+            let invoice = Invoice(invoiceNumber: invoiceNumber, date: Date(), status: .Nueva, customer: customer, invoiceType: .SujetoExcluido)
+            invoice.items = self.products.map { product in
+                return InvoiceDetail(quantity: Decimal(Int.random(in: 1...5)), product: product)
+            }
+            
+            // Set document type - CRITICAL for proper sync
+            invoice.documentType = Extensions.documentTypeFromInvoiceType(.SujetoExcluido)
+            
+            // Set sync status based on company type
+            invoice.shouldSyncToCloudKit = !safeCompany.isTestAccount
+            
+            // Generate control number and code
+            Extensions.generateControlNumberAndCode(invoice)
+            
+            invoiceIndex += 1
+            self.generatedInvoices.append(invoice)
+        }
+        
+        self.hasProcessedSujetoExcluido = true
+        self.alertMessage = "Se generaron \(self.totalInvoices) Sujetos Excluidos con datos de prueba."
+        self.showAlert = true
+    }
+    
+    // Generate Nota Debito invoices
+    func generateNotaDebito(forceGenerate: Bool = false) {
+        if !forceGenerate && self.invoices.count(where: { $0.invoiceType == .NotaDebito && $0.status == .Completada }) >= BatchLimit {
+            self.hasProcessedNotaDebito = true
+            self.alertMessage = "Ya existen suficientes Notas de Débito completadas."
+            self.showAlert = true
+            return
+        }
+        
+        // Check if we have enough CCF to generate debit notes
+        let calendar = Calendar.current
+        _ = calendar.startOfDay(for: Date())
+        
+        let hasCCFAvailable = self.invoices.count(where: { 
+            $0.invoiceType == .CCF && 
+            $0.status == .Nueva && 
+            calendar.isDate($0.date, inSameDayAs: Date())
+        }) >= BatchLimit
+        
+        if !hasCCFAvailable {
+            // Generate more CCF first if needed
+            generateCreditosFiscales(forceGenerate: forceGenerate)
+        }
+        
+        // Filter to get only today's CCF invoices for debit notes
+        let ccfInvoices = self.invoices.filter { 
+            $0.invoiceType == .CCF && 
+            $0.status == .Nueva &&
+            calendar.isDate($0.date, inSameDayAs: Date())
+        }.suffix(BatchLimit)
+        
+        var invoiceIndex = getNextInoviceNumber()
+        
+        // If we don't have enough from today, create a new CCF then a note
+        if ccfInvoices.count < BatchLimit {
+            // Use a simple for loop instead of map
+            for _ in 1...self.totalInvoices {
+                let customer = self.customers.randomElement()!
+                let ccfNumber = String(format: "%05d", invoiceIndex)
+                let ccf = Invoice(invoiceNumber: ccfNumber, date: Date(), status: .Nueva, customer: customer, invoiceType: .CCF)
+                
+                ccf.items = self.products.map { product in
+                    return InvoiceDetail(quantity: Decimal(Int.random(in: 1...5)), product: product)
+                }
+                
+                // Set document type - CRITICAL for proper sync
+                ccf.documentType = Extensions.documentTypeFromInvoiceType(.CCF)
+                
+                invoiceIndex += 1
+                Extensions.generateControlNumberAndCode(ccf)
+                
+                // Mark the CCF as a helper invoice for debit notes (not to be shown in progress)
+                ccf.isHelperForCreditNote = true
+                self.generatedInvoices.append(ccf)
+                
+                // Create a debit note for this CCF
+                let note = generateNotaDebitofromInvoice(ccf, invoiceNumber: String(format: "%05d", invoiceIndex))
+                invoiceIndex += 1
+                self.generatedInvoices.append(note)
+            }
+        } else {
+            // Use existing CCF invoices
+            for ccf in ccfInvoices {
+                let note = generateNotaDebitofromInvoice(ccf, invoiceNumber: String(format: "%05d", invoiceIndex))
+                invoiceIndex += 1
+                self.generatedInvoices.append(note)
+            }
+        }
+        
+        self.hasProcessedNotaDebito = true
+        self.alertMessage = "Se generaron \(BatchLimit) Notas de Débito con datos de prueba."
+        self.showAlert = true
+    }
+    
+    func generateNotaDebitofromInvoice(_ invoice: Invoice, invoiceNumber: String) -> Invoice{
+        
+        let note = Invoice(invoiceNumber: invoiceNumber,
+                           date: invoice.date,
+                           status: invoice.status, customer: invoice.customer,
+                           invoiceType: .NotaDebito)
+        
+        Extensions.generateControlNumberAndCode(note)
+        
+        let items = (invoice.items ?? []).map { detail -> InvoiceDetail in
+            return InvoiceDetail(quantity: detail.quantity, product: detail.product)
+        }
+        
+        note.invoiceNumber = invoiceNumber
+        note.status = .Nueva
+        note.date = Date()
+        note.invoiceType = .NotaDebito
+        note.documentType = Extensions.documentTypeFromInvoiceType(.NotaDebito)
+        note.relatedDocumentNumber = invoice.generationCode
+        note.relatedDocumentType = invoice.documentType
+        note.relatedInvoiceType = invoice.invoiceType
+        note.relatedId = invoice.inoviceId
+        note.items = items
+        note.relatedDocumentDate = invoice.date
+        
+        // Set sync status based on company type
+        note.shouldSyncToCloudKit = !safeCompany.isTestAccount
         
         return note
     }
@@ -443,16 +645,20 @@ class RequestProductionAccessViewModel {
                     errorMessage += "Verifica las credenciales de hacienda"
                 }
                 
-                self.alertMessage = errorMessage
-                self.showAlert = true
-                self.isSyncing = false
+                await MainActor.run {
+                    self.alertMessage = errorMessage
+                    self.showAlert = true
+                    self.isSyncing = false
+                }
                 return
             }
             
             for (index, invoice) in self.generatedInvoices.enumerated() {
                 
                 if invoice.status == .Completada {
-                    self.progress = Double(index + 1) / Double(self.generatedInvoices.count)
+                    await MainActor.run {
+                        self.progress = Double(index + 1) / Double(self.generatedInvoices.count)
+                    }
                     continue
                 }
                 
@@ -473,12 +679,17 @@ class RequestProductionAccessViewModel {
                 } catch {
                     print("ERROR SYNCING INVOICE: \(error)")
                 }
-                self.progress = Double(index + 1) / Double(self.generatedInvoices.count)
+                await MainActor.run {
+                    self.progress = Double(index + 1) / Double(self.generatedInvoices.count)
+                }
             }
-            self.isSyncing = false
-            self.alertMessage = "Facturas enviadas y completadas."
-            self.showAlert = true
-            self.hasCompleted = true
+            
+            await MainActor.run {
+                self.isSyncing = false
+                self.alertMessage = "Facturas enviadas y completadas."
+                self.showAlert = true
+                self.hasCompleted = true
+            }
             
             // Call completion callback if process was successful
             if let onCompletion = onCompletion {
@@ -590,24 +801,7 @@ class RequestProductionAccessViewModel {
             
 //            safeModelContext.insert(invoice)
 //            try? safeModelContext.save()
-            
-            if invoice.invoiceType == .NotaCredito {
-                
-                let id = invoice.relatedId!
-                
-                let descriptor = FetchDescriptor<Invoice>(
-                    predicate: #Predicate<Invoice>{
-                        $0.inoviceId == id
-                    }
-                )
-                
-                if let relatedInvoice = try? safeModelContext.fetch(descriptor).first{
-                    relatedInvoice.status = .Anulada
-                    relatedInvoice.statusRawValue = relatedInvoice.status.id
-                    try? safeModelContext.save()
-                }
-            }
-            
+  
             
         } catch(let error) {
             print("error \(error.localizedDescription)")
@@ -634,6 +828,8 @@ class RequestProductionAccessViewModel {
         }
     }
     
+    // TODO - Refactor this to use a more efficient way to get the next invoice number
+    // this method is not required since we're not storing invoices in the model context
     private func getNextInoviceNumber() -> Int{
         
         let id = safeCompany.id
@@ -666,9 +862,13 @@ class RequestProductionAccessViewModel {
         self.facturasProgress = 0.0
         self.ccfProgress = 0.0
         self.creditNotesProgress = 0.0
+        self.sujetoExcluidoProgress = 0.0
+        self.notaDebitoProgress = 0.0
         self.facturasStatus = .notStarted
         self.ccfStatus = .notStarted
         self.creditNotesStatus = .notStarted
+        self.sujetoExcluidoStatus = .notStarted
+        self.notaDebitoStatus = .notStarted
         
         prepareCustomersAndProducts()
         
@@ -677,6 +877,17 @@ class RequestProductionAccessViewModel {
             await processFacturasWithProgress(forceGenerate: forceGenerate)
             await processCCFWithProgress(forceGenerate: forceGenerate)
             await processCreditNotesWithProgress(forceGenerate: forceGenerate)
+            await processSujetoExcluidoWithProgress(forceGenerate: forceGenerate)
+            await processNotaDebitoWithProgress(forceGenerate: forceGenerate)
+            
+            // Reset progress bars to 0% after generation is complete, before sync phase
+            await MainActor.run {
+                self.facturasProgress = 0.0
+                self.ccfProgress = 0.0
+                self.creditNotesProgress = 0.0
+                self.sujetoExcluidoProgress = 0.0
+                self.notaDebitoProgress = 0.0
+            }
             
             // Send all invoices at the end
             await sendAllInvoicesWithProgress()
@@ -718,8 +929,16 @@ class RequestProductionAccessViewModel {
             invoice.items = self.products.map { product in
                 InvoiceDetail(quantity: Decimal(Int.random(in: 1...5)), product: product)
             }
+            
+            // Set document type - CRITICAL for proper sync
+            invoice.documentType = Extensions.documentTypeFromInvoiceType(.Factura)
+            
             // Set sync status based on company type
             invoice.shouldSyncToCloudKit = !safeCompany.isTestAccount
+            
+            // Generate control number and code
+            Extensions.generateControlNumberAndCode(invoice)
+            
             invoiceIndex += 1
             self.generatedInvoices.append(invoice)
             
@@ -754,8 +973,16 @@ class RequestProductionAccessViewModel {
             ccf.items = self.products.map { product in
                 InvoiceDetail(quantity: Decimal(Int.random(in: 1...5)), product: product)
             }
+            
+            // Set document type - CRITICAL for proper sync
+            ccf.documentType = Extensions.documentTypeFromInvoiceType(.CCF)
+            
             // Set sync status based on company type
             ccf.shouldSyncToCloudKit = !safeCompany.isTestAccount
+            
+            // Generate control number and code
+            Extensions.generateControlNumberAndCode(ccf)
+            
             invoiceIndex += 1
             self.generatedInvoices.append(ccf)
             
@@ -774,7 +1001,7 @@ class RequestProductionAccessViewModel {
     private func processCreditNotesWithProgress(forceGenerate: Bool = false) async {
         self.creditNotesStatus = .generating
         
-        if !forceGenerate && self.invoices.count(where: { $0.invoiceType == .NotaCredito && $0.status == .Completada }) >= 50 {
+        if !forceGenerate && self.invoices.count(where: { $0.invoiceType == .NotaCredito && $0.status == .Completada }) >= BatchLimit {
             self.hasProcessedCreditNotes = true
             self.creditNotesProgress = 1.0
             self.creditNotesStatus = .completed
@@ -782,9 +1009,8 @@ class RequestProductionAccessViewModel {
         }
         
         var invoiceIndex = getNextInoviceNumber()
-        let targetCount = 50
-        
-        for i in 1...targetCount {
+         
+        for  i in 1...self.totalInvoices {
             // Create a new CCF for the credit note
             let customer = self.customers.randomElement()!
             let ccfNumber = String(format: "%05d", invoiceIndex)
@@ -793,6 +1019,10 @@ class RequestProductionAccessViewModel {
             ccf.items = self.products.map { product in
                 InvoiceDetail(quantity: Decimal(Int.random(in: 1...5)), product: product)
             }
+            
+            // Set document type - CRITICAL for proper sync
+            ccf.documentType = Extensions.documentTypeFromInvoiceType(.CCF)
+            
             invoiceIndex += 1
             Extensions.generateControlNumberAndCode(ccf)
             
@@ -806,7 +1036,7 @@ class RequestProductionAccessViewModel {
             self.generatedInvoices.append(note)
             
             // Update progress
-            self.creditNotesProgress = Double(i) / Double(targetCount)
+            self.creditNotesProgress = Double(i) / Double(self.totalInvoices)
             
             // Small delay to show progress
             try? await Task.sleep(nanoseconds: 10_000_000) // 0.01 seconds
@@ -817,11 +1047,106 @@ class RequestProductionAccessViewModel {
     }
     
     @MainActor
+    private func processSujetoExcluidoWithProgress(forceGenerate: Bool = false) async {
+        self.sujetoExcluidoStatus = .generating
+        
+        if !forceGenerate && self.invoices.count(where: { $0.invoiceType == .SujetoExcluido && $0.status == .Completada }) >= self.totalInvoices {
+            self.hasProcessedSujetoExcluido = true
+            self.sujetoExcluidoProgress = 1.0
+            self.sujetoExcluidoStatus = .completed
+            return
+        }
+        
+        var invoiceIndex = getNextInoviceNumber()
+        
+        for  i in 1...self.totalInvoices {
+            let customer = self.customers.randomElement()!
+            let invoiceNumber = String(format: "%05d", invoiceIndex)
+            let invoice = Invoice(invoiceNumber: invoiceNumber, date: Date(), status: .Nueva, customer: customer, invoiceType: .SujetoExcluido)
+
+            invoice.items = [InvoiceDetail(quantity:  Decimal(Int.random(in: 1...5)), product: self.products.randomElement()!)]
+            
+            // Set document type - CRITICAL for proper sync
+            invoice.documentType = Extensions.documentTypeFromInvoiceType(.SujetoExcluido)
+            
+            // Set sync status based on company type
+            invoice.shouldSyncToCloudKit = !safeCompany.isTestAccount
+            
+            // Generate control number and code
+            Extensions.generateControlNumberAndCode(invoice)
+            
+            invoiceIndex += 1
+            self.generatedInvoices.append(invoice)
+            
+            // Update progress
+            self.sujetoExcluidoProgress = Double(i) / Double(self.totalInvoices)
+            
+            // Small delay to show progress
+            try? await Task.sleep(nanoseconds: 10_000_000) // 0.01 seconds
+        }
+        
+        self.hasProcessedSujetoExcluido = true
+        self.sujetoExcluidoStatus = .completed
+    }
+    
+    @MainActor
+    private func processNotaDebitoWithProgress(forceGenerate: Bool = false) async {
+        self.notaDebitoStatus = .generating
+        
+        if !forceGenerate && self.invoices.count(where: { $0.invoiceType == .NotaDebito && $0.status == .Completada }) >= BatchLimit {
+            self.hasProcessedNotaDebito = true
+            self.notaDebitoProgress = 1.0
+            self.notaDebitoStatus = .completed
+            return
+        }
+        
+        var invoiceIndex = getNextInoviceNumber()
+        let targetCount = BatchLimit
+        
+        for i in 1...targetCount {
+            // Create a new CCF for the debit note
+            let customer = self.customers.randomElement()!
+            let ccfNumber = String(format: "%05d", invoiceIndex)
+            let ccf = Invoice(invoiceNumber: ccfNumber, date: Date(), status: .Nueva, customer: customer, invoiceType: .CCF)
+            
+            ccf.items = self.products.map { product in
+                return InvoiceDetail(quantity: Decimal(Int.random(in: 1...5)), product: product)
+            }
+            
+            // Set document type - CRITICAL for proper sync
+            ccf.documentType = Extensions.documentTypeFromInvoiceType(.CCF)
+            
+            invoiceIndex += 1
+            Extensions.generateControlNumberAndCode(ccf)
+            
+            // Mark the CCF as a helper invoice for debit notes (not to be shown in progress)
+            ccf.isHelperForCreditNote = true
+            self.generatedInvoices.append(ccf)
+            
+            // Create a debit note for this CCF
+            let note = generateNotaDebitofromInvoice(ccf, invoiceNumber: String(format: "%05d", invoiceIndex))
+            invoiceIndex += 1
+            self.generatedInvoices.append(note)
+            
+            // Update progress
+            self.notaDebitoProgress = Double(i) / Double(targetCount)
+            
+            // Small delay to show progress
+            try? await Task.sleep(nanoseconds: 10_000_000) // 0.01 seconds
+        }
+        
+        self.hasProcessedNotaDebito = true
+        self.notaDebitoStatus = .completed
+    }
+    
+    @MainActor
     private func sendAllInvoicesWithProgress() async {
         // Update all statuses to sending
         self.facturasStatus = .sending
         self.ccfStatus = .sending
         self.creditNotesStatus = .sending
+        self.sujetoExcluidoStatus = .sending
+        self.notaDebitoStatus = .sending
         
         await validateCertificateCredentialasAsync()
         await validateCredentialsAsync()
@@ -830,6 +1155,8 @@ class RequestProductionAccessViewModel {
             self.facturasStatus = .error
             self.ccfStatus = .error
             self.creditNotesStatus = .error
+            self.sujetoExcluidoStatus = .error
+            self.notaDebitoStatus = .error
             
             var errorMessage = "Error de validación: "
             if self.showCertificateInvalidMessage && self.showCredentialsInvalidMessage {
@@ -850,10 +1177,14 @@ class RequestProductionAccessViewModel {
         // Exclude helper CCFs from the count that are only created for credit notes
         let ccfCount = self.generatedInvoices.filter { $0.invoiceType == .CCF && !$0.isHelperForCreditNote }.count
         let notesCount = self.generatedInvoices.filter { $0.invoiceType == .NotaCredito }.count
+        let sujetoExcluidoCount = self.generatedInvoices.filter { $0.invoiceType == .SujetoExcluido }.count
+        let notaDebitoCount = self.generatedInvoices.filter { $0.invoiceType == .NotaDebito }.count
         
         var facturasProcessed = 0
         var ccfProcessed = 0
         var notesProcessed = 0
+        var sujetoExcluidoProcessed = 0
+        var notaDebitoProcessed = 0
         
         for (index, invoice) in self.generatedInvoices.enumerated() {
             if invoice.status == .Completada {
@@ -883,6 +1214,16 @@ class RequestProductionAccessViewModel {
                     if notesCount > 0 {
                         self.creditNotesProgress = Double(notesProcessed) / Double(notesCount)
                     }
+                case .SujetoExcluido:
+                    sujetoExcluidoProcessed += 1
+                    if sujetoExcluidoCount > 0 {
+                        self.sujetoExcluidoProgress = Double(sujetoExcluidoProcessed) / Double(sujetoExcluidoCount)
+                    }
+                case .NotaDebito:
+                    notaDebitoProcessed += 1
+                    if notaDebitoCount > 0 {
+                        self.notaDebitoProgress = Double(notaDebitoProcessed) / Double(notaDebitoCount)
+                    }
                 default:
                     break
                 }
@@ -900,6 +1241,10 @@ class RequestProductionAccessViewModel {
                     }
                 case .NotaCredito:
                     self.creditNotesStatus = .error
+                case .SujetoExcluido:
+                    self.sujetoExcluidoStatus = .error
+                case .NotaDebito:
+                    self.notaDebitoStatus = .error
                 default:
                     break
                 }
@@ -919,6 +1264,12 @@ class RequestProductionAccessViewModel {
         }
         if self.creditNotesStatus != .error {
             self.creditNotesStatus = .completed
+        }
+        if self.sujetoExcluidoStatus != .error {
+            self.sujetoExcluidoStatus = .completed
+        }
+        if self.notaDebitoStatus != .error {
+            self.notaDebitoStatus = .completed
         }
     }
     
@@ -945,6 +1296,18 @@ class RequestProductionAccessViewModel {
             processedOfType = self.generatedInvoices.filter { $0.invoiceType == .NotaCredito && $0.status == .Completada }.count
             if totalOfType > 0 {
                 self.creditNotesProgress = Double(processedOfType) / Double(totalOfType)
+            }
+        case .SujetoExcluido:
+            totalOfType = self.generatedInvoices.filter { $0.invoiceType == .SujetoExcluido }.count
+            processedOfType = self.generatedInvoices.filter { $0.invoiceType == .SujetoExcluido && $0.status == .Completada }.count
+            if totalOfType > 0 {
+                self.sujetoExcluidoProgress = Double(processedOfType) / Double(totalOfType)
+            }
+        case .NotaDebito:
+            totalOfType = self.generatedInvoices.filter { $0.invoiceType == .NotaDebito }.count
+            processedOfType = self.generatedInvoices.filter { $0.invoiceType == .NotaDebito && $0.status == .Completada }.count
+            if totalOfType > 0 {
+                self.notaDebitoProgress = Double(processedOfType) / Double(totalOfType)
             }
         default:
             break

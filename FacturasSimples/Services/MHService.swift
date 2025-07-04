@@ -6,7 +6,7 @@ class MhClient {
     
     static func mapInvoice(invoice: Invoice, company: Company, environmentCode: String)throws -> DTE_Base {
         
-        if(invoice.invoiceType == .NotaCredito) {
+        if(invoice.invoiceType == .NotaCredito || invoice.invoiceType == .NotaDebito) {
             return try mapCreditNote(invoice: invoice, company: company, environmentCode: environmentCode)
         }
         
@@ -410,7 +410,7 @@ class MhClient {
                 ventaExenta: 0,
                 tipoItem: 2, // 1 producto, 2 Servicios
                 numeroDocumento: nil,
-                compra: detail.product?.unitPrice.rounded() ?? 0,
+                compra: ((detail.product?.unitPrice.rounded() ?? 0) * detail.quantity).rounded(),
             )
             
             //let productTotal = (detail.quantity * (detail.product?.unitPrice ?? 0)).rounded()
@@ -440,13 +440,13 @@ class MhClient {
             reteRenta: invoice.reteRenta.rounded(),
             montoTotalOperacion: 0,
             totalNoGravado: nil,
-            totalPagar: invoice.totalPagar,
+            totalPagar: invoice.totalPagar.rounded(),
             totalLetras: Extensions.numberToWords(invoice.totalPagar.asDoubleRounded),
             totalIva: nil,
             saldoFavor: nil,
             condicionOperacion: 1,
             pagos: [
-                Pago(codigo:"99",montoPago: invoice.totalPagar,referencia: nil,plazo: nil,periodo: 0.0)
+                Pago(codigo:"99",montoPago: invoice.totalPagar.rounded(),referencia: nil,plazo: nil,periodo: 0.0)
             ],
             //numPagoElectronico: nil,
             ivaPerci1: nil,
@@ -491,8 +491,8 @@ class MhClient {
             telefono: customer?.phone,
             correo : customer?.email,
             tipoDocumento: isCompany ? "36" :  "36",
-            numDocumento: isCompany ? nil :
-                customer?.nationalId ?? "",
+            //numDocumento: isCompany ? nil : customer?.nationalId ?? "",
+            numDocumento: customer?.nationalId,
             nit: isCompany ? customer?.nit : nil
         )
         

@@ -10,7 +10,7 @@ extension InvoiceEditView {
         
         var showingProductPicker = false
         var showAddProductSection = false
-        var invoiceTypes :[InvoiceType] = [.Factura,.CCF]
+        var invoiceTypes :[InvoiceType] = [.Factura,.CCF,.NotaDebito]
         var invoiceStatuses :[InvoiceStatus] = [.Nueva,.Completada,.Anulada]
         
         var productName :String = ""
@@ -96,7 +96,9 @@ extension InvoiceEditView {
             
             invoice.documentType  = Extensions.documentTypeFromInvoiceType(invoice.invoiceType)
             
-            if invoice.totalAmount >  viewModel.total, disableIfInvoiceTypeIsNotAvailableInOptions()  {
+            if invoice.totalAmount >  viewModel.total,
+                disableIfInvoiceTypeIsNotAvailableInOptions(),
+               invoice.invoiceType != .NotaDebito{
                 viewModel.showErrorAlert = true
                 let errorMessage = invoice.relatedInvoiceType == .Factura ?
                 "El Total no puede ser mayor al total de la factura" :

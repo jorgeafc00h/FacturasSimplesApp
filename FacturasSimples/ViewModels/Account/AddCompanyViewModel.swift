@@ -119,25 +119,29 @@ extension AddCompanyView4 {
     }
     
     func updateMHCertificateCredentials() async  {
-        viewModel.isValidatingCertificateCredentials = true
+        await MainActor.run {
+            viewModel.isValidatingCertificateCredentials = true
+        }
         
         let encryptedPassword = try! Cryptographic.encrypt(viewModel.password)
         
         let service = InvoiceServiceClient()
         let result = try? await service.validateCertificate(nit: company.nit, key: encryptedPassword,isProduction: company.isProduction)
         
-        if(result != nil && result!){
-            company.certificatePassword = encryptedPassword
-            viewModel.showAlertMessage = true
-            viewModel.message = "Contraseña del certificado actualizada"
-            try? modelContext.save()
+        await MainActor.run {
+            if(result != nil && result!){
+                company.certificatePassword = encryptedPassword
+                viewModel.showAlertMessage = true
+                viewModel.message = "Contraseña del certificado actualizada"
+                try? modelContext.save()
+            }
+            else{
+                viewModel.showValidationMessage = true
+                viewModel.message = "Error al actualizar Contraseña, actualize y verifique la contraseña del certificado en el portal de Hacienda"
+            }
+            
+            viewModel.isValidatingCertificateCredentials = false
         }
-        else{
-            viewModel.showValidationMessage = true
-            viewModel.message = "Error al actualizar Contraseña, actualize y verifique la contraseña del certificado en el portal de Hacienda"
-        }
-        
-        viewModel.isValidatingCertificateCredentials = false
     }
         
     func importFile(_ result : Result<[URL], Error>) {
@@ -163,21 +167,24 @@ extension AddCompanyView4 {
         }
     }
     
- 
     func uploadAsync () async -> Bool {
         let service = InvoiceServiceClient()
-        viewModel.isBusy = true
-            do {
-                let url = viewModel.selectedUrl!
+        await MainActor.run {
+            viewModel.isBusy = true
+        }
+        
+        do {
+            let url = viewModel.selectedUrl!
+            
+            _ = url.startAccessingSecurityScopedResource()
+            let fileData = try? Data.init(contentsOf: url)
+            
+            if let certificate = fileData {
                 
-                _ = url.startAccessingSecurityScopedResource()
-                let fileData = try? Data.init(contentsOf: url)
+                let result = try await service.uploadCertificate(data: certificate, nit: company.nit,isProduction: company.isProduction)
                 
-                if let certificate = fileData {
-                    
-                    let result = try await service.uploadCertificate(data: certificate, nit: company.nit,isProduction: company.isProduction)
-                    
-                    // now check certificate crecentials if credentials are empty , lets display a warning.
+                // now check certificate crecentials if credentials are empty , lets display a warning.
+                await MainActor.run {
                     viewModel.showAlertMessage = true
                     if(result){
                          
@@ -189,14 +196,19 @@ extension AddCompanyView4 {
                         viewModel.message = "Error al actualizar el certificado"
                     }
                 }
+            }
+            await MainActor.run {
                 viewModel.isBusy = false
-                 return true
-            } catch (let error){
+            }
+             return true
+        } catch (let error){
+            await MainActor.run {
                 viewModel.isBusy = false
-                print("File could not be saved")
                 viewModel.showAlertMessage = true
                 viewModel.message = error.localizedDescription
             }
+            print("File could not be saved")
+        }
         
         return false
     }
