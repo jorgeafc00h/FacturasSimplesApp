@@ -113,7 +113,7 @@ struct EnhancedProgressView: View {
                     Text("\(safePercentage(from: animationProgress))%")
                         .font(showAsOverall ? .title3 : .callout)
                         .fontWeight(showAsOverall ? .bold : .medium)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(Color.gray)
                     
                     Spacer()
                     
