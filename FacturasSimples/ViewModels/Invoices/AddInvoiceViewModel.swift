@@ -77,6 +77,7 @@ extension AddInvoiceView {
         }
     }
     
+    @MainActor
     func addInvoice()
     {
         withAnimation{
@@ -163,6 +164,7 @@ extension AddInvoiceView {
             viewModel.showAddProductSection.toggle()
         }
     }
+    @MainActor
     func AddNewProduct(){
         withAnimation(.easeInOut(duration: 2.34)) {
             

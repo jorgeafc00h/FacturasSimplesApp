@@ -438,7 +438,7 @@ class RequestProductionAccessViewModel {
         }
         
         self.hasProcessedCreditNotes = true
-        self.alertMessage = "Se generaron 50 Notas de Crédito con datos de prueba."
+        self.alertMessage = "Se generaron \(BatchLimit) Notas de Crédito con datos de prueba."
         self.showAlert = true
     }
     
@@ -593,7 +593,7 @@ class RequestProductionAccessViewModel {
         }
         
         self.hasProcessedNotaDebito = true
-        self.alertMessage = "Se generaron 50 Notas de Débito con datos de prueba."
+        self.alertMessage = "Se generaron \(BatchLimit) Notas de Débito con datos de prueba."
         self.showAlert = true
     }
     
@@ -645,16 +645,20 @@ class RequestProductionAccessViewModel {
                     errorMessage += "Verifica las credenciales de hacienda"
                 }
                 
-                self.alertMessage = errorMessage
-                self.showAlert = true
-                self.isSyncing = false
+                await MainActor.run {
+                    self.alertMessage = errorMessage
+                    self.showAlert = true
+                    self.isSyncing = false
+                }
                 return
             }
             
             for (index, invoice) in self.generatedInvoices.enumerated() {
                 
                 if invoice.status == .Completada {
-                    self.progress = Double(index + 1) / Double(self.generatedInvoices.count)
+                    await MainActor.run {
+                        self.progress = Double(index + 1) / Double(self.generatedInvoices.count)
+                    }
                     continue
                 }
                 
@@ -675,12 +679,17 @@ class RequestProductionAccessViewModel {
                 } catch {
                     print("ERROR SYNCING INVOICE: \(error)")
                 }
-                self.progress = Double(index + 1) / Double(self.generatedInvoices.count)
+                await MainActor.run {
+                    self.progress = Double(index + 1) / Double(self.generatedInvoices.count)
+                }
             }
-            self.isSyncing = false
-            self.alertMessage = "Facturas enviadas y completadas."
-            self.showAlert = true
-            self.hasCompleted = true
+            
+            await MainActor.run {
+                self.isSyncing = false
+                self.alertMessage = "Facturas enviadas y completadas."
+                self.showAlert = true
+                self.hasCompleted = true
+            }
             
             // Call completion callback if process was successful
             if let onCompletion = onCompletion {
@@ -792,24 +801,7 @@ class RequestProductionAccessViewModel {
             
 //            safeModelContext.insert(invoice)
 //            try? safeModelContext.save()
-            
-            if invoice.invoiceType == .NotaCredito {
-                
-                let id = invoice.relatedId!
-//                
-//                let descriptor = FetchDescriptor<Invoice>(
-//                    predicate: #Predicate<Invoice>{
-//                        $0.inoviceId == id
-//                    }
-//                )
-//                
-//                if let relatedInvoice = try? safeModelContext.fetch(descriptor).first{
-//                    relatedInvoice.status = .Anulada
-//                    relatedInvoice.statusRawValue = relatedInvoice.status.id
-//                    try? safeModelContext.save()
-//                }
-            }
-            
+  
             
         } catch(let error) {
             print("error \(error.localizedDescription)")
@@ -887,6 +879,15 @@ class RequestProductionAccessViewModel {
             await processCreditNotesWithProgress(forceGenerate: forceGenerate)
             await processSujetoExcluidoWithProgress(forceGenerate: forceGenerate)
             await processNotaDebitoWithProgress(forceGenerate: forceGenerate)
+            
+            // Reset progress bars to 0% after generation is complete, before sync phase
+            await MainActor.run {
+                self.facturasProgress = 0.0
+                self.ccfProgress = 0.0
+                self.creditNotesProgress = 0.0
+                self.sujetoExcluidoProgress = 0.0
+                self.notaDebitoProgress = 0.0
+            }
             
             // Send all invoices at the end
             await sendAllInvoicesWithProgress()
@@ -1000,7 +1001,7 @@ class RequestProductionAccessViewModel {
     private func processCreditNotesWithProgress(forceGenerate: Bool = false) async {
         self.creditNotesStatus = .generating
         
-        if !forceGenerate && self.invoices.count(where: { $0.invoiceType == .NotaCredito && $0.status == .Completada }) >= 50 {
+        if !forceGenerate && self.invoices.count(where: { $0.invoiceType == .NotaCredito && $0.status == .Completada }) >= BatchLimit {
             self.hasProcessedCreditNotes = true
             self.creditNotesProgress = 1.0
             self.creditNotesStatus = .completed

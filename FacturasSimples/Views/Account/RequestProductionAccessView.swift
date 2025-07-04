@@ -406,6 +406,7 @@ struct PreProdStep1:View{
         }
         .frame(maxWidth: .infinity)
         .frame(maxHeight: .infinity)
+        .clipped()
     }
     
     private var singleProgressView: some View {
@@ -445,6 +446,7 @@ struct PreProdStep1:View{
                 // Don't dismiss here - let the parent handle it
                 if let onCompletion = onCompletion {
                     onCompletion(createdCompany)
+                    dismiss()
                 }
             }
         }) {
@@ -513,11 +515,14 @@ struct PreProdStep1:View{
 
     var body: some View {
         GeometryReader { geometry in
-            VStack(spacing: 10) {
+            VStack(spacing: 5) {
                 headerLink
+                    .padding(.bottom, 3)
+                
                 syncingView
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
         .alert(isPresented: $viewModel.showAlert) {
             Alert(title: Text("Información"), message: Text(viewModel.alertMessage), dismissButton: .default(Text("OK")))
@@ -616,7 +621,7 @@ struct PreProdStep1:View{
 
     private func confirmCreditNotes() {
         viewModel.prepareCustomersAndProducts()
-        if viewModel.invoices.count(where: { $0.invoiceType == .NotaCredito && $0.status == .Completada }) >= 50 {
+        if viewModel.invoices.count(where: { $0.invoiceType == .NotaCredito && $0.status == .Completada }) >= 75 {
             showForceNotasDialog = true
         } else {
             showCloseButton = false
@@ -650,7 +655,7 @@ struct PreProdStep1:View{
 
     private func confirmNotaDebito() {
         viewModel.prepareCustomersAndProducts()
-        if viewModel.invoices.count(where: { $0.invoiceType == .NotaDebito && $0.status == .Completada }) >= 50 {
+        if viewModel.invoices.count(where: { $0.invoiceType == .NotaDebito && $0.status == .Completada }) >= 75 {
             showForceNotaDebitoDialog = true
         } else {
             showCloseButton = false
@@ -669,9 +674,9 @@ struct PreProdStep1:View{
         viewModel.prepareCustomersAndProducts()
         let hasEnoughFacturas = viewModel.invoices.count(where: { $0.invoiceType == .Factura && $0.status == .Completada }) >= viewModel.totalInvoices
         let hasEnoughCCF = viewModel.invoices.count(where: { $0.invoiceType == .CCF && $0.status == .Completada }) >= viewModel.totalInvoices
-        let hasEnoughNotes = viewModel.invoices.count(where: { $0.invoiceType == .NotaCredito && $0.status == .Completada }) >= 50
+        let hasEnoughNotes = viewModel.invoices.count(where: { $0.invoiceType == .NotaCredito && $0.status == .Completada }) >= 75
         let hasEnoughSujetoExcluido = viewModel.invoices.count(where: { $0.invoiceType == .SujetoExcluido && $0.status == .Completada }) >= viewModel.totalInvoices
-        let hasEnoughNotaDebito = viewModel.invoices.count(where: { $0.invoiceType == .NotaDebito && $0.status == .Completada }) >= 50
+        let hasEnoughNotaDebito = viewModel.invoices.count(where: { $0.invoiceType == .NotaDebito && $0.status == .Completada }) >= 75
         
         if hasEnoughFacturas || hasEnoughCCF || hasEnoughNotes || hasEnoughSujetoExcluido || hasEnoughNotaDebito {
             showForceAllDialog = true

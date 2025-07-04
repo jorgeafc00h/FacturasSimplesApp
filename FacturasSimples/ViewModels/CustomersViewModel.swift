@@ -146,6 +146,7 @@ extension AddCustomerView{
     
     // extension methods
     
+    @MainActor
     func addCustomer() {
         withAnimation {
             

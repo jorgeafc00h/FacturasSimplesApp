@@ -329,6 +329,7 @@ extension InvoiceDetailView {
         }
     }
     
+    @MainActor
     func generateCreditNote(){
         
         let note = Invoice(invoiceNumber: invoice.invoiceNumber,
@@ -373,6 +374,7 @@ extension InvoiceDetailView {
     }
     
     
+    @MainActor
     func generateDebitNote(){
         let note = Invoice(invoiceNumber: invoice.invoiceNumber,
                            date: invoice.date,

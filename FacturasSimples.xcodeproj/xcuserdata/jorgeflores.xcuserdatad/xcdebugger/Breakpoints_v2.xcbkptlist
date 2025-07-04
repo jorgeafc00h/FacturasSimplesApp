@@ -384,7 +384,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "356"
             endingLineNumber = "356"
-            landmarkName = "allProgressView"
+            landmarkName = "progressView"
             landmarkType = "24">
          </BreakpointContent>
       </BreakpointProxy>
@@ -520,7 +520,7 @@
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "45F9F75E-99E4-4230-A3B5-1F7E32392BF7"
-            shouldBeEnabled = "No"
+            shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FacturasSimples/Services/InvoiceServiceClient.swift"
@@ -600,15 +600,15 @@
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "D08F8F63-94EB-43D5-B428-E1DD684B0BB3"
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FacturasSimples/ViewModels/Account/RequestProductionAccessViewModel.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1003"
-            endingLineNumber = "1003"
-            landmarkName = "processCreditNotesWithProgress(forceGenerate:)"
+            startingLineNumber = "986"
+            endingLineNumber = "986"
+            landmarkName = "processCCFWithProgress(forceGenerate:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -622,9 +622,9 @@
             filePath = "FacturasSimples/ViewModels/Account/RequestProductionAccessViewModel.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1006"
-            endingLineNumber = "1006"
-            landmarkName = "processCreditNotesWithProgress(forceGenerate:)"
+            startingLineNumber = "989"
+            endingLineNumber = "989"
+            landmarkName = "processCCFWithProgress(forceGenerate:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -642,36 +642,6 @@
             endingLineNumber = "737"
             landmarkName = "validateProductionAccount(onCompletion:)"
             landmarkType = "7">
-            <Locations>
-               <Location
-                  uuid = "B7891009-CFB1-4625-9F1A-4E56A1A76B06 - f3a8d58c0ba81c37"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "FacturasSimples.RequestProductionAccessViewModel.validateProductionAccount(onCompletion: Swift.Optional&lt;(Swift.Optional&lt;FacturasSimples.Company&gt;) -&gt; ()&gt;) -&gt; ()"
-                  moduleName = "FacturasSimples.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/ViewModels/Account/RequestProductionAccessViewModel.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "733"
-                  endingLineNumber = "733">
-               </Location>
-               <Location
-                  uuid = "B7891009-CFB1-4625-9F1A-4E56A1A76B06 - f3a8d58c0ba81c37"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "FacturasSimples.RequestProductionAccessViewModel.validateProductionAccount(onCompletion: Swift.Optional&lt;(Swift.Optional&lt;FacturasSimples.Company&gt;) -&gt; ()&gt;) -&gt; ()"
-                  moduleName = "FacturasSimples.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/ViewModels/Account/RequestProductionAccessViewModel.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "733"
-                  endingLineNumber = "733">
-               </Location>
-            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -688,68 +658,6 @@
             endingLineNumber = "757"
             landmarkName = "validateProductionAccount(onCompletion:)"
             landmarkType = "7">
-            <Locations>
-               <Location
-                  uuid = "CF7BD20A-A5C1-40A7-80EC-402C59AC9DE2 - f3a8d58c0ba81e8a"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "FacturasSimples.RequestProductionAccessViewModel.validateProductionAccount(onCompletion: Swift.Optional&lt;(Swift.Optional&lt;FacturasSimples.Company&gt;) -&gt; ()&gt;) -&gt; ()"
-                  moduleName = "FacturasSimples.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/ViewModels/Account/RequestProductionAccessViewModel.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "754"
-                  endingLineNumber = "754">
-               </Location>
-               <Location
-                  uuid = "CF7BD20A-A5C1-40A7-80EC-402C59AC9DE2 - 18f0c27c17c79460"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "closure #3 @Swift.MainActor () -&gt; () in FacturasSimples.RequestProductionAccessViewModel.validateProductionAccount(onCompletion: Swift.Optional&lt;(Swift.Optional&lt;FacturasSimples.Company&gt;) -&gt; ()&gt;) -&gt; ()"
-                  moduleName = "FacturasSimples.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/ViewModels/Account/RequestProductionAccessViewModel.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "754"
-                  endingLineNumber = "754">
-               </Location>
-            </Locations>
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "5717FCA1-420B-4DD4-B2ED-FD8314E350E9"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FacturasSimples/ViewModels/Account/RequestProductionAccessViewModel.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "777"
-            endingLineNumber = "777"
-            landmarkName = "Sync(_:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "4D10665B-35EF-40E7-9757-24400057890A"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FacturasSimples/ViewModels/Account/RequestProductionAccessViewModel.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "781"
-            endingLineNumber = "781"
-            landmarkName = "Sync(_:)"
-            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -764,6 +672,38 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "185"
             endingLineNumber = "185"
+            landmarkName = "Sync(dte:credentials:isProduction:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "EB17B4E8-CF6F-4285-B6C7-C3EDFE53F91E"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FacturasSimples/ViewModels/Account/RequestProductionAccessViewModel.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "773"
+            endingLineNumber = "773"
+            landmarkName = "validateProductionAccount(onCompletion:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "6DB161F3-71D4-44C5-82EF-C7204D552AB7"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FacturasSimples/Services/InvoiceServiceClient.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "182"
+            endingLineNumber = "182"
             landmarkName = "Sync(dte:credentials:isProduction:)"
             landmarkType = "7">
          </BreakpointContent>
