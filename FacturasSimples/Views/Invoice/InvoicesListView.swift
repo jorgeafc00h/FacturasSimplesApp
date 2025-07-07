@@ -5,6 +5,7 @@ import SwiftData
 struct InvoicesListView: View {
     @Environment(\.modelContext) var modelContext
     @EnvironmentObject var storeKitManager: StoreKitManager
+    @StateObject private var n1coService = N1COEpayService.shared
     
     @Binding var selection: Invoice?
     
@@ -46,18 +47,11 @@ struct InvoicesListView: View {
         }
         .toolbar{
             ToolbarItem(placement: .navigationBarLeading) {
-//                CreditsStatusView(company: selectedCompany)
-//                    .environmentObject(storeKitManager)
+                CreditsStatusView(company: selectedCompany)
             }
             
             ToolbarItemGroup(placement: .primaryAction) {
                 Button("Nueva Factura", systemImage: "plus"){
-//                    if storeKitManager.hasAvailableCredits() {
-//                        viewModel.isShowingAddInvoiceSheet.toggle()
-//                    } else {
-//                        // Show purchase view or alert
-//                        viewModel.showCreditsAlert = true
-//                    }
                     viewModel.isShowingAddInvoiceSheet.toggle()
                 }
                 .buttonStyle(BorderlessButtonStyle()) 

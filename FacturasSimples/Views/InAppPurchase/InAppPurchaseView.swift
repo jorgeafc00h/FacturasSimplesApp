@@ -3,20 +3,19 @@
 //  FacturasSimples
 //
 //  Created by Jorge Flores on 6/3/25.
+//  Updated on 1/14/25 - Migrated from Apple StoreKit to N1CO Epay custom credit card payments
 //
-// COMMENTED OUT FOR APP SUBMISSION - REMOVE StoreKit DEPENDENCY
-// Uncomment this entire file to re-enable in-app purchases
 
 import SwiftUI
-// import StoreKit // COMMENTED OUT - Remove StoreKit dependency
 
-/*
 struct InAppPurchaseView: View {
     @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject var storeManager: StoreKitManager
-    @State private var selectedBundle: InvoiceBundle?
-    @State private var showPromoCodeView = false
+    @StateObject private var paymentService = N1COEpayService.shared
+    @State private var selectedProduct: CustomPaymentProduct?
+    @State private var showingCreditCardInput = false
     @State private var showPurchaseHistory = false
+    @State private var showSuccessAlert = false
+    @State private var successMessage = ""
     
     var body: some View {
         NavigationView {
@@ -24,21 +23,15 @@ struct InAppPurchaseView: View {
                 VStack(spacing: 32) {
                     headerSection
                     
-                    if storeManager.isLoading {
+                    if paymentService.isLoading {
                         ProgressView("Cargando productos...")
                             .frame(maxWidth: .infinity, minHeight: 200)
                     } else {
                         creditsSection
-                    
-                        if storeManager.promoCodeService.userPromoBenefits.hasActivePromoBenefits || storeManager.promoCodeService.getCurrentDiscountPercentage() != nil {
-                            promoBenefitsSection
-                        }
-                    
                         purchaseOptionsSection
-                        promoCodeSection
                     }
                     
-                    restoreSection
+                    purchaseHistorySection
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 16)
@@ -52,31 +45,37 @@ struct InAppPurchaseView: View {
                     }
                 }
             }
-            .alert("Error", isPresented: .constant(storeManager.errorMessage != nil)) {
-                Button("OK") {
-                    storeManager.errorMessage = nil
+        }
+        .sheet(isPresented: $showingCreditCardInput) {
+            if let product = selectedProduct {
+                CreditCardInputView(product: product) {
+                    handlePaymentSuccess()
                 }
-            } message: {
-                Text(storeManager.errorMessage ?? "")
             }
         }
-        .sheet(isPresented: $showPromoCodeView) {
-            PromoCodeView()
-        }
         .sheet(isPresented: $showPurchaseHistory) {
-            PurchaseHistoryView()
-                .environmentObject(storeManager)
+            CustomPurchaseHistoryView()
         }
-        .task {
-            await storeManager.loadProducts()
-            await storeManager.checkSubscriptionStatus()
+        .alert("¡Pago Exitoso!", isPresented: $showSuccessAlert) {
+            Button("OK") {
+                showSuccessAlert = false
+            }
+        } message: {
+            Text(successMessage)
+        }
+        .alert("Error de Pago", isPresented: .constant(paymentService.errorMessage != nil)) {
+            Button("OK") {
+                paymentService.errorMessage = nil
+            }
+        } message: {
+            Text(paymentService.errorMessage ?? "")
         }
     }
     
     // MARK: - Header Section
     private var headerSection: some View {
         VStack(spacing: 12) {
-            Image(systemName: "doc.text.fill")
+            Image(systemName: "creditcard.fill")
                 .font(.system(size: 50))
                 .foregroundColor(.blue)
             
@@ -84,7 +83,7 @@ struct InAppPurchaseView: View {
                 .font(.title2)
                 .fontWeight(.bold)
             
-            Text("Compra créditos de facturas para crear facturas profesionales sin límites")
+            Text("Paga con tarjeta de crédito de forma segura y obtén créditos instantáneamente")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
@@ -97,8 +96,8 @@ struct InAppPurchaseView: View {
     private var creditsSection: some View {
         VStack(spacing: 12) {
             HStack {
-                Image(systemName: storeManager.userCredits.isSubscriptionActive || storeManager.promoCodeService.hasActivePromotionalSubscription() ? "crown.fill" : "creditcard.fill")
-                    .foregroundColor(storeManager.userCredits.isSubscriptionActive || storeManager.promoCodeService.hasActivePromotionalSubscription() ? .orange : .green)
+                Image(systemName: paymentService.userCredits.isSubscriptionActive ? "crown.fill" : "creditcard.fill")
+                    .foregroundColor(paymentService.userCredits.isSubscriptionActive ? .orange : .green)
                 
                 Text("Estado de Créditos")
                     .font(.headline)
@@ -107,46 +106,36 @@ struct InAppPurchaseView: View {
             }
             
             VStack(alignment: .leading, spacing: 8) {
-                Text(storeManager.getTotalCreditsText())
+                Text(paymentService.userCredits.creditsText)
                     .font(.subheadline)
                     .foregroundColor(.primary)
                     .multilineTextAlignment(.leading)
                 
-                // Individual credit sources
-                if storeManager.promoCodeService.hasActivePromotionalSubscription() {
-                    HStack {
-                        Image(systemName: "crown.fill")
-                            .foregroundColor(.purple)
-                        Text("Suscripción promocional activa")
-                            .font(.caption)
-                            .foregroundColor(.purple)
-                        Spacer()
-                    }
-                } else if storeManager.userCredits.isSubscriptionActive {
+                if paymentService.userCredits.isSubscriptionActive {
                     HStack {
                         Image(systemName: "crown.fill")
                             .foregroundColor(.orange)
-                        Text(storeManager.userCredits.subscriptionStatusText)
+                        Text("Suscripción activa")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.orange)
                         Spacer()
                     }
                 }
                 
-                if storeManager.promoCodeService.userPromoBenefits.freeInvoicesFromPromos > 0 {
+                if paymentService.userCredits.hasImplementationFeePaid {
                     HStack {
-                        Image(systemName: "gift.fill")
-                            .foregroundColor(.orange)
-                        Text("\(storeManager.promoCodeService.userPromoBenefits.freeInvoicesFromPromos) facturas promocionales disponibles")
+                        Image(systemName: "checkmark.shield.fill")
+                            .foregroundColor(.green)
+                        Text("Costo de implementación pagado")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.green)
                         Spacer()
                     }
                 }
             }
         }
         .padding()
-        .background((storeManager.userCredits.isSubscriptionActive || storeManager.promoCodeService.hasActivePromotionalSubscription() ? Color.orange : Color.green).opacity(0.1))
+        .background((paymentService.userCredits.isSubscriptionActive ? Color.orange : Color.green).opacity(0.1))
         .cornerRadius(12)
     }
     
@@ -161,48 +150,39 @@ struct InAppPurchaseView: View {
             }
             
             VStack(spacing: 12) {
-                ForEach(InvoiceBundle.allBundles.filter{ !$0.isImplementationFee}, id: \.id) { bundle in
-                    PurchaseBundleCard(
-                        bundle: bundle,
-                        product: storeManager.getProduct(for: bundle),
-                        isSelected: selectedBundle?.id == bundle.id,
-                        isPurchasing: storeManager.purchaseState == .purchasing,
+                ForEach(paymentService.availableProducts.filter { !$0.isImplementationFee }, id: \.id) { product in
+                    CustomPurchaseBundleCard(
+                        product: product,
+                        isSelected: selectedProduct?.id == product.id,
+                        isPurchasing: paymentService.purchaseState == .processing,
                         onPurchase: {
-                            selectedBundle = bundle
-                            Task {
-                                if let product = storeManager.getProduct(for: bundle) {
-                                    await storeManager.purchase(product)
-                                }
-                            }
-                        },
-                        storeManager: storeManager
+                            selectedProduct = product
+                            showingCreditCardInput = true
+                        }
+                    )
+                }
+                
+                // Implementation Fee (if not paid)
+                if !paymentService.userCredits.hasImplementationFeePaid,
+                   let implementationFee = paymentService.availableProducts.first(where: { $0.isImplementationFee }) {
+                    
+                    CustomPurchaseBundleCard(
+                        product: implementationFee,
+                        isSelected: selectedProduct?.id == implementationFee.id,
+                        isPurchasing: paymentService.purchaseState == .processing,
+                        onPurchase: {
+                            selectedProduct = implementationFee
+                            showingCreditCardInput = true
+                        }
                     )
                 }
             }
         }
     }
     
-    // MARK: - Restore Section
-    private var restoreSection: some View {
+    // MARK: - Purchase History Section
+    private var purchaseHistorySection: some View {
         VStack(spacing: 12) {
-            Button(action: {
-                Task {
-                    await storeManager.restorePurchases()
-                }
-            }) {
-                HStack {
-                    Image(systemName: "arrow.clockwise")
-                    Text("Restaurar Compras")
-                }
-                .foregroundColor(.blue)
-                .padding()
-                .frame(maxWidth: .infinity)
-                .background(Color.blue.opacity(0.1))
-                .cornerRadius(10)
-            }
-            .disabled(storeManager.isLoading)
-            
-            // Purchase History Button
             Button(action: {
                 showPurchaseHistory = true
             }) {
@@ -210,14 +190,14 @@ struct InAppPurchaseView: View {
                     Image(systemName: "doc.text")
                     Text("Ver Historial de Compras")
                 }
-                .foregroundColor(.green)
+                .foregroundColor(.blue)
                 .padding()
                 .frame(maxWidth: .infinity)
-                .background(Color.green.opacity(0.1))
+                .background(Color.blue.opacity(0.1))
                 .cornerRadius(10)
             }
             
-            Text("Restaura compras anteriores para recuperar tus créditos de facturas")
+            Text("Revisa todas tus compras y transacciones realizadas")
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
@@ -225,98 +205,19 @@ struct InAppPurchaseView: View {
         .padding(.top)
     }
     
-    // MARK: - Promo Benefits Section
-    private var promoBenefitsSection: some View {
-        VStack(spacing: 12) {
-            HStack {
-                Image(systemName: "gift.fill")
-                    .foregroundColor(.orange)
-                
-                Text("Beneficios Promocionales")
-                    .font(.headline)
-                
-                Spacer()
-            }
-            
-            VStack(spacing: 8) {
-                if storeManager.promoCodeService.userPromoBenefits.freeInvoicesFromPromos > 0 {
-                    HStack {
-                        Text("Facturas promocionales:")
-                        Spacer()
-                        Text("\(storeManager.promoCodeService.userPromoBenefits.freeInvoicesFromPromos)")
-                            .fontWeight(.medium)
-                            .foregroundColor(.orange)
-                    }
-                }
-                
-                if storeManager.promoCodeService.hasActivePromotionalSubscription() {
-                    HStack {
-                        Text("Suscripción promocional:")
-                        Spacer()
-                        Text("Activa")
-                            .fontWeight(.medium)
-                            .foregroundColor(.purple)
-                    }
-                }
-                
-                if let discountPercent = storeManager.promoCodeService.getCurrentDiscountPercentage() {
-                    HStack {
-                        Text("Descuento activo:")
-                        Spacer()
-                        Text("\(discountPercent)% OFF")
-                            .fontWeight(.medium)
-                            .foregroundColor(.green)
-                    }
-                }
-            }
-            .font(.subheadline)
-        }
-        .padding()
-        .background(Color.orange.opacity(0.1))
-        .cornerRadius(12)
-    }
-    
-    // MARK: - Promo Code Section
-    private var promoCodeSection: some View {
-        VStack(spacing: 12) {
-            Button(action: {
-                showPromoCodeView = true
-            }) {
-                HStack {
-                    Image(systemName: "ticket.fill")
-                        .foregroundColor(.orange)
-                    
-                    Text("¿Tienes un código promocional?")
-                        .fontWeight(.medium)
-                    
-                    Spacer()
-                    
-                    Image(systemName: "chevron.right")
-                        .foregroundColor(.secondary)
-                        .font(.caption)
-                }
-                .padding()
-                .background(Color(UIColor.secondarySystemBackground))
-                .cornerRadius(12)
-            }
-            .buttonStyle(.plain)
-            
-            Text("Obtén facturas gratuitas, descuentos especiales o acceso premium, al comprar de subscripciones anuales")
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-        }
+    // MARK: - Success Handler
+    private func handlePaymentSuccess() {
+        successMessage = "Tu pago ha sido procesado exitosamente. Los créditos han sido agregados a tu cuenta."
+        showSuccessAlert = true
     }
 }
 
-// MARK: - Purchase Bundle Card
-struct PurchaseBundleCard: View {
-    let bundle: InvoiceBundle
-    let product: StoreKit.Product?
+// MARK: - Custom Purchase Bundle Card
+struct CustomPurchaseBundleCard: View {
+    let product: CustomPaymentProduct
     let isSelected: Bool
     let isPurchasing: Bool
     let onPurchase: () -> Void
-    @ObservedObject var storeManager: StoreKitManager
     
     var body: some View {
         HStack(spacing: 16) {
@@ -324,7 +225,7 @@ struct PurchaseBundleCard: View {
             VStack(spacing: 8) {
                 // Badge
                 HStack {
-                    if let specialOffer = bundle.specialOfferText {
+                    if let specialOffer = product.specialOfferText {
                         Text(specialOffer)
                             .font(.caption2)
                             .fontWeight(.bold)
@@ -339,7 +240,7 @@ struct PurchaseBundleCard: View {
                                 )
                             )
                             .cornerRadius(12)
-                    } else if bundle.isSubscription {
+                    } else if product.isSubscription {
                         Text("SUSCRIPCIÓN")
                             .font(.caption2)
                             .fontWeight(.bold)
@@ -354,7 +255,7 @@ struct PurchaseBundleCard: View {
                                 )
                             )
                             .cornerRadius(12)
-                    } else if bundle.isPopular {
+                    } else if product.isPopular {
                         Text("POPULAR")
                             .font(.caption2)
                             .fontWeight(.bold)
@@ -369,28 +270,47 @@ struct PurchaseBundleCard: View {
                                 )
                             )
                             .cornerRadius(12)
+                    } else if product.isImplementationFee {
+                        Text("REQUERIDO")
+                            .font(.caption2)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 4)
+                            .background(
+                                LinearGradient(
+                                    colors: [Color.red, Color.red.opacity(0.8)],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .cornerRadius(12)
                     }
                     Spacer()
                 }
                 
                 // Icon and count
                 HStack(spacing: 12) {
-                    Image(systemName: bundle.isSubscription ? "crown.fill" : "doc.text.fill")
+                    Image(systemName: product.isSubscription ? "crown.fill" : (product.isImplementationFee ? "gear.badge" : "doc.text.fill"))
                         .font(.title)
-                        .foregroundColor(bundle.isSubscription ? .purple : (bundle.isPopular ? .orange : .blue))
+                        .foregroundColor(product.isSubscription ? .purple : (product.isPopular ? .orange : (product.isImplementationFee ? .red : .blue)))
                         .frame(width: 40, height: 40)
                         .background(
                             Circle()
-                                .fill(bundle.isSubscription ? Color.purple.opacity(0.1) : (bundle.isPopular ? Color.orange.opacity(0.1) : Color.blue.opacity(0.1)))
+                                .fill(product.isSubscription ? Color.purple.opacity(0.1) : (product.isPopular ? Color.orange.opacity(0.1) : (product.isImplementationFee ? Color.red.opacity(0.1) : Color.blue.opacity(0.1))))
                         )
                     
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(bundle.invoiceCountText)
+                        Text(product.invoiceCountText)
                             .font(.title2)
                             .fontWeight(.bold)
                             .foregroundColor(.primary)
                         
-                        if !bundle.isSubscription {
+                        if product.isImplementationFee {
+                            Text("Activación")
+                                .font(.caption)
+                                .foregroundColor(.red)
+                        } else if !product.isSubscription {
                             Text("Facturas")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
@@ -404,14 +324,14 @@ struct PurchaseBundleCard: View {
                     Spacer()
                 }
                 
-                // Bundle name and description
+                // Product name and description
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(bundle.name)
+                    Text(product.name)
                         .font(.headline)
                         .foregroundColor(.primary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     
-                    Text(bundle.description)
+                    Text(product.description)
                         .font(.caption)
                         .foregroundColor(.secondary)
                         .lineLimit(2)
@@ -423,57 +343,17 @@ struct PurchaseBundleCard: View {
             VStack(spacing: 12) {
                 // Price display
                 VStack(alignment: .trailing, spacing: 4) {
-                    if let product = product {
-                        let priceInfo = storeManager.getDiscountedPrice(for: product)
-                        
-                        if let discountedPrice = priceInfo.discountedPrice, let discountPercent = priceInfo.discountPercent {
-                            // Show discounted price
-                            VStack(alignment: .trailing, spacing: 2) {
-                                Text(bundle.formattedPrice)
-                                    .font(.caption)
-                                    .strikethrough()
-                                    .foregroundColor(.secondary)
-                                
-                                Text("$\(String(format: "%.2f", NSDecimalNumber(decimal: discountedPrice).doubleValue))")
-                                    .font(.title3)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.green)
-                                
-                                Text("\(discountPercent)% OFF")
-                                    .font(.caption2)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.white)
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 3)
-                                    .background(
-                                        LinearGradient(
-                                            colors: [Color.green, Color.green.opacity(0.8)],
-                                            startPoint: .leading,
-                                            endPoint: .trailing
-                                        )
-                                    )
-                                    .cornerRadius(8)
-                            }
-                        } else {
-                            // Show regular price
-                            VStack(alignment: .trailing, spacing: 2) {
-                                Text(bundle.formattedPrice)
-                                    .font(.title3)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.primary)
-                                
-                                if bundle.isSubscription {
-                                    Text(bundle.subscriptionText)
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
-                            }
-                        }
-                    } else {
-                        Text(bundle.formattedPrice)
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text(product.formattedPrice)
                             .font(.title3)
                             .fontWeight(.bold)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.primary)
+                        
+                        if product.isSubscription {
+                            Text(product.subscriptionText)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
                     }
                 }
                 
@@ -485,18 +365,22 @@ struct PurchaseBundleCard: View {
                                 .scaleEffect(0.8)
                                 .foregroundColor(.white)
                         } else {
-                            Text(bundle.isSubscription ? "Suscribirse" : "Comprar")
+                            Image(systemName: "creditcard.fill")
+                            Text(product.isSubscription ? "Suscribirse" : "Comprar")
                                 .fontWeight(.semibold)
                         }
                     }
-                    .frame(width: 100, height: 40)
+                    .frame(width: 110, height: 40)
                     .background(
                         LinearGradient(
-                            colors: bundle.isSubscription ? 
+                            colors: product.isSubscription ? 
                                 [Color.purple, Color.purple.opacity(0.8)] : 
-                                (bundle.isPopular ? 
+                                (product.isPopular ? 
                                     [Color.orange, Color.red.opacity(0.8)] : 
-                                    [Color.blue, Color.blue.opacity(0.8)]
+                                    (product.isImplementationFee ?
+                                        [Color.red, Color.red.opacity(0.8)] :
+                                        [Color.blue, Color.blue.opacity(0.8)]
+                                    )
                                 ),
                             startPoint: .leading,
                             endPoint: .trailing
@@ -504,9 +388,9 @@ struct PurchaseBundleCard: View {
                     )
                     .foregroundColor(.white)
                     .cornerRadius(12)
-                    .shadow(color: (bundle.isSubscription ? Color.purple : (bundle.isPopular ? Color.orange : Color.blue)).opacity(0.3), radius: 4, x: 0, y: 2)
+                    .shadow(color: (product.isSubscription ? Color.purple : (product.isPopular ? Color.orange : (product.isImplementationFee ? Color.red : Color.blue))).opacity(0.3), radius: 4, x: 0, y: 2)
                 }
-                .disabled(product == nil || isPurchasing)
+                .disabled(isPurchasing)
             }
         }
         .padding(20)
@@ -518,23 +402,26 @@ struct PurchaseBundleCard: View {
                     RoundedRectangle(cornerRadius: 20)
                         .stroke(
                             LinearGradient(
-                                colors: bundle.isSubscription ? 
+                                colors: product.isSubscription ? 
                                     [Color.purple.opacity(0.6), Color.purple.opacity(0.3)] : 
-                                    (bundle.isPopular ? 
+                                    (product.isPopular ? 
                                         [Color.orange.opacity(0.6), Color.red.opacity(0.3)] : 
-                                        [Color.blue.opacity(0.3), Color.blue.opacity(0.1)]
+                                        (product.isImplementationFee ?
+                                            [Color.red.opacity(0.6), Color.red.opacity(0.3)] :
+                                            [Color.blue.opacity(0.3), Color.blue.opacity(0.1)]
+                                        )
                                     ),
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             ),
-                            lineWidth: bundle.isSubscription || bundle.isPopular ? 2 : 1
+                            lineWidth: product.isSubscription || product.isPopular || product.isImplementationFee ? 2 : 1
                         )
                 )
                 .shadow(
                     color: Color.black.opacity(0.05),
-                    radius: bundle.isSubscription || bundle.isPopular ? 8 : 4,
+                    radius: product.isSubscription || product.isPopular || product.isImplementationFee ? 8 : 4,
                     x: 0,
-                    y: bundle.isSubscription || bundle.isPopular ? 4 : 2
+                    y: product.isSubscription || product.isPopular || product.isImplementationFee ? 4 : 2
                 )
         )
         .scaleEffect(isSelected ? 0.98 : 1.0)
@@ -542,17 +429,173 @@ struct PurchaseBundleCard: View {
     }
 }
 
+// MARK: - Custom Purchase History View
+struct CustomPurchaseHistoryView: View {
+    @Environment(\.dismiss) private var dismiss
+    @StateObject private var purchaseManager = PurchaseDataManager.shared
+    
+    var body: some View {
+        NavigationView {
+            List {
+                if purchaseManager.recentTransactions.isEmpty {
+                    VStack(spacing: 16) {
+                        Image(systemName: "doc.text")
+                            .font(.system(size: 50))
+                            .foregroundColor(.secondary)
+                        
+                        Text("Sin Historial de Compras")
+                            .font(.headline)
+                            .foregroundColor(.secondary)
+                        
+                        Text("Tus compras aparecerán aquí una vez que realices tu primera transacción")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .listRowBackground(Color.clear)
+                } else {
+                    ForEach(purchaseManager.recentTransactions) { transaction in
+                        SwiftDataTransactionRow(transaction: transaction)
+                    }
+                }
+                
+                // Analytics Section
+                if !purchaseManager.recentTransactions.isEmpty {
+                    Section("Estadísticas") {
+                        HStack {
+                            Text("Total Gastado")
+                            Spacer()
+                            Text("$\(String(format: "%.2f", purchaseManager.getTotalSpent()))")
+                                .fontWeight(.bold)
+                        }
+                        
+                        HStack {
+                            Text("Total de Transacciones")
+                            Spacer()
+                            Text("\(purchaseManager.recentTransactions.count)")
+                                .fontWeight(.bold)
+                        }
+                        
+                        if let profile = purchaseManager.userProfile {
+                            HStack {
+                                Text("Facturas Consumidas")
+                                Spacer()
+                                Text("\(profile.consumptions.count)")
+                                    .fontWeight(.bold)
+                            }
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Historial de Compras")
+            .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Cerrar") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - SwiftData Transaction Row
+struct SwiftDataTransactionRow: View {
+    let transaction: PurchaseTransaction
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            // Icon
+            Image(systemName: transaction.isSubscription ? "crown.fill" : (transaction.productID.contains("implementation") ? "gear.badge" : "doc.text.fill"))
+                .font(.title2)
+                .foregroundColor(transaction.isSubscription ? .purple : (transaction.productID.contains("implementation") ? .red : .blue))
+                .frame(width: 40, height: 40)
+                .background(
+                    Circle()
+                        .fill(transaction.isSubscription ? Color.purple.opacity(0.1) : (transaction.productID.contains("implementation") ? Color.red.opacity(0.1) : Color.blue.opacity(0.1)))
+                )
+            
+            // Transaction Details
+            VStack(alignment: .leading, spacing: 4) {
+                Text(transaction.productName)
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                
+                Text(DateFormatter.transactionDateFormatter.string(from: transaction.purchaseDate))
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                if transaction.invoiceCount > 0 {
+                    Text("\(transaction.invoiceCount) facturas")
+                        .font(.caption)
+                        .foregroundColor(.blue)
+                }
+                
+                // Status indicator
+                HStack {
+                    Circle()
+                        .fill(statusColor(for: transaction.status))
+                        .frame(width: 8, height: 8)
+                    Text(transaction.status.capitalized)
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+            }
+            
+            Spacer()
+            
+            // Amount and details
+            VStack(alignment: .trailing, spacing: 2) {
+                Text("$\(String(format: "%.2f", transaction.amount))")
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                
+                if transaction.isRestored {
+                    Text("Restaurado")
+                        .font(.caption)
+                        .foregroundColor(.green)
+                }
+                
+                if let authCode = transaction.authorizationCode {
+                    Text("Auth: \(authCode)")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+            }
+        }
+        .padding(.vertical, 4)
+    }
+    
+    private func statusColor(for status: String) -> Color {
+        switch status.lowercased() {
+        case "completed", "succeeded":
+            return .green
+        case "pending":
+            return .orange
+        case "failed":
+            return .red
+        case "refunded":
+            return .purple
+        default:
+            return .gray
+        }
+    }
+}
+
+// MARK: - Date Formatter Extension
+extension DateFormatter {
+    static let transactionDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        return formatter
+    }()
+}
+
 // MARK: - Preview
 #Preview {
     InAppPurchaseView()
-        .environmentObject(StoreKitManager())
-}
-*/
-
-// PLACEHOLDER VIEW FOR COMPILATION
-struct InAppPurchaseView: View {
-    var body: some View {
-        Text("In-App Purchases Disabled")
-            .navigationTitle("Comprar Créditos")
-    }
 }

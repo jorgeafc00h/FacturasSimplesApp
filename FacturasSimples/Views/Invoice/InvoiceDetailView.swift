@@ -15,7 +15,6 @@ struct InvoiceDetailView: View {
     @State var viewModel = InvoiceDetailViewModel()
     @Environment(\.dismiss) var dismiss;
     @Environment(\.modelContext) var modelContext
-    @EnvironmentObject var storeKitManager: StoreKitManager
     @AppStorage("selectedCompanyIdentifier")  var companyIdentifier : String = ""
     
     @Query var companies: [Company]
@@ -385,7 +384,7 @@ struct InvoiceDetailView: View {
                         titleVisibility: .visible
                     ) {
                         
-                        Button(action: { SyncInvoice(storeKitManager: storeKitManager) }, label: { Text("Sincronizar") })
+                        Button(action: { SyncInvoice() }, label: { Text("Sincronizar") })
                         
                         Button("Cancelar", role: .cancel) {}
                     }

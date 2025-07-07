@@ -193,7 +193,7 @@ extension InvoiceDetailView {
     
     
     
-    func SyncInvoice(storeKitManager: StoreKitManager? = nil){
+    func SyncInvoice(){
         
         try? modelContext.save()
         
@@ -212,9 +212,8 @@ extension InvoiceDetailView {
                     await viewModel.backupPDF(invoice)
                     
                     // Consume credit for production accounts after successful sync
-                    if let storeKitManager = storeKitManager {
-                        consumeCreditForCompletedInvoice(storeKitManager: storeKitManager)
-                    }
+                    // Use N1CO credit system instead of StoreKit
+                    consumeCreditForCompletedInvoice()
                 }
                 viewModel.isBusy = false
             }
@@ -413,8 +412,8 @@ extension InvoiceDetailView {
         
         dismiss()
     }
-    /// Consume credit for a completed invoice
-    func consumeCreditForCompletedInvoice(storeKitManager: StoreKitManager) {
+    /// Consume credit for a completed invoice using N1CO system
+    func consumeCreditForCompletedInvoice() {
         // Get the company associated with this invoice
         if let customerId = invoice.customer?.companyOwnerId {
             let descriptor = FetchDescriptor<Company>(
@@ -425,11 +424,13 @@ extension InvoiceDetailView {
             
             if let company = try? modelContext.fetch(descriptor).first {
                 // Only consume credit for production companies
-                if company.requiresPaidServices && !company.isTestAccount {
-                    _ = storeKitManager.useInvoiceCredit(for: company)
-                    print("✅ Invoice completed - credit consumed for company: \(company.nombre)")
+                if !company.isTestAccount {
+                    // Use N1CO credit consumption system
+                    N1COEpayService.shared.consumeInvoiceCredit(for: invoice.inoviceId)
+                    print("✅ Invoice completed - N1CO credit consumed for company: \(company.nombre)")
+                    print("📄 Invoice ID: \(invoice.inoviceId)")
                 } else {
-                    print("ℹ️ No credit consumed - invoice is from test account or non-production company")
+                    print("ℹ️ No credit consumed - invoice is from test account")
                 }
             }
         }

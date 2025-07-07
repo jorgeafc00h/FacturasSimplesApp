@@ -99,6 +99,12 @@ extension AddInvoiceView {
                                         DataSyncFilterManager.shared.getProductionCompanies(context: modelContext)
                                             .contains { $0.id == customerId }
                 invoice.shouldSyncToCloudKit = isProductionCompany
+                
+                // Consume credit for production companies
+                if isProductionCompany {
+                    let invoiceId = UUID().uuidString
+                    N1COEpayService.shared.consumeInvoiceCredit(for: invoiceId)
+                }
             } else {
                 invoice.shouldSyncToCloudKit = false
             }
@@ -111,7 +117,7 @@ extension AddInvoiceView {
         }
     }
     
-    func handleCreateInvoice(storeKitManager: StoreKitManager, showCreditsGate: Binding<Bool>) {
+    func handleCreateInvoice(showCreditsGate: Binding<Bool>) {
         // Check if user has sufficient credits ONLY for production companies
         guard let selectedCompany = getSelectedCompany() else {
             // If no company found, proceed (fallback)
@@ -126,14 +132,15 @@ extension AddInvoiceView {
         }
         
         // For production accounts, check if implementation fee is required
-        if storeKitManager.requiresImplementationFee(for: selectedCompany) {
+        let purchaseManager = PurchaseDataManager.shared
+        if purchaseManager.requiresImplementationFee(for: selectedCompany) {
             // Show implementation fee purchase flow
             viewModel.showImplementationFee = true
             return
         }
         
         // Production accounts need credit validation (but don't consume yet)
-        guard storeKitManager.hasAvailableCredits(for: selectedCompany) else {
+        guard purchaseManager.canCreateInvoice() else {
             showCreditsGate.wrappedValue = true
             return
         }

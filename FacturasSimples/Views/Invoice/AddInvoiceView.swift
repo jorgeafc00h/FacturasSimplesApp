@@ -14,8 +14,8 @@ struct AddInvoiceView: View {
     @Environment(\.dismiss)  var dismiss
     @Environment(\.timeZone) private var timeZone
     // COMMENTED OUT FOR APP SUBMISSION - REMOVE StoreKit DEPENDENCY
-    // @EnvironmentObject var storeKitManager: StoreKitManager
-    @EnvironmentObject var storeKitManager: StoreKitManager // Placeholder without StoreKit
+    // Purchase manager for N1CO system
+    @StateObject private var purchaseManager = PurchaseDataManager.shared
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.verticalSizeClass) private var verticalSizeClass
     
@@ -38,9 +38,6 @@ struct AddInvoiceView: View {
     }
     
     var shouldDisableForCredits: Bool {
-        // COMMENTED OUT FOR APP SUBMISSION - IAP functionality disabled
-        return false
-        /*
         guard let company = selectedCompany else { return false }
         
         // Test accounts don't need credit validation
@@ -48,44 +45,32 @@ struct AddInvoiceView: View {
             return false
         }
         
-        // Migrate global implementation fee to company-specific if needed
-        storeKitManager.migrateGlobalImplementationFeeToCompany(company)
+        let purchaseManager = PurchaseDataManager.shared
         
         // Production accounts need implementation fee and credits
-        return storeKitManager.requiresImplementationFee(for: company) || !storeKitManager.hasAvailableCredits(for: company)
-        */
+        return purchaseManager.requiresImplementationFee(for: company) || !purchaseManager.canCreateInvoice()
     }
     
     var shouldShowCreditsWarning: Bool {
-        // COMMENTED OUT FOR APP SUBMISSION - IAP functionality disabled
-        return false
-        /*
         guard let company = selectedCompany else { return false }
-        
-        // Migrate global implementation fee to company-specific if needed
-        storeKitManager.migrateGlobalImplementationFeeToCompany(company)
         
         // Only show warning for production accounts that lack credits or implementation fee
         return company.requiresPaidServices && shouldDisableForCredits
-        */
     }
     
     var creditsWarningMessage: String {
-        // COMMENTED OUT FOR APP SUBMISSION - IAP functionality disabled
-        return ""
-        /*
         guard let company = selectedCompany else { return "" }
         
         if company.requiresPaidServices {
-            if storeKitManager.requiresImplementationFee(for: company) {
+            let purchaseManager = PurchaseDataManager.shared
+            if purchaseManager.requiresImplementationFee(for: company) {
                 return "Esta empresa requiere pagar el costo de implementación para crear facturas en producción"
-            } else if !storeKitManager.hasAvailableCredits(for: company) {
+            } else if !purchaseManager.canCreateInvoice() {
                 return "Esta empresa requiere créditos para crear facturas en producción"
             }
         }
         
         return ""
-        */
     }
     
     var body: some View {
@@ -106,7 +91,7 @@ struct AddInvoiceView: View {
                 ProductDetailsSection
                 TotalSection
                 Section {
-                    Button(action: { handleCreateInvoice(storeKitManager: storeKitManager, showCreditsGate: $showCreditsGate) }, label: {
+                    Button(action: { handleCreateInvoice(showCreditsGate: $showCreditsGate) }, label: {
                         HStack {
                             Image(systemName: "checkmark.circle")
                             Text("Crear Factura")
@@ -139,42 +124,29 @@ struct AddInvoiceView: View {
             .sheet(isPresented: $viewModel.displayProductPickerSheet){
                 ProductPicker(details: $viewModel.details)
             }
-            // COMMENTED OUT FOR APP SUBMISSION - IAP functionality disabled
-            /*
             .sheet(isPresented: $showCreditsGate) {
-                CreditsGateView {
-                    // When user proceeds after getting credits, dismiss the gate
-                    showCreditsGate = false
-                }
-                .environmentObject(storeKitManager)
+                InAppPurchaseView()
             }
-            */
             .onChange(of: viewModel.invoiceType){
                 getNextInoviceOrCCFNumber(invoiceType: viewModel.invoiceType)
             }
-            // COMMENTED OUT FOR APP SUBMISSION - IAP functionality disabled
-            /*
             .onChange(of: showCreditsGate) { oldValue, newValue in
-                // Refresh credits when CreditsGateView is dismissed
+                // Refresh credits when purchase view is dismissed
                 if oldValue == true && newValue == false {
-                    print("🔄 CreditsGateView dismissed, refreshing credits...")
-                    storeKitManager.refreshUserCredits()
+                    print("🔄 Purchase view dismissed, refreshing credits...")
+                    purchaseManager.loadUserProfile()
                 }
             }
             .sheet(isPresented: $viewModel.showImplementationFee) {
-                if let company = selectedCompany {
-                    ImplementationFeeView(company: company)
-                        .environmentObject(storeKitManager)
-                }
+                InAppPurchaseView()
             }
             .onChange(of: viewModel.showImplementationFee) { oldValue, newValue in
-                // Refresh credits when ImplementationFeeView is dismissed
+                // Refresh credits when purchase view is dismissed
                 if oldValue == true && newValue == false {
-                    print("🔄 ImplementationFeeView dismissed, refreshing credits...")
-                    storeKitManager.refreshUserCredits()
+                    print("🔄 Purchase view dismissed, refreshing credits...")
+                    purchaseManager.loadUserProfile()
                 }
             }
-            */
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancelar") {
@@ -182,7 +154,7 @@ struct AddInvoiceView: View {
                     }
                 }
                 ToolbarItem(placement: .primaryAction) {
-                    Button("Guardar", action: { handleCreateInvoice(storeKitManager: storeKitManager, showCreditsGate: $showCreditsGate) })
+                    Button("Guardar", action: { handleCreateInvoice(showCreditsGate: $showCreditsGate) })
                         .disabled(viewModel.disableAddInvoice || shouldDisableForCredits)
                 }
             }.accentColor(.darkCyan)
@@ -190,7 +162,7 @@ struct AddInvoiceView: View {
         .onAppear {
             getNextInoviceNumber()
             // Refresh credits when AddInvoiceView appears to ensure current balance
-            storeKitManager.refreshUserCredits()
+            purchaseManager.loadUserProfile()
         }
        
         .onChange(of: selectedCompany?.hasImplementationFeePaid ?? false) { oldValue, newValue in
@@ -199,10 +171,10 @@ struct AddInvoiceView: View {
                 // The view should automatically refresh due to company being from @Query
             }
         }
-        .onChange(of: storeKitManager.userCredits.availableInvoices) { oldValue, newValue in
+        .onChange(of: purchaseManager.userProfile?.availableInvoices ?? 0) { oldValue, newValue in
             if oldValue != newValue {
                 print("🔄 Available credits changed: \(newValue)")
-                // The view should automatically refresh due to the @EnvironmentObject
+                // The view should automatically refresh due to the @StateObject
             }
         }
         .presentationDetents([.large])
@@ -405,6 +377,5 @@ private struct AddInoviceViewWrapper: View {
     @State var selectedInovice: Invoice?
     var body: some View {
         AddInvoiceView(selectedInvoice: $selectedInovice)
-            .environmentObject(StoreKitManager())
     }
 }

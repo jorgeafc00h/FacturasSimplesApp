@@ -1,0 +1,24 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run FacturasSimples",
+			"type": "shell",
+			"command": "xcodebuild",
+			"args": [
+				"-project",
+				"FacturasSimples.xcodeproj",
+				"-scheme",
+				"FacturasSimples",
+				"-destination",
+				"platform=iOS Simulator,id=4B86F511-B833-496F-9338-ADBB8F17BE47",
+				"build"
+			],
+			"group": "build",
+			"problemMatcher": [
+				"$tsc"
+			],
+			"isBackground": false
+		}
+	]
+}
