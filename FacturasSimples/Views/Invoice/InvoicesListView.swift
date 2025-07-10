@@ -4,7 +4,7 @@ import SwiftData
  
 struct InvoicesListView: View {
     @Environment(\.modelContext) var modelContext
-    @EnvironmentObject var storeKitManager: StoreKitManager
+    //@EnvironmentObject var storeKitManager: StoreKitManager
     @StateObject private var n1coService = N1COEpayService.shared
     
     @Binding var selection: Invoice?
@@ -43,7 +43,7 @@ struct InvoicesListView: View {
         }
         .sheet(isPresented: $viewModel.isShowingAddInvoiceSheet) {
             AddInvoiceView(selectedInvoice: $selection)
-                .environmentObject(storeKitManager)
+                //.environmentObject(storeKitManager)
         }
         .toolbar{
             ToolbarItem(placement: .navigationBarLeading) {

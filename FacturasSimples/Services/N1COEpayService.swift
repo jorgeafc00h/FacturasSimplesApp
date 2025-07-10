@@ -289,7 +289,7 @@ class N1COEpayService: ObservableObject {
             order: order,
             cardId: paymentMethodId,
             authenticationId: authenticationId,
-            billingInfo: nil // Add billing info if needed for US/CAN cards
+            billingInfo: N1COBillingInfo(countryCode:"SLV",stateCode:nil,zipCode:nil) // Add billing info if needed for US/CAN cards
         )
         
         request.httpBody = try JSONEncoder().encode(chargeRequest)

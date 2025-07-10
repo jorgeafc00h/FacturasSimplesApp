@@ -507,39 +507,39 @@ enum StoreError: Error, LocalizedError {
 }
 */
 
-// TEMPORARY REPLACEMENT CLASS FOR APP SUBMISSION
-// This provides basic functionality without StoreKit dependency
-@MainActor
-@Observable  
-class StoreKitManager: NSObject, ObservableObject {
-    // Minimal implementation to prevent compilation errors
-    var products: [Any] = []
-    var purchaseState: PurchaseState = .unknown
-    var userCredits = UserPurchaseCredits()
-    var isLoading = false
-    var errorMessage: String?
-    
-    // Promo Code Integration - commented out
-    // var promoCodeService = PromoCodeService()
-    
-    override init() {
-        super.init()
-        // All StoreKit functionality disabled
-    }
-    
-    // Provide unlimited credits for all methods
-    func hasAvailableCredits() -> Bool { return true }
-    func hasAvailableCredits(for company: Company?) -> Bool { return true }
-    func requiresImplementationFee(for company: Company?) -> Bool { return false }
-    func useInvoiceCredit() -> Bool { return true }
-    func useInvoiceCredit(for company: Company?) -> Bool { return true }
-    func getTotalCreditsText() -> String { return "Créditos ilimitados (IAP deshabilitado)" }
-    func canCreateProductionInvoice(for company: Company?) -> Bool { return true }
-    func refreshUserCredits() { }
-    func migrateGlobalImplementationFeeToCompany(_ company: Company) { }
-    
-    // Additional methods that might be called
-    func loadProducts() async { }
-    func purchase(_ product: Any) async { }
-    func restorePurchases() async { }
-}
+//// TEMPORARY REPLACEMENT CLASS FOR APP SUBMISSION
+//// This provides basic functionality without StoreKit dependency
+//@MainActor
+//@Observable  
+//class StoreKitManager: NSObject, ObservableObject {
+//    // Minimal implementation to prevent compilation errors
+//    var products: [Any] = []
+//    var purchaseState: PurchaseState = .unknown
+//    var userCredits = UserPurchaseCredits()
+//    var isLoading = false
+//    var errorMessage: String?
+//    
+//    // Promo Code Integration - commented out
+//    // var promoCodeService = PromoCodeService()
+//    
+//    override init() {
+//        super.init()
+//        // All StoreKit functionality disabled
+//    }
+//    
+//    // Provide unlimited credits for all methods
+//    func hasAvailableCredits() -> Bool { return true }
+//    func hasAvailableCredits(for company: Company?) -> Bool { return true }
+//    func requiresImplementationFee(for company: Company?) -> Bool { return false }
+//    func useInvoiceCredit() -> Bool { return true }
+//    func useInvoiceCredit(for company: Company?) -> Bool { return true }
+//    func getTotalCreditsText() -> String { return "Créditos ilimitados (IAP deshabilitado)" }
+//    func canCreateProductionInvoice(for company: Company?) -> Bool { return true }
+//    func refreshUserCredits() { }
+//    func migrateGlobalImplementationFeeToCompany(_ company: Company) { }
+//    
+//    // Additional methods that might be called
+//    func loadProducts() async { }
+//    func purchase(_ product: Any) async { }
+//    func restorePurchases() async { }
+//}

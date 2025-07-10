@@ -15,7 +15,7 @@ struct FacturasSimplesApp: App {
     let modelContainer = DataModel.shared.modelContainer
     // COMMENTED OUT FOR APP SUBMISSION - REMOVE StoreKit DEPENDENCY
     // @StateObject private var storeManager = StoreKitManager()
-    @StateObject private var storeManager = StoreKitManager() // Placeholder without StoreKit
+    //@StateObject private var storeManager = StoreKitManager() // Placeholder without StoreKit
     @StateObject private var companyStorageManager = CompanyStorageManager.shared
     
     init() {
@@ -30,7 +30,7 @@ struct FacturasSimplesApp: App {
     var body: some Scene {
         WindowGroup {
             Home()
-                .environmentObject(storeManager)
+                //.environmentObject(storeManager)
                 .environmentObject(companyStorageManager)
         }
         .modelContainer(modelContainer)
