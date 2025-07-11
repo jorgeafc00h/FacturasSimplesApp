@@ -58,8 +58,10 @@ class N1COEpayService: ObservableObject {
     // MARK: - Private Properties
     private var accessToken: String?
     private var tokenExpiryDate: Date?
-    private let urlSession = URLSession.shared
+    private let urlSession: URLSession
     private var cancellables = Set<AnyCancellable>()
+    private var authenticationId: String?
+    private var orderId: String = ""
     
     // MARK: - Initialization
     private init() {
@@ -69,6 +71,20 @@ class N1COEpayService: ObservableObject {
         self.locationId = N1COConfiguration.locationId
         self.locationCode = N1COConfiguration.locationCode
         self.availableProducts = CustomPaymentProduct.allProducts
+        
+        // Create custom URLSession configuration for better SSL handling
+        let configuration = URLSessionConfiguration.default
+        configuration.timeoutIntervalForRequest = 30
+        configuration.timeoutIntervalForResource = 60
+        configuration.waitsForConnectivity = true
+        configuration.httpAdditionalHeaders = [
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "User-Agent": "FacturasSimples-iOS/1.0"
+        ]
+        
+        // Create URLSession with custom delegate for SSL handling
+        self.urlSession = URLSession(configuration: configuration, delegate: N1COURLSessionDelegate(), delegateQueue: nil)
         
         // Initialize SwiftData purchase manager
         Task { @MainActor in
@@ -100,7 +116,8 @@ class N1COEpayService: ObservableObject {
         let url = URL(string: "\(baseURL)/token")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        //request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        //request.setValue("facturas-simples-ios", forHTTPHeaderField: "User-Agent")
         
         let authRequest = N1COAuthRequest(clientId: clientId, clientSecret: clientSecret)
         request.httpBody = try JSONEncoder().encode(authRequest)
@@ -109,36 +126,74 @@ class N1COEpayService: ObservableObject {
         print("📋 N1CO Auth: Client ID: \(clientId)")
         print("🔒 N1CO Auth: Client Secret: \(String(clientSecret.prefix(4)))****")
         
-        let (data, response) = try await urlSession.data(for: request)
-        
-        guard let httpResponse = response as? HTTPURLResponse else {
-            print("❌ N1CO Auth: Invalid response type")
-            throw PaymentError.networkError("Invalid response")
+        do {
+            let (data, response) = try await urlSession.data(for: request)
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                print("❌ N1CO Auth: Invalid response type")
+                throw PaymentError.networkError("Invalid response")
+            }
+            
+            print("📨 N1CO Auth: Response status: \(httpResponse.statusCode)")
+            
+            if let responseString = String(data: data, encoding: .utf8) {
+                print("📄 N1CO Auth: Response body: \(responseString)")
+            }
+            
+            guard httpResponse.statusCode == 200 else {
+                print("❌ N1CO Auth: Authentication failed with status \(httpResponse.statusCode)")
+                throw PaymentError.authenticationFailed("Authentication failed with status \(httpResponse.statusCode)")
+            }
+            
+            let authResponse = try JSONDecoder().decode(N1COAuthResponse.self, from: data)
+            
+            // Store the token with expiry
+            self.accessToken = authResponse.accessToken
+            self.tokenExpiryDate = Date().addingTimeInterval(TimeInterval(authResponse.expiresIn - 60)) // Refresh 1 minute early
+            
+            print("✅ N1CO Auth: Authentication successful!")
+            print("🎫 N1CO Auth: Token type: \(authResponse.tokenType)")
+            print("⏰ N1CO Auth: Expires in: \(authResponse.expiresIn) seconds")
+            print("🔑 N1CO Auth: Token: \(String(authResponse.accessToken.prefix(10)))...")
+            
+            return authResponse.accessToken
+            
+        } catch {
+            print("❌ N1CO Auth: Network error occurred: \(error)")
+            
+            // Enhanced network error debugging
+            if let urlError = error as? URLError {
+                print("🔍 N1CO Auth: URLError details:")
+                print("  - Code: \(urlError.code.rawValue)")
+                print("  - Description: \(urlError.localizedDescription)")
+                print("  - Failing URL: \(urlError.failingURL?.absoluteString ?? "unknown")")
+                
+                switch urlError.code {
+                case .notConnectedToInternet:
+                    print("🌐 N1CO Auth: No internet connection")
+                case .networkConnectionLost:
+                    print("🔌 N1CO Auth: Network connection was lost")
+                case .timedOut:
+                    print("⏰ N1CO Auth: Request timed out")
+                case .cannotFindHost:
+                    print("🔍 N1CO Auth: Cannot find host - DNS resolution failed")
+                case .cannotConnectToHost:
+                    print("🚫 N1CO Auth: Cannot connect to host")
+                case .secureConnectionFailed:
+                    print("🔒 N1CO Auth: SSL/TLS connection failed")
+                default:
+                    print("❓ N1CO Auth: Other network error: \(urlError.code)")
+                }
+                
+                // Suggest solutions
+                if urlError.code == .cannotFindHost {
+                    print("💡 N1CO Auth: Try checking if the API endpoint URL is correct")
+                    print("💡 N1CO Auth: Current URL: \(baseURL)")
+                }
+            }
+            
+            throw PaymentError.networkError("Network error: \(error.localizedDescription)")
         }
-        
-        print("📨 N1CO Auth: Response status: \(httpResponse.statusCode)")
-        
-        if let responseString = String(data: data, encoding: .utf8) {
-            print("📄 N1CO Auth: Response body: \(responseString)")
-        }
-        
-        guard httpResponse.statusCode == 200 else {
-            print("❌ N1CO Auth: Authentication failed with status \(httpResponse.statusCode)")
-            throw PaymentError.authenticationFailed("Authentication failed with status \(httpResponse.statusCode)")
-        }
-        
-        let authResponse = try JSONDecoder().decode(N1COAuthResponse.self, from: data)
-        
-        // Store the token with expiry
-        self.accessToken = authResponse.accessToken
-        self.tokenExpiryDate = Date().addingTimeInterval(TimeInterval(authResponse.expiresIn - 60)) // Refresh 1 minute early
-        
-        print("✅ N1CO Auth: Authentication successful!")
-        print("🎫 N1CO Auth: Token type: \(authResponse.tokenType)")
-        print("⏰ N1CO Auth: Expires in: \(authResponse.expiresIn) seconds")
-        print("🔑 N1CO Auth: Token: \(String(authResponse.accessToken.prefix(10)))...")
-        
-        return authResponse.accessToken
     }
     
     // MARK: - Payment Methods
@@ -165,12 +220,12 @@ class N1COEpayService: ObservableObject {
         
         let token = try await authenticate()
         
-        let url = URL(string: "\(baseURL)/paymentmethods")!
+        let url = URL(string: "\(baseURL)/PaymentMethods")!
         print("🌐 N1CO Payment Method: Endpoint: \(url)")
-       
+        
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        //request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         
         let customer = N1COCustomer(
@@ -272,11 +327,15 @@ class N1COEpayService: ObservableObject {
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        //request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         
+        if(self.orderId.isEmpty){
+            self.orderId = UUID().uuidString
+        }
+        
         let order = N1COOrder(
-            id: UUID().uuidString,
+            id: self.orderId,
             amount: product.price,
             description: product.description,
             name: product.name
@@ -288,12 +347,16 @@ class N1COEpayService: ObservableObject {
         let chargeRequest = N1COChargeRequest(
             order: order,
             cardId: paymentMethodId,
-            authenticationId: authenticationId,
+            authenticationId: self.authenticationId ?? authenticationId,
             billingInfo: N1COBillingInfo(countryCode:"SLV",stateCode:nil,zipCode:nil) // Add billing info if needed for US/CAN cards
         )
         
         request.httpBody = try JSONEncoder().encode(chargeRequest)
-        
+        // Log the request body for debugging
+        if let requestData = request.httpBody,
+           let requestString = String(data: requestData, encoding: .utf8) {
+            print("N1CO Purchase ----> Request body: \(requestString)")
+        }
         print("📤 N1CO Purchase: Sending charge request...")
         
         let (data, response) = try await urlSession.data(for: request)
@@ -325,15 +388,19 @@ class N1COEpayService: ObservableObject {
         case "SUCCEEDED":
             print("✅ N1CO Purchase: Payment succeeded!")
             if let order = chargeResponse.order {
-                print("📦 N1CO Purchase: Order ID: \(order.id ?? "N/A")")
+                print("📦 N1CO Purchase: Order ID: \(order.id)")
                 print("🔐 N1CO Purchase: Auth Code: \(order.authorizationCode ?? "N/A")")
             }
             await handleSuccessfulPurchase(product: product, orderResponse: chargeResponse.order)
+            
+            self.orderId = ""
+            self.authenticationId = nil
             
         case "AUTHENTICATION_REQUIRED":
             print("🔐 N1CO Purchase: 3DS Authentication required")
             if let auth = chargeResponse.authentication {
                 print("🌐 N1CO Purchase: Auth URL: \(auth.url)")
+                self.authenticationId = auth.id
                 purchaseState = .requiresAuthentication(auth.url)
             } else {
                 print("❌ N1CO Purchase: Authentication required but no URL provided")
@@ -344,11 +411,15 @@ class N1COEpayService: ObservableObject {
             let errorMsg = chargeResponse.error?.message ?? chargeResponse.message
             print("❌ N1CO Purchase: Payment failed: \(errorMsg)")
             purchaseState = .failed(errorMsg)
+            self.orderId = ""
+            self.authenticationId = nil
             
         default:
             let errorMsg = "Unknown payment status: \(chargeResponse.status)"
             print("❌ N1CO Purchase: \(errorMsg)")
             purchaseState = .failed(errorMsg)
+            self.orderId = ""
+            self.authenticationId = nil
         }
     }
     
@@ -365,7 +436,7 @@ class N1COEpayService: ObservableObject {
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        //request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         
         let billingCycleType: String
@@ -663,5 +734,98 @@ class N1COEpayService: ObservableObject {
         // Alternative endpoints to try if the current one fails:
         // return "\(baseURL)/v2/paymentmethods"
         // return "\(baseURL)/api/v2/paymentmethods"
+    }
+    
+    // MARK: - Network Testing Helper
+    func testNetworkConnectivity() async {
+        let testURLs = [
+            "https://api-sandbox.n1co.shop/api/v2/token", // Current sandbox URL
+            "https://sandbox-api.n1co.com/api/v2/token",
+            "https://api-sandbox.n1co.com/api/v2/token", 
+            "https://dev-api.n1co.com/api/v2/token",
+            "https://test-api.n1co.com/api/v2/token",
+            "https://api.n1co.com/api/v2/token", // Production for comparison
+        ]
+        
+        print("🧪 N1CO Test: Testing network connectivity to various endpoints...")
+        
+        // Use the same custom URLSession with SSL bypassing for sandbox testing
+        let testSession = self.urlSession
+        
+        for urlString in testURLs {
+            guard let url = URL(string: urlString) else { continue }
+            
+            do {
+                print("🔍 Testing: \(urlString)")
+                let (_, response) = try await testSession.data(from: url)
+                
+                if let httpResponse = response as? HTTPURLResponse {
+                    print("✅ Reachable: \(urlString) - Status: \(httpResponse.statusCode)")
+                    
+                    // If it's a 401 (Unauthorized), that means the endpoint is working
+                    if httpResponse.statusCode == 401 {
+                        print("   ℹ️ Endpoint is working (401 = needs authentication)")
+                    }
+                }
+            } catch {
+                print("❌ Failed: \(urlString) - Error: \(error.localizedDescription)")
+                
+                if let urlError = error as? URLError {
+                    switch urlError.code {
+                    case .cannotFindHost:
+                        print("   → DNS resolution failed")
+                    case .cannotConnectToHost:
+                        print("   → Host unreachable")
+                    case .secureConnectionFailed:
+                        print("   → SSL/TLS failed")
+                    case .networkConnectionLost:
+                        print("   → Connection lost")
+                    default:
+                        print("   → URLError code: \(urlError.code.rawValue)")
+                    }
+                }
+            }
+        }
+        
+        print("🧪 N1CO Test: Network connectivity test completed")
+    }
+}
+
+// MARK: - Custom URLSession Delegate for SSL Handling
+class N1COURLSessionDelegate: NSObject, URLSessionDelegate {
+    func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+        
+        let host = challenge.protectionSpace.host
+        print("🔐 SSL Challenge received for host: \(host)")
+        
+        // For production environments, use strict SSL validation
+        if N1COConfiguration.isProduction {
+            print("🔒 Production mode: Using strict SSL validation for \(host)")
+            completionHandler(.performDefaultHandling, nil)
+            return
+        }
+        
+        // For sandbox environments, completely disable SSL verification for N1CO domains
+        if host.contains("n1co.shop") || host.contains("n1co.com") || 
+           host.contains("api-sandbox") || host.contains("sandbox-api") {
+            
+            print("🧪 Sandbox mode: Completely disabling SSL verification for N1CO domain: \(host)")
+            
+            // Create a credential that bypasses SSL verification for sandbox
+            if let serverTrust = challenge.protectionSpace.serverTrust {
+                // Accept any certificate for sandbox N1CO domains
+                let credential = URLCredential(trust: serverTrust)
+                print("✅ SSL verification completely bypassed for sandbox N1CO domain")
+                completionHandler(.useCredential, credential)
+            } else {
+                // If no server trust available, still proceed for sandbox
+                print("✅ No server trust available, proceeding anyway for sandbox")
+                completionHandler(.useCredential, nil)
+            }
+        } else {
+            // For other domains (non-N1CO), use default SSL handling
+            print("🔒 Using default SSL handling for non-N1CO domain: \(host)")
+            completionHandler(.performDefaultHandling, nil)
+        }
     }
 }

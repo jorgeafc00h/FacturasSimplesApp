@@ -14,10 +14,10 @@
             filePath = "FacturasSimples/Services/InvoiceServiceClient.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "438"
-            endingLineNumber = "438"
-            landmarkName = "unknown"
-            landmarkType = "0">
+            startingLineNumber = "447"
+            endingLineNumber = "447"
+            landmarkName = "InvoiceServiceClient"
+            landmarkType = "3">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -762,10 +762,10 @@
             filePath = "FacturasSimples/Services/N1COEpayService.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "536"
-            endingLineNumber = "536"
-            landmarkName = "N1COEpayService"
-            landmarkType = "3">
+            startingLineNumber = "554"
+            endingLineNumber = "554"
+            landmarkName = "subscribeUser(planId:customerName:customerEmail:customerPhone:paymentMethodId:backupPaymentMethodId:appleId:)"
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -778,9 +778,9 @@
             filePath = "FacturasSimples/Services/N1COEpayService.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "163"
-            endingLineNumber = "163"
-            landmarkName = "createPaymentMethod(customerName:customerEmail:customerPhone:cardNumber:expirationMonth:expirationYear:cvv:cardHolder:appleId:)"
+            startingLineNumber = "166"
+            endingLineNumber = "166"
+            landmarkName = "authenticate()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -794,9 +794,9 @@
             filePath = "FacturasSimples/Services/N1COEpayService.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "476"
-            endingLineNumber = "476"
-            landmarkName = "subscribeUser(planId:customerName:customerEmail:customerPhone:paymentMethodId:backupPaymentMethodId:appleId:)"
+            startingLineNumber = "494"
+            endingLineNumber = "494"
+            landmarkName = "createSubscriptionPlan(_:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -810,10 +810,10 @@
             filePath = "FacturasSimples/Services/N1COEpayService.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "304"
-            endingLineNumber = "304"
-            landmarkName = "purchaseProduct(_:paymentMethodId:authenticationId:)"
-            landmarkType = "7">
+            startingLineNumber = "306"
+            endingLineNumber = "306"
+            landmarkName = "N1COEpayService"
+            landmarkType = "3">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -826,9 +826,9 @@
             filePath = "FacturasSimples/Services/N1COEpayService.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "275"
-            endingLineNumber = "275"
-            landmarkName = "purchaseProduct(_:paymentMethodId:authenticationId:)"
+            startingLineNumber = "277"
+            endingLineNumber = "277"
+            landmarkName = "createPaymentMethod(customerName:customerEmail:customerPhone:cardNumber:expirationMonth:expirationYear:cvv:cardHolder:appleId:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -836,7 +836,7 @@
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "B2AEA00D-69BC-4196-9E5B-7047599A8524"
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FacturasSimples/Services/InvoiceServiceClient.swift"
@@ -858,9 +858,9 @@
             filePath = "FacturasSimples/Services/N1COEpayService.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "286"
-            endingLineNumber = "286"
-            landmarkName = "purchaseProduct(_:paymentMethodId:authenticationId:)"
+            startingLineNumber = "288"
+            endingLineNumber = "288"
+            landmarkName = "createPaymentMethod(customerName:customerEmail:customerPhone:cardNumber:expirationMonth:expirationYear:cvv:cardHolder:appleId:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -874,26 +874,10 @@
             filePath = "FacturasSimples/Services/N1COEpayService.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "401"
-            endingLineNumber = "401"
-            landmarkName = "createSubscriptionPlan(_:)"
+            startingLineNumber = "417"
+            endingLineNumber = "417"
+            landmarkName = "purchaseProduct(_:paymentMethodId:authenticationId:)"
             landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "4A1C17E9-888F-4D40-9D85-30F31E2E671F"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FacturasSimples/Services/N1COEpayService.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "143"
-            endingLineNumber = "143"
-            landmarkName = "N1COEpayService"
-            landmarkType = "3">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -906,24 +890,54 @@
             filePath = "FacturasSimples/Services/N1COEpayService.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "179"
-            endingLineNumber = "179"
-            landmarkName = "createPaymentMethod(customerName:customerEmail:customerPhone:cardNumber:expirationMonth:expirationYear:cvv:cardHolder:appleId:)"
+            startingLineNumber = "182"
+            endingLineNumber = "182"
+            landmarkName = "authenticate()"
             landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "31736176-817F-40E4-9CA2-1CDAC7E73F7D - e5988b304092b507"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(3) suspend resume partial function for FacturasSimples.N1COEpayService.authenticate() async throws -&gt; Swift.String"
+                  moduleName = "FacturasSimples.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/Services/N1COEpayService.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "182"
+                  endingLineNumber = "182">
+               </Location>
+               <Location
+                  uuid = "31736176-817F-40E4-9CA2-1CDAC7E73F7D - f92692e3dfb91704"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(4) suspend resume partial function for FacturasSimples.N1COEpayService.authenticate() async throws -&gt; Swift.String"
+                  moduleName = "FacturasSimples.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/Services/N1COEpayService.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "182"
+                  endingLineNumber = "182">
+               </Location>
+            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "560258DC-0C44-4E09-9CC7-B4536BEB1D87"
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FacturasSimples/Services/N1COEpayService.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "118"
-            endingLineNumber = "118"
+            startingLineNumber = "121"
+            endingLineNumber = "121"
             landmarkName = "authenticate()"
             landmarkType = "7">
          </BreakpointContent>
@@ -941,6 +955,38 @@
             startingLineNumber = "40"
             endingLineNumber = "40"
             landmarkName = "getCatalogs(isProduction:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "D245D393-D356-4FBA-9FD3-581A64F05183"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FacturasSimples/Services/N1COEpayService.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "354"
+            endingLineNumber = "354"
+            landmarkName = "purchaseProduct(_:paymentMethodId:authenticationId:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "98484496-70C2-43C8-83FB-A7CD0AEDE54B"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FacturasSimples/ViewModels/Invoices/ContingencyRequestViewModel.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "175"
+            endingLineNumber = "175"
+            landmarkName = "submitContingencyRequest(companyId:modelContext:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

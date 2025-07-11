@@ -339,7 +339,6 @@ struct InvoiceDetailView: View {
         
     }
     
-    
     private var productsSection: some View {
         Section(header: Text("Productos")) {
             ForEach(invoice.items ?? [], id: \.self) { detail in

@@ -198,22 +198,30 @@ extension InvoiceDetailView {
         try? modelContext.save()
         
         if viewModel.dte != nil {
+            // Check if user has available credits before attempting sync
+            let canProceed = validateCreditsBeforeSync()
+            guard canProceed else {
+                viewModel.errorMessage = "No tienes créditos suficientes para completar esta factura. Compra más créditos en la sección de compras."
+                viewModel.showErrorAlert = true
+                return
+            }
+            
             viewModel.isBusy = true
             Task {
                 
-                if let response =   await viewModel.SyncInvoice(invoice: invoice){
+                if let response = await viewModel.SyncInvoice(invoice: invoice){
                     
                     invoice.status = .Completada
-                    invoice.statusRawValue =  invoice.status.id
+                    invoice.statusRawValue = invoice.status.id
                     invoice.receptionSeal = response.selloRecibido
                     try? modelContext.save()
                     
                     udpateRelatedDocuemntFromCreditNote()
-                    await viewModel.backupPDF(invoice)
                     
-                    // Consume credit for production accounts after successful sync
-                    // Use N1CO credit system instead of StoreKit
+                    // Consume credit ONLY after successful sync
                     consumeCreditForCompletedInvoice()
+                    
+                    await viewModel.backupPDF(invoice)
                 }
                 viewModel.isBusy = false
             }
@@ -412,26 +420,80 @@ extension InvoiceDetailView {
         
         dismiss()
     }
+    
+    /// Validate if user has available credits before attempting sync
+    func validateCreditsBeforeSync() -> Bool {
+        // Get the company associated with this invoice
+        guard let customerId = invoice.customer?.companyOwnerId else {
+            print("⚠️ No company ID found for invoice")
+            return false
+        }
+        
+        let descriptor = FetchDescriptor<Company>(
+            predicate: #Predicate<Company> { company in
+                company.id == customerId
+            }
+        )
+        
+        guard let company = try? modelContext.fetch(descriptor).first else {
+            print("⚠️ Company not found")
+            return false
+        }
+        
+        // Test accounts can always create invoices
+        if company.isTestAccount {
+            print("ℹ️ Test account - allowing invoice sync without credit check")
+            return true
+        }
+        
+        // For production accounts, check if they have available credits
+        let hasCredits = PurchaseDataManager.shared.canCreateInvoice()
+        print("💳 Credit check for production account: \(hasCredits ? "✅ Has credits" : "❌ No credits")")
+        print("📊 Available credits: \(PurchaseDataManager.shared.userProfile?.availableInvoices ?? 0)")
+        
+        return hasCredits
+    }
+    
     /// Consume credit for a completed invoice using N1CO system
     func consumeCreditForCompletedInvoice() {
         // Get the company associated with this invoice
-        if let customerId = invoice.customer?.companyOwnerId {
-            let descriptor = FetchDescriptor<Company>(
-                predicate: #Predicate<Company> { company in
-                    company.id == customerId
-                }
-            )
+        guard let customerId = invoice.customer?.companyOwnerId else {
+            print("⚠️ Cannot consume credit - no company ID found for invoice")
+            return
+        }
+        
+        let descriptor = FetchDescriptor<Company>(
+            predicate: #Predicate<Company> { company in
+                company.id == customerId
+            }
+        )
+        
+        guard let company = try? modelContext.fetch(descriptor).first else {
+            print("⚠️ Cannot consume credit - company not found")
+            return
+        }
+        
+        // Only consume credit for production companies
+        if company.isTestAccount {
+            print("ℹ️ Test account - no credit consumed for invoice: \(invoice.invoiceNumber)")
+            return
+        }
+        
+        // Consume credit using N1CO system
+        let beforeCredits = PurchaseDataManager.shared.userProfile?.availableInvoices ?? 0
+        
+        N1COEpayService.shared.consumeInvoiceCredit(for: invoice.inoviceId)
+        
+        // Verify the credit was actually consumed
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            let afterCredits = PurchaseDataManager.shared.userProfile?.availableInvoices ?? 0
             
-            if let company = try? modelContext.fetch(descriptor).first {
-                // Only consume credit for production companies
-                if !company.isTestAccount {
-                    // Use N1CO credit consumption system
-                    N1COEpayService.shared.consumeInvoiceCredit(for: invoice.inoviceId)
-                    print("✅ Invoice completed - N1CO credit consumed for company: \(company.nombre)")
-                    print("📄 Invoice ID: \(invoice.inoviceId)")
-                } else {
-                    print("ℹ️ No credit consumed - invoice is from test account")
-                }
+            if beforeCredits > afterCredits || PurchaseDataManager.shared.userProfile?.isSubscriptionActive == true {
+                print("✅ Credit consumed successfully for invoice: \(self.invoice.invoiceNumber)")
+                print("📊 Credits before: \(beforeCredits), after: \(afterCredits)")
+            } else {
+                print("⚠️ Credit consumption may have failed for invoice: \(self.invoice.invoiceNumber)")
+                print("📊 Credits before: \(beforeCredits), after: \(afterCredits)")
             }
         }
     }

@@ -100,11 +100,8 @@ extension AddInvoiceView {
                                             .contains { $0.id == customerId }
                 invoice.shouldSyncToCloudKit = isProductionCompany
                 
-                // Consume credit for production companies
-                if isProductionCompany {
-                    let invoiceId = UUID().uuidString
-                    N1COEpayService.shared.consumeInvoiceCredit(for: invoiceId)
-                }
+                // Note: Credits are now consumed only when invoice is successfully synced,
+                // not when created as draft. See InvoiceDetailViewModel.syncInvoice()
             } else {
                 invoice.shouldSyncToCloudKit = false
             }

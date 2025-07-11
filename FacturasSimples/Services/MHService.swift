@@ -511,5 +511,83 @@ class MhClient {
         
         return dte
     }
+    
+    /// Maps a list of invoices to a contingency request for the Ministry of Finance
+    /// - Parameters:
+    ///   - invoices: List of invoices to include in the contingency request
+    ///   - company: Company information for the emisor
+    ///   - environmentCode: Environment code ("00" for test, "01" for production)
+    ///   - startDate: Start date and time of the contingency period
+    ///   - endDate: End date and time of the contingency period
+    ///   - contingencyType: Type of contingency (default 1)
+    ///   - reason: Reason for the contingency
+    ///   - nombreResponsable: Full name of the responsible person
+    ///   - duiResponsable: DUI (national ID) of the responsible person (9 digits)
+    /// - Returns: ContingenciaRequest object ready to be sent to the API
+    /// - Throws: Error if generation code creation fails
+    static func mapContingenciaRequest(
+        invoices: [Invoice], 
+        company: Company, 
+        environmentCode: String, 
+        startDate: Date, 
+        endDate: Date, 
+        contingencyType: Int = 1, 
+        reason: String?,
+        nombreResponsable: String,
+        duiResponsable: String
+    ) throws -> ContingenciaRequest {
+        
+        var index = 1
+        
+        let detalleDTE = invoices.map { invoice -> ContingenciaDetalleDTE in
+            let item = ContingenciaDetalleDTE(
+                noItem: index,
+                codigoGeneracion: invoice.generationCode ?? "",
+                tipoDoc: invoice.documentType
+            )
+            
+            index += 1
+            return item
+        }
+        
+        let identificacion = ContingenciaIdentificacion(
+            version: 3, // Version 3 as per Ministry of Finance requirements
+            ambiente: environmentCode,
+            codigoGeneracion: try Extensions.getGenerationCode(),
+            fTransmision: Extensions.generateDateString(date: Date()),
+            hTransmision: try Extensions.generateHourString(date: Date())
+        )
+        
+        let emisor = ContingenciaEmisor(
+            nit: company.nit,
+            nombre: company.nombreComercial,
+            nombreResponsable: nombreResponsable,
+            tipoDocResponsable: "13", // DUI document type code
+            numeroDocResponsable: duiResponsable,
+            tipoEstablecimiento: company.tipoEstablecimiento,
+            codEstableMH: nil,
+            codPuntoVenta: nil,
+            telefono: company.telefono,
+            correo: company.correo
+        )
+        
+        let motivo = ContingenciaMotivo(
+            fInicio: Extensions.generateDateString(date: startDate),
+            fFin: Extensions.generateDateString(date: endDate),
+            hInicio: try Extensions.generateHourString(date: startDate),
+            hFin: try Extensions.generateHourString(date: endDate),
+            tipoContingencia: contingencyType,
+            motivoContingencia: reason
+        )
+        
+        let request = ContingenciaRequest(
+            identificacion: identificacion,
+            emisor: emisor,
+            detalleDTE: detalleDTE,
+            motivo: motivo
+        )
+        
+        return request
+    }
 
 }

@@ -10,6 +10,7 @@ struct InvoicesListView: View {
     @Binding var selection: Invoice?
     
     @State var viewModel = InvoicesListViewModel()
+    @State private var showingContingencyRequest = false
     
     @AppStorage("selectedCompanyName") var selectedCompanyName: String = ""
     @AppStorage("selectedCompanyIdentifier") var companyIdentifier: String = ""
@@ -30,7 +31,7 @@ struct InvoicesListView: View {
         
         let companyId = selectedCompanyId.isEmpty ? companyIdentifier : selectedCompanyId
         
-        let predicate = getSearchPredicate(scope: searchScope, searchText: searchText, companyId: companyId)
+        let predicate = InvoiceSearchUtils.getSearchPredicate(scope: searchScope, searchText: searchText, companyId: companyId)
         
         _invoices = Query(filter: predicate, sort: \Invoice.date, order: .reverse)
     }
@@ -45,6 +46,9 @@ struct InvoicesListView: View {
             AddInvoiceView(selectedInvoice: $selection)
                 //.environmentObject(storeKitManager)
         }
+        .sheet(isPresented: $showingContingencyRequest) {
+            ContingencyRequestView()
+        }
         .toolbar{
             ToolbarItem(placement: .navigationBarLeading) {
                 CreditsStatusView(company: selectedCompany)
@@ -57,15 +61,16 @@ struct InvoicesListView: View {
                 .buttonStyle(BorderlessButtonStyle()) 
             }
             
-            
-//            ToolbarItem(placement: .automatic){
-//                Menu{
-//                    
-//                    
-//                }label: {
-//                    Image(systemName: "line.3.horizontal.decrease.circle")
-//                }
-//            }
+            // Contingency Request Button
+            ToolbarItem(placement: .automatic){
+                Button{
+                    showingContingencyRequest = true
+                }label: {
+                    Image(systemName: "exclamationmark.triangle")
+                        .foregroundColor(.orange)
+                }
+                .help("Solicitud de Contingencia")
+            }
         }
         .overlay {
             if invoices.isEmpty {
@@ -73,7 +78,9 @@ struct InvoicesListView: View {
             }
         }
         .navigationTitle("Facturas: \(selectedCompanyName)")
-        .task { await SyncCatalogs() }
+        .task { 
+            await SyncCatalogs()
+        }
     }
     
     private var EmptyInvoicesOverlay: some View {

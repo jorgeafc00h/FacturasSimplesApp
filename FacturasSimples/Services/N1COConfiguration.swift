@@ -10,7 +10,7 @@ import Foundation
 
 struct N1COConfiguration {
     // MARK: - Environment Configuration
-    static let isProduction = true // Set to true for production
+    static let isProduction = false // Set to true for production
     
     // MARK: - API URLs
     static var baseURL: String {
@@ -19,28 +19,17 @@ struct N1COConfiguration {
     
     // MARK: - Credentials (TODO: Move to secure storage or environment variables)
     // 🔥 REPLACE THESE WITH YOUR ACTUAL N1CO CREDENTIALS:
-    static let clientId = "c096d38a-7876-4718-85b3-9fa95d12adc4" // Get from N1CO Dashboard → API Keys
-    static let clientSecret = "aTh8Q~RSrinSPxR8uh7jzDXqT~KT9uY7jaBJUa_k" // Get from N1CO Dashboard → API Keys
+    static let clientId = "c4e02d49-33c9-44cd-84b1-6ec09c9c1278" // Get from N1CO Dashboard → API Keys
+    static let clientSecret = "Qz88Q~Ph.SCj-WviJG68JZup_~4LrW8GkPIgMaTY" // Get from N1CO Dashboard → API Keys
     static let locationId = 1 // Get from N1CO Dashboard → Locations → ID
-    static let locationCode = "FACTURAS-01" // Get from N1CO Dashboard → Locations → Code
+    static let locationCode = "dev-app2" // Get from N1CO Dashboard → Locations → Code
     
     // MARK: - Payment Configuration
     static let successURL = "facturas://payment-success"
     static let cancelURL = "facturas://payment-cancel"
     
-    // MARK: - Validation
-    static var isConfigured: Bool {
-        return !clientId.contains("YOUR_") && 
-               !clientSecret.contains("YOUR_") &&
-               !locationCode.contains("FACTURAS-")
-    }
-    
-    // MARK: - Configuration Helper
-    static func validateConfiguration() throws {
-        guard isConfigured else {
-            throw N1COConfigurationError.invalidCredentials
-        }
-    }
+     
+     
 }
 
 // MARK: - Configuration Errors

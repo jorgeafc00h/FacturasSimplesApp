@@ -24,6 +24,8 @@ struct CreditCardInputView: View {
     @State private var showingAuthenticationSheet = false
     @State private var authenticationURL: String = ""
     
+    @State private var paymentMethodId: String?
+    
     var body: some View {
         NavigationView {
             ScrollView {
@@ -58,11 +60,19 @@ struct CreditCardInputView: View {
         }
         .disabled(isProcessing)
         .sheet(isPresented: $showingAuthenticationSheet) {
-            ThreeDSAuthenticationView(url: authenticationURL) { success in
+            ThreeDSAuthenticationView(url: authenticationURL) { success, capturedAuthId in
                 showingAuthenticationSheet = false
-                if success {
-                    onPaymentSuccess()
-                    dismiss()
+                if success, let paymentId = paymentMethodId {
+                    // Complete the payment with the authenticationId
+                    Task {
+                        await complete3DSPayment( paymentMethodId: paymentId)
+                    }
+                } else {
+                    // Authentication failed or cancelled
+                    isProcessing = false
+                    if !success {
+                        viewModel.errorMessage = "Autenticación 3DS fallida. Por favor, intenta nuevamente."
+                    }
                 }
             }
         }
@@ -391,7 +401,7 @@ struct CreditCardInputView: View {
             
             do {
                 // Create payment method
-                let paymentMethodId = try await N1COEpayService.shared.createPaymentMethod(
+                let createdPaymentMethodId = try await N1COEpayService.shared.createPaymentMethod(
                     customerName: viewModel.customerName,
                     customerEmail: viewModel.customerEmail,
                     customerPhone: viewModel.customerPhone,
@@ -403,6 +413,9 @@ struct CreditCardInputView: View {
                     appleId: userID.isEmpty ? nil : userID
                 )
                 
+                // Store payment method ID for potential 3DS completion
+                paymentMethodId = createdPaymentMethodId
+                
                 // Process payment based on product type
                 if product.isSubscription {
                     // Create subscription plan and subscribe user
@@ -413,14 +426,14 @@ struct CreditCardInputView: View {
                         customerName: viewModel.customerName,
                         customerEmail: viewModel.customerEmail,
                         customerPhone: viewModel.customerPhone,
-                        paymentMethodId: paymentMethodId,
+                        paymentMethodId: createdPaymentMethodId,
                         appleId: userID.isEmpty ? nil : userID
                     )
                 } else {
-                    // Process one-time purchase
+                    // Process one-time purchase (first attempt, no authenticationId)
                     try await N1COEpayService.shared.purchaseProduct(
                         product,
-                        paymentMethodId: paymentMethodId
+                        paymentMethodId: createdPaymentMethodId
                     )
                 }
                 
@@ -449,6 +462,8 @@ struct CreditCardInputView: View {
         case .requiresAuthentication(let url):
             isProcessing = false
             authenticationURL = url
+            // Extract authenticationId from the URL if needed
+
             showingAuthenticationSheet = true
             
         case .failed(let message):
@@ -464,21 +479,43 @@ struct CreditCardInputView: View {
             break
         }
     }
+    
+    // MARK: - 3DS Completion
+    @MainActor
+    private func complete3DSPayment(paymentMethodId: String) async {
+        isProcessing = true
+        
+        do {
+            // Complete the payment with the authenticationId
+            try await N1COEpayService.shared.purchaseProduct(
+                product,
+                paymentMethodId: paymentMethodId
+            )
+            
+            // Handle the final payment state
+            await handlePaymentState()
+            
+        } catch {
+            isProcessing = false
+            viewModel.errorMessage = "Error al completar el pago: \(error.localizedDescription)"
+            print("❌ [3DS Complete] Error completing payment: \(error)")
+        }
+    }
 }
 
 // MARK: - ViewModel
 @MainActor
 class CreditCardInputViewModel: ObservableObject {
-    // Card fields
+    // Card fields (cardNumber and cvv are not stored for security)
     @Published var cardNumber = ""
-    @Published var cardholderName = ""
-    @Published var expiryDate = ""
+    @AppStorage("cardholderName") var cardholderName = ""
+    @AppStorage("expiryDate") var expiryDate = ""
     @Published var cvv = ""
     
     // Customer fields
-    @Published var customerName = ""
-    @Published var customerEmail = ""
-    @Published var customerPhone = ""
+    @AppStorage("customerName") var customerName = ""
+    @AppStorage("customerEmail") var customerEmail = ""
+    @AppStorage("customerPhone") var customerPhone = ""
     
     // State
     @Published var errorMessage: String?
@@ -559,21 +596,74 @@ struct CustomTextFieldStyle: TextFieldStyle {
 // MARK: - 3DS Authentication View
 struct ThreeDSAuthenticationView: View {
     let url: String
-    let onCompletion: (Bool) -> Void
+    let onCompletion: (Bool, String?) -> Void
     
     @Environment(\.dismiss) private var dismiss
+    @State private var authenticationData: (success: Bool, authenticationId: String?)? = nil
+    @State private var showCompletarButton = false
     
     var body: some View {
         NavigationView {
-            WebView(url: url) { success in
-                onCompletion(success)
+            ZStack {
+                WebView(url: url) { success, authenticationId, status in
+                    // Store the authentication data but don't auto-complete
+                    authenticationData = (success: success, authenticationId: authenticationId)
+                    
+                    // Show the Completar button after receiving authentication data
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        showCompletarButton = true
+                    }
+                    
+                    print("🎯 [3DS UI] Authentication data received - Success: \(success), AuthID: \(authenticationId ?? "nil"), Status: \(status ?? "nil")")
+                }
+                
+                // Completar button overlay
+                if showCompletarButton {
+                    VStack {
+                        Spacer()
+                        
+                        HStack {
+                            Spacer()
+                            
+                            Button(action: {
+                                print("🔘 [UI] Completar button tapped")
+                                if let data = authenticationData {
+                                    onCompletion(data.success, data.authenticationId)
+                                } else {
+                                    onCompletion(false, nil)
+                                }
+                            }) {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .font(.system(size: 16, weight: .semibold))
+                                    Text("Completar")
+                                        .font(.system(size: 16, weight: .semibold))
+                                }
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 12)
+                                .background(
+                                    Capsule()
+                                        .fill(Color.green)
+                                        .shadow(color: Color.green.opacity(0.3), radius: 8, x: 0, y: 4)
+                                )
+                            }
+                            .scaleEffect(showCompletarButton ? 1.0 : 0.8)
+                            .opacity(showCompletarButton ? 1.0 : 0.0)
+                            .animation(.spring(response: 0.4, dampingFraction: 0.7), value: showCompletarButton)
+                            
+                            Spacer()
+                        }
+                        .padding(.bottom, 50)
+                    }
+                }
             }
             .navigationTitle("Verificación de Seguridad")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Cancelar") {
-                        onCompletion(false)
+                        onCompletion(false, nil)
                     }
                 }
             }
@@ -584,13 +674,21 @@ struct ThreeDSAuthenticationView: View {
 // MARK: - WebView for 3DS
 struct WebView: UIViewRepresentable {
     let url: String
-    let onCompletion: (Bool) -> Void
+    let onCompletion: (Bool, String?, String?) -> Void
     
     func makeUIView(context: Context) -> WKWebView {
-        let webView = WKWebView()
+        let configuration = WKWebViewConfiguration()
+        let contentController = WKUserContentController()
+        
+        // Add message handler for authentication results
+        contentController.add(context.coordinator, name: "authenticationResult")
+        configuration.userContentController = contentController
+        
+        let webView = WKWebView(frame: .zero, configuration: configuration)
         webView.navigationDelegate = context.coordinator
         
         if let url = URL(string: url) {
+            print("🌐 [3DS WebView] Loading authentication URL: \(url)")
             webView.load(URLRequest(url: url))
         }
         
@@ -605,25 +703,130 @@ struct WebView: UIViewRepresentable {
         Coordinator(self)
     }
     
-    class Coordinator: NSObject, WKNavigationDelegate {
+    class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
         let parent: WebView
         
         init(_ parent: WebView) {
             self.parent = parent
         }
         
+        func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
+            print("🌐 [3DS Navigation] Started loading: \(webView.url?.absoluteString ?? "unknown")")
+        }
+        
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-            // Listen for postMessage from the 3DS iframe
-            webView.evaluateJavaScript("""
-                window.addEventListener('message', function(event) {
-                    if (event.data.MessageType === 'authentication.complete') {
-                        window.webkit.messageHandlers.authenticationResult.postMessage({
-                            success: event.data.Status === 'SUCCESS',
-                            authenticationId: event.data.AuthenticationId
-                        });
+            print("🌐 [3DS Navigation] Finished loading: \(webView.url?.absoluteString ?? "unknown")")
+            
+            // Enhanced JavaScript to capture 3DS authentication messages
+            let jsCode = """
+                console.log("🔧 [3DS Setup] Initializing message listener for 3DS authentication");
+                
+                // Add an event listener to capture messages from the iframe
+                window.addEventListener("message", function (event) {
+                    console.log(" [3DS Message] Received message from origin:", event.origin);
+                    console.log(" [3DS Message] Raw data:", event.data);
+                    
+                    // Check if the event origin is from the trusted 3DS source
+                    if (event.origin === "https://front-3ds.h4b.dev" || event.origin.includes("h4b.dev") || event.origin === "https://front-3ds-sandbox.n1co.com") {
+                        try {
+                            // Parse the JSON data received from the iframe
+                            var dataMessage;
+                            if (typeof event.data === 'string') {
+                                dataMessage = JSON.parse(event.data);
+                            } else {
+                                dataMessage = event.data;
+                            }
+                            
+                            // Access the properties of the dataMessage object
+                            var messageType = dataMessage.MessageType;
+                            var status = dataMessage.Status;
+                            var authenticationId = dataMessage.AuthenticationId;
+                            var orderId = dataMessage.OrderId;
+                            var orderAmount = dataMessage.OrderAmount;
+                            
+                            // Log captured data for debugging
+                            console.log(" [3DS Data] Message Type:", messageType);
+                            console.log(" [3DS Data] Status:", status);
+                            console.log(" [3DS Data] Authentication ID:", authenticationId);
+                            console.log(" [3DS Data] Order ID:", orderId);
+                            console.log(" [3DS Data] Order Amount:", orderAmount);
+                            
+                            // Check if this is an authentication completion message
+                            if (messageType === 'authentication.complete') {
+                                console.log("🎯 [3DS Complete]----------------------- Authentication completed with status:", status);
+                                
+                                // Send result to native Swift code
+                                window.webkit.messageHandlers.authenticationResult.postMessage({
+                                    success: status === 'SUCCESS',
+                                    status: status,
+                                    authenticationId: authenticationId,
+                                    orderId: orderId,
+                                    orderAmount: orderAmount,
+                                    messageType: messageType
+                                });
+                            } else {
+                                console.log("ℹ️ [3DS Info] Received non-completion message type:", messageType);
+                            }
+                        } catch (error) {
+                            console.error("❌ [3DS Error] Failed to parse message data:", error);
+                            console.error("❌ [3DS Error] Raw data was:", event.data);
+                        }
+                    } else {
+                        console.log("⚠️ [3DS Security] Ignoring message from untrusted origin:", event.origin);
                     }
                 });
-            """)
+                
+                console.log("✅ [3DS Setup] Message listener setup complete");
+            """
+            
+            webView.evaluateJavaScript(jsCode) { result, error in
+                if let error = error {
+                    print("❌ [3DS JavaScript] Error injecting script: \(error.localizedDescription)")
+                } else {
+                    print("✅ [3DS JavaScript] Message listener script injected successfully")
+                }
+            }
+        }
+        
+        func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+            print("❌ [3DS Navigation] Failed to load: \(error.localizedDescription)")
+        }
+        
+        func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+            print("❌ [3DS Navigation] Failed provisional navigation: \(error.localizedDescription)")
+        }
+        
+        // Handle messages from JavaScript
+        func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+            print("📱 [3DS Native] Received message from JavaScript: \(message.name)")
+            
+            if message.name == "authenticationResult" {
+                guard let body = message.body as? [String: Any] else {
+                    print("❌ [3DS Native] Invalid message body format")
+                    return
+                }
+                
+                let success = body["success"] as? Bool ?? false
+                let status = body["status"] as? String ?? "UNKNOWN"
+                let authenticationId = body["authenticationId"] as? String
+                let orderId = body["orderId"] as? String
+                let orderAmount = body["orderAmount"] as? String
+                let messageType = body["messageType"] as? String
+                
+                print("🎯 [3DS Result] Authentication result:")
+                print("  - Success: \(success)")
+                print("  - Status: \(status)")
+                print("  - Authentication ID: \(authenticationId ?? "nil")")
+                print("  - Order ID: \(orderId ?? "nil")")
+                print("  - Order Amount: \(orderAmount ?? "nil")")
+                print("  - Message Type: \(messageType ?? "nil")")
+                
+                // Pass the result to the parent with all three parameters
+                // The parent will handle showing the Completar button
+                DispatchQueue.main.async {
+                    self.parent.onCompletion(success, authenticationId, status)
+                }
+            }
         }
     }
 }
