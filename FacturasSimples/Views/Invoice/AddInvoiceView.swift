@@ -13,9 +13,6 @@ struct AddInvoiceView: View {
     @Environment(\.calendar) private var calendar
     @Environment(\.dismiss)  var dismiss
     @Environment(\.timeZone) private var timeZone
-    // COMMENTED OUT FOR APP SUBMISSION - REMOVE StoreKit DEPENDENCY
-    // Purchase manager for N1CO system
-    @StateObject private var purchaseManager = PurchaseDataManager.shared
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.verticalSizeClass) private var verticalSizeClass
     
@@ -132,20 +129,17 @@ struct AddInvoiceView: View {
             }
             .onChange(of: showCreditsGate) { oldValue, newValue in
                 // Refresh credits when purchase view is dismissed
-                if oldValue == true && newValue == false {
-                    print("🔄 Purchase view dismissed, refreshing credits...")
-                    purchaseManager.loadUserProfile()
-                }
+//                if oldValue == true && newValue == false {
+//                    print("🔄 Purchase view dismissed, refreshing credits...")
+//                    purchaseManager.loadUserProfile()
+//                }
             }
             .sheet(isPresented: $viewModel.showImplementationFee) {
                 InAppPurchaseView()
             }
             .onChange(of: viewModel.showImplementationFee) { oldValue, newValue in
                 // Refresh credits when purchase view is dismissed
-                if oldValue == true && newValue == false {
-                    print("🔄 Purchase view dismissed, refreshing credits...")
-                    purchaseManager.loadUserProfile()
-                }
+                 
             }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -162,21 +156,21 @@ struct AddInvoiceView: View {
         .onAppear {
             getNextInoviceNumber()
             // Refresh credits when AddInvoiceView appears to ensure current balance
-            purchaseManager.loadUserProfile()
+            //purchaseManager.loadUserProfile()
         }
        
-        .onChange(of: selectedCompany?.hasImplementationFeePaid ?? false) { oldValue, newValue in
-            if oldValue != newValue {
-                print("🔄 Implementation fee status changed for company: \(newValue)")
-                // The view should automatically refresh due to company being from @Query
-            }
-        }
-        .onChange(of: purchaseManager.userProfile?.availableInvoices ?? 0) { oldValue, newValue in
-            if oldValue != newValue {
-                print("🔄 Available credits changed: \(newValue)")
-                // The view should automatically refresh due to the @StateObject
-            }
-        }
+//        .onChange(of: selectedCompany?.hasImplementationFeePaid ?? false) { oldValue, newValue in
+//            if oldValue != newValue {
+//                print("🔄 Implementation fee status changed for company: \(newValue)")
+//                // The view should automatically refresh due to company being from @Query
+//            }
+//        }
+//        .onChange(of: purchaseManager.userProfile?.availableInvoices ?? 0) { oldValue, newValue in
+//            if oldValue != newValue {
+//                print("🔄 Available credits changed: \(newValue)")
+//                // The view should automatically refresh due to the @StateObject
+//            }
+//        }
         .presentationDetents([.large])
     }
     

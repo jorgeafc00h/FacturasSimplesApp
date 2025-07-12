@@ -94,17 +94,18 @@ extension AddInvoiceView {
              
             
             // Set correct sync status based on company type (through customer)
-            if let customerId = viewModel.customer?.companyOwnerId {
-                let isProductionCompany = !customerId.isEmpty && 
-                                        DataSyncFilterManager.shared.getProductionCompanies(context: modelContext)
-                                            .contains { $0.id == customerId }
-                invoice.shouldSyncToCloudKit = isProductionCompany
-                
-                // Note: Credits are now consumed only when invoice is successfully synced,
-                // not when created as draft. See InvoiceDetailViewModel.syncInvoice()
-            } else {
-                invoice.shouldSyncToCloudKit = false
-            }
+//            if let customerId = viewModel.customer?.companyOwnerId {
+//                let isProductionCompany = !customerId.isEmpty && 
+//                                        DataSyncFilterManager.shared.getProductionCompanies(context: modelContext)
+//                                            .contains { $0.id == customerId }
+//                invoice.shouldSyncToCloudKit = isProductionCompany
+//                
+//                // Note: Credits are now consumed only when invoice is successfully synced,
+//                // not when created as draft. See InvoiceDetailViewModel.syncInvoice()
+//            } else {
+//                invoice.shouldSyncToCloudKit = false
+//            }
+            invoice.shouldSyncToCloudKit = true
             
             modelContext.insert(invoice)
             try? modelContext.save()
