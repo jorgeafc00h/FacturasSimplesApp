@@ -101,7 +101,7 @@ extension AddInvoiceView {
 //                invoice.shouldSyncToCloudKit = isProductionCompany
 //                
 //                // Note: Credits are now consumed only when invoice is successfully synced,
-//                // not when created as draft. See InvoiceDetailViewModel.syncInvoice()
+//                // not when created as draft. See InvoiceDetailViewModel.syncInvoice()        
 //            } else {
 //                invoice.shouldSyncToCloudKit = false
 //            }
@@ -115,38 +115,7 @@ extension AddInvoiceView {
         }
     }
     
-    func handleCreateInvoice(showCreditsGate: Binding<Bool>) {
-        // Check if user has sufficient credits ONLY for production companies
-        guard let selectedCompany = getSelectedCompany() else {
-            // If no company found, proceed (fallback)
-            addInvoice()
-            return
-        }
-        
-        // Test accounts don't need credit validation
-        if selectedCompany.isTestAccount {
-            addInvoice()
-            return
-        }
-        
-        // For production accounts, check if implementation fee is required
-        let purchaseManager = PurchaseDataManager.shared
-        if purchaseManager.requiresImplementationFee(for: selectedCompany) {
-            // Show implementation fee purchase flow
-            viewModel.showImplementationFee = true
-            return
-        }
-        
-        // Production accounts need credit validation (but don't consume yet)
-        guard purchaseManager.canCreateInvoice() else {
-            showCreditsGate.wrappedValue = true
-            return
-        }
-        
-        // Proceed with invoice creation (credit will be consumed when synced)
-        addInvoice()
-    }
-    
+ 
     func deleteDetail(detail:InvoiceDetail){
         withAnimation{
             let index = viewModel.details.firstIndex(of: detail)

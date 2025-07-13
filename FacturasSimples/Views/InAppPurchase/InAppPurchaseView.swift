@@ -482,7 +482,7 @@ struct CustomPurchaseHistoryView: View {
                             HStack {
                                 Text("Facturas Consumidas")
                                 Spacer()
-                                Text("\(profile.consumptions.count)")
+                                Text("\(profile.consumptions?.count ?? 0)")
                                     .fontWeight(.bold)
                             }
                         }
@@ -509,26 +509,26 @@ struct SwiftDataTransactionRow: View {
     var body: some View {
         HStack(spacing: 12) {
             // Icon
-            Image(systemName: transaction.isSubscription ? "crown.fill" : (transaction.productID.contains("implementation") ? "gear.badge" : "doc.text.fill"))
+            Image(systemName: (transaction.isSubscription ?? false) ? "crown.fill" : ((transaction.productID ?? "").contains("implementation") ? "gear.badge" : "doc.text.fill"))
                 .font(.title2)
-                .foregroundColor(transaction.isSubscription ? .purple : (transaction.productID.contains("implementation") ? .red : .blue))
+                .foregroundColor((transaction.isSubscription ?? false) ? .purple : ((transaction.productID ?? "").contains("implementation") ? .red : .blue))
                 .frame(width: 40, height: 40)
                 .background(
                     Circle()
-                        .fill(transaction.isSubscription ? Color.purple.opacity(0.1) : (transaction.productID.contains("implementation") ? Color.red.opacity(0.1) : Color.blue.opacity(0.1)))
+                        .fill((transaction.isSubscription ?? false) ? Color.purple.opacity(0.1) : ((transaction.productID ?? "").contains("implementation") ? Color.red.opacity(0.1) : Color.blue.opacity(0.1)))
                 )
             
             // Transaction Details
             VStack(alignment: .leading, spacing: 4) {
-                Text(transaction.productName)
+                Text(transaction.productName ?? "Unknown Product")
                     .font(.headline)
                     .foregroundColor(.primary)
                 
-                Text(DateFormatter.transactionDateFormatter.string(from: transaction.purchaseDate))
+                Text(DateFormatter.transactionDateFormatter.string(from: transaction.purchaseDate ?? Date()))
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
-                if transaction.invoiceCount > 0 {
+                if (transaction.invoiceCount ?? 0) > 0 {
                     Text("\(transaction.invoiceCount) facturas")
                         .font(.caption)
                         .foregroundColor(.blue)
@@ -537,9 +537,9 @@ struct SwiftDataTransactionRow: View {
                 // Status indicator
                 HStack {
                     Circle()
-                        .fill(statusColor(for: transaction.status))
+                        .fill(statusColor(for: transaction.status ?? "Unknown"))
                         .frame(width: 8, height: 8)
-                    Text(transaction.status.capitalized)
+                    Text((transaction.status ?? "Unknown").capitalized)
                         .font(.caption2)
                         .foregroundColor(.secondary)
                 }
@@ -549,11 +549,11 @@ struct SwiftDataTransactionRow: View {
             
             // Amount and details
             VStack(alignment: .trailing, spacing: 2) {
-                Text("$\(String(format: "%.2f", transaction.amount))")
+                Text("$\(String(format: "%.2f", transaction.amount ?? 0.0))")
                     .font(.headline)
                     .foregroundColor(.primary)
                 
-                if transaction.isRestored {
+                if (transaction.isRestored ?? false) {
                     Text("Restaurado")
                         .font(.caption)
                         .foregroundColor(.green)

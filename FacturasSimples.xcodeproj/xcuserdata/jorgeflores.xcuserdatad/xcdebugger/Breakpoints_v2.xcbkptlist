@@ -468,7 +468,7 @@
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "FADDB198-4F42-4E84-B200-71B949681383"
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FacturasSimples/Shared/DataModel.swift"
@@ -506,8 +506,8 @@
             filePath = "FacturasSimples/ViewModels/Invoices/AddInvoiceViewModel.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "209"
-            endingLineNumber = "209"
+            startingLineNumber = "178"
+            endingLineNumber = "178"
             landmarkName = "getNextInoviceNumber()"
             landmarkType = "7">
          </BreakpointContent>
@@ -987,6 +987,22 @@
             startingLineNumber = "175"
             endingLineNumber = "175"
             landmarkName = "submitContingencyRequest(companyId:modelContext:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "B565EB65-87B4-4BB1-B24F-50EA97A80B10"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FacturasSimples/Services/PurchaseDataManager.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "287"
+            endingLineNumber = "287"
+            landmarkName = "transactionExists(withId:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

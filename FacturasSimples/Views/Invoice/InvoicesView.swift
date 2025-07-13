@@ -41,7 +41,6 @@ struct InvoicesView: View {
     @State private var searchSuggestions: [SearchSuggestion] = []
     @Environment(\.modelContext)   var modelContext
     @AppStorage("selectedCompanyIdentifier") var companyIdentifier: String = ""
-    //@EnvironmentObject var storeManager: StoreKitManager
   
     @State var viewModel = InvoicesViewModel()
     
@@ -55,7 +54,6 @@ struct InvoicesView: View {
         } detail: {
             if let inv = selection {
                 InvoiceDetailView(invoice: inv)
-                   // .environmentObject(storeManager)
             }
             else{
                 ContentUnavailableView {
@@ -74,7 +72,6 @@ struct InvoicesView: View {
                 }
                 .sheet(isPresented: $viewModel.showAddInvoiceSheet) {
                     AddInvoiceView(selectedInvoice: $selection)
-                       // .environmentObject(storeManager)
                         .interactiveDismissDisabled()
                 }
                 .sheet(isPresented: $viewModel.showAddCustomerSheet) {
@@ -191,6 +188,5 @@ private struct InvoicesViewWrapper: View {
     
     var body: some View {
         InvoicesView(selectedCompanyId: $selectedCompanyId)
-           // .environmentObject(StoreKitManager())
     }
 }

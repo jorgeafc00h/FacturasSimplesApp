@@ -36,22 +36,22 @@ class N1COEpayService: ObservableObject {
         }
         
         return CustomUserCredits(
-            availableInvoices: profile.availableInvoices,
-            totalPurchased: profile.totalPurchasedInvoices,
-            hasActiveSubscription: profile.hasActiveSubscription,
+            availableInvoices: profile.availableInvoices ?? 0,
+            totalPurchased: profile.totalPurchasedInvoices ?? 0,
+            hasActiveSubscription: profile.hasActiveSubscription ?? false,
             subscriptionExpiryDate: profile.subscriptionExpiryDate,
             subscriptionId: profile.currentSubscriptionId,
             transactions: manager.recentTransactions.map { transaction in
                 CustomStoredTransaction(
-                    id: transaction.id,
-                    productID: transaction.productID,
-                    purchaseDate: transaction.purchaseDate,
-                    invoiceCount: transaction.invoiceCount,
-                    amount: transaction.amount,
-                    isRestored: transaction.isRestored
+                    id: transaction.id ?? "",
+                    productID: transaction.productID ?? "",
+                    purchaseDate: transaction.purchaseDate ?? Date(),
+                    invoiceCount: transaction.invoiceCount ?? 0,
+                    amount: transaction.amount ?? 0.0,
+                    isRestored: transaction.isRestored ?? false
                 )
             },
-            hasImplementationFeePaid: profile.hasImplementationFeePaid
+            hasImplementationFeePaid: profile.hasImplementationFeePaid ?? false
         )
     }
     
@@ -89,8 +89,6 @@ class N1COEpayService: ObservableObject {
         // Initialize SwiftData purchase manager
         Task { @MainActor in
             PurchaseDataManager.shared.loadUserProfile()
-            // Migrate from UserDefaults if needed
-            PurchaseDataManager.shared.migrateFromUserDefaults()
         }
     }
     
@@ -616,22 +614,25 @@ class N1COEpayService: ObservableObject {
             print("🔐 N1CO Success: Auth Code: \(order.authorizationCode ?? "N/A")")
         }
         
-        // Add transaction to SwiftData
-        PurchaseDataManager.shared.addTransaction(
-            productID: product.id,
-            productName: product.name,
-            productDescription: product.description,
-            amount: product.price,
-            invoiceCount: product.invoiceCount,
-            isSubscription: product.isSubscription,
-            n1coOrderId: orderResponse?.id,
-            authorizationCode: orderResponse?.authorizationCode
-        )
-        
-        print("💾 N1CO Success: Transaction saved to SwiftData")
+        // Add transaction to SwiftData on main thread
+        await MainActor.run {
+            print("🧵 N1CO Success: Running on main thread for SwiftData transaction")
+            PurchaseDataManager.shared.addTransaction(
+                productID: product.id,
+                productName: product.name,
+                productDescription: product.description,
+                amount: product.price,
+                invoiceCount: product.invoiceCount,
+                isSubscription: product.isSubscription,
+                n1coOrderId: orderResponse?.id,
+                authorizationCode: orderResponse?.authorizationCode
+            )
+            
+            print("💾 N1CO Success: Transaction saved to SwiftData")
+            objectWillChange.send() // Notify UI of credit changes
+        }
         
         purchaseState = .succeeded(orderResponse?.id ?? "")
-        objectWillChange.send() // Notify UI of credit changes
         
         print("✅ N1CO Success: Purchase handling completed!")
     }
@@ -646,30 +647,33 @@ class N1COEpayService: ObservableObject {
         
         print("🆔 N1CO Subscription Success: Subscription ID: \(subscription.id)")
         
-        // Add subscription transaction to SwiftData
-        if let product = availableProducts.first(where: { $0.isSubscription }) {
-            print("🛍️ N1CO Subscription Success: Product: \(product.name)")
-            print("💰 N1CO Subscription Success: Amount: \(product.formattedPrice)")
-            print("🔄 N1CO Subscription Success: Period: \(String(describing: product.subscriptionPeriod))")
-    
-            PurchaseDataManager.shared.addTransaction(
-                productID: product.id,
-                productName: product.name,
-                productDescription: product.description,
-                amount: product.price,
-                invoiceCount: product.invoiceCount,
-                isSubscription: true,
-                n1coOrderId: String(subscription.id),
-                billingCycle: product.subscriptionPeriod
-            )
-            
-            print("💾 N1CO Subscription Success: Subscription saved to SwiftData")
-        } else {
-            print("⚠️ N1CO Subscription Success: No subscription product found in available products")
+        // Add subscription transaction to SwiftData on main thread
+        await MainActor.run {
+            if let product = availableProducts.first(where: { $0.isSubscription }) {
+                print("🛍️ N1CO Subscription Success: Product: \(product.name)")
+                print("💰 N1CO Subscription Success: Amount: \(product.formattedPrice)")
+                print("🔄 N1CO Subscription Success: Period: \(String(describing: product.subscriptionPeriod))")
+        
+                print("🧵 N1CO Subscription Success: Running on main thread for SwiftData transaction")
+                PurchaseDataManager.shared.addTransaction(
+                    productID: product.id,
+                    productName: product.name,
+                    productDescription: product.description,
+                    amount: product.price,
+                    invoiceCount: product.invoiceCount,
+                    isSubscription: true,
+                    n1coOrderId: String(subscription.id),
+                    billingCycle: product.subscriptionPeriod
+                )
+                
+                print("💾 N1CO Subscription Success: Subscription saved to SwiftData")
+                objectWillChange.send() // Notify UI of subscription changes
+            } else {
+                print("⚠️ N1CO Subscription Success: No subscription product found in available products")
+            }
         }
         
         purchaseState = .succeeded(String(subscription.id))
-        objectWillChange.send() // Notify UI of subscription changes
         
         print("✅ N1CO Subscription Success: Subscription handling completed!")
     }

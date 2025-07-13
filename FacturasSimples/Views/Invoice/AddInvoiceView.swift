@@ -34,61 +34,45 @@ struct AddInvoiceView: View {
         horizontalSizeClass == .regular && verticalSizeClass == .regular
     }
     
-    var shouldDisableForCredits: Bool {
-        guard let company = selectedCompany else { return false }
-        
-        // Test accounts don't need credit validation
-        if company.isTestAccount {
-            return false
-        }
-        
-        let purchaseManager = PurchaseDataManager.shared
-        
-        // Production accounts need implementation fee and credits
-        return purchaseManager.requiresImplementationFee(for: company) || !purchaseManager.canCreateInvoice()
-    }
+    
     
     var shouldShowCreditsWarning: Bool {
         guard let company = selectedCompany else { return false }
         
         // Only show warning for production accounts that lack credits or implementation fee
-        return company.requiresPaidServices && shouldDisableForCredits
+        return company.requiresPaidServices
     }
     
-    var creditsWarningMessage: String {
-        guard let company = selectedCompany else { return "" }
-        
-        if company.requiresPaidServices {
-            let purchaseManager = PurchaseDataManager.shared
-            if purchaseManager.requiresImplementationFee(for: company) {
-                return "Esta empresa requiere pagar el costo de implementación para crear facturas en producción"
-            } else if !purchaseManager.canCreateInvoice() {
-                return "Esta empresa requiere créditos para crear facturas en producción"
-            }
-        }
-        
-        return ""
-    }
-    
+//    var creditsWarningMessage: String {
+//        guard let company = selectedCompany else { return "" }
+//        
+//        if company.requiresPaidServices {
+//            let purchaseManager = PurchaseDataManager.shared
+//            if purchaseManager.requiresImplementationFee(for: company) {
+//                return "Esta empresa requiere pagar el costo de implementación para crear facturas en producción"
+//            } else if !purchaseManager.canCreateInvoice() {
+//                return "Esta empresa requiere créditos para crear facturas en producción"
+//            }
+//        }
+//        
+//        return ""
+//    }
+//    
     var body: some View {
         
         NavigationStack {
             Form{
-                // COMMENTED OUT FOR APP SUBMISSION - IAP functionality disabled
-                /*
-                // Credits Status Section
+                // Credits Status Section (using SwiftData-backed credit system)
                 Section {
                     CreditsStatusView(company: selectedCompany)
-                        .environmentObject(storeKitManager)
                 }
-                */
                 
                 CustomerSection
                 InvoiceDataSection
                 ProductDetailsSection
                 TotalSection
                 Section {
-                    Button(action: { handleCreateInvoice(showCreditsGate: $showCreditsGate) }, label: {
+                    Button(action: addInvoice, label: {
                         HStack {
                             Image(systemName: "checkmark.circle")
                             Text("Crear Factura")
@@ -148,8 +132,8 @@ struct AddInvoiceView: View {
                     }
                 }
                 ToolbarItem(placement: .primaryAction) {
-                    Button("Guardar", action: { handleCreateInvoice(showCreditsGate: $showCreditsGate) })
-                        .disabled(viewModel.disableAddInvoice || shouldDisableForCredits)
+                    Button("Guardar", action: addInvoice)
+                        .disabled(viewModel.disableAddInvoice)
                 }
             }.accentColor(.darkCyan)
         }

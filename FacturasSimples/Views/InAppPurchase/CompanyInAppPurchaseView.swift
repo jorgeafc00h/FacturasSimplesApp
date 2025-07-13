@@ -344,17 +344,18 @@ struct CompanyInAppPurchaseView: View {
     }
     
     private func syncPurchasesToCompany() {
-        // When restoring, add any available credits to the company
-        if storeManager.userCredits.availableInvoices > 0 {
-            company.addPurchasedCredits(storeManager.userCredits.availableInvoices)
-            // Reset global credits since they're now associated with the company
-            storeManager.userCredits.availableInvoices = 0
+        // When restoring, sync from SwiftData-backed purchase system
+        guard let profile = PurchaseDataManager.shared.userProfile else { return }
+        
+        if profile.availableInvoices > 0 {
+            company.addPurchasedCredits(profile.availableInvoices)
+            // Credits remain in the SwiftData system, no need to reset
         }
         
-        if storeManager.userCredits.hasActiveSubscription {
+        if profile.hasActiveSubscription {
             company.activateSubscription(
-                productId: storeManager.userCredits.subscriptionProductId ?? "",
-                expiryDate: storeManager.userCredits.subscriptionExpiryDate
+                productId: profile.subscriptionProductId ?? "",
+                expiryDate: profile.subscriptionExpiryDate
             )
         }
         

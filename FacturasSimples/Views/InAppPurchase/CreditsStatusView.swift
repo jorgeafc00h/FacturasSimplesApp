@@ -10,6 +10,7 @@ import SwiftUI
 
 struct CreditsStatusView: View {
     @StateObject private var n1coService = N1COEpayService.shared
+    @StateObject private var purchaseManager = PurchaseDataManager.shared
     @State private var showPurchaseView = false
     let company: Company?
     
@@ -25,9 +26,8 @@ struct CreditsStatusView: View {
             return true
         }
         
-        // Check N1CO user credits
-        let userCredits = n1coService.userCredits
-        return userCredits.canCreateInvoices
+        // Check SwiftData user credits directly
+        return purchaseManager.getCreditBalance() > 0
     }
     
     var creditsText: String {
@@ -37,15 +37,17 @@ struct CreditsStatusView: View {
             return "Ilimitadas (Pruebas)"
         }
         
-        let userCredits = n1coService.userCredits
+        guard let profile = purchaseManager.userProfile else {
+            return "0 disponibles"
+        }
         
         // Check for active subscription
-        if userCredits.isSubscriptionActive {
+        if profile.isSubscriptionActive {
             return "Ilimitadas (Suscripción)"
         }
         
         // Show available invoice credits
-        return "\(userCredits.availableInvoices) disponibles"
+        return "\(profile.availableInvoices ?? 0) disponibles"
     }
     
     var creditsIcon: String {
@@ -96,9 +98,7 @@ struct CreditsStatusView: View {
                     .foregroundColor(hasAvailableCredits ? creditsColor : .primary)
             }
             
-            Spacer()
-            
-            // Action button - only show for production accounts
+            Spacer()                // Action button - only show for production accounts
             if showPurchaseOptions {
                 Button(action: {
                     showPurchaseView = true

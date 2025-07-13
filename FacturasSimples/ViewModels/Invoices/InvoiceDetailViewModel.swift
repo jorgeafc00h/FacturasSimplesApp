@@ -97,21 +97,18 @@ extension InvoiceDetailView {
             }
         }
         
-        func testDeserialize(_ invoice: Invoice) async -> DTE_Base? {
-            let path = "https://kinvoicestdev.blob.core.windows.net/06141404941342/DTE-01-KQACC1I2-558201638398652.json?sv=2021-10-04&st=2025-02-19T22%3A15%3A58Z&se=2025-02-20T22%3A15%3A58Z&sr=b&sp=r&sig=fWFyiepbo%2B5gbvPi47CIl2wnetFN2oEEuvHgEvEZ9PQ%3D"
-            
-            let path2 = "https://kinvoicestdev.blob.core.windows.net/06141404941342/DTE-01-8VK8VUL7-085808497996953.json?sv=2021-10-04&st=2025-02-19T22%3A18%3A20Z&se=2025-02-20T22%3A18%3A20Z&sr=b&sp=r&sig=x4g%2FQmctgtGmv9wsDdVnhEsVFPmI7UIDr%2FoASH91TkM%3D"
-            
-            // let invoiceService = InvoiceServiceClient()
-            
-            let dte =  try? await invoiceService.getDocumentFromStorage(path: path)
-            
-            let dte_invoice = try? await invoiceService.getDocumentFromStorage(path: path2)
-            
-            print("\(dte_invoice?.identificacion.numeroControl ?? "No hay control")")
-            
-            return dte
-        }
+        //        // MARK: - Test/Debug Methods (commented out)
+        // func testDeserialize(_ invoice: Invoice) async -> DTE_Base? {
+        //     // Test URL paths for deserializing stored DTE documents
+        //     let path = "https://kinvoicestdev.blob.core.windows.net/06141404941342/DTE-01-KQACC1I2-558201638398652.json?sv=2021-10-04&st=2025-02-19T22%3A15%3A58Z&se=2025-02-20T22%3A15%3A58Z&sr=b&sp=r&sig=fWFyiepbo%2B5gbvPi47CIl2wnetFN2oEEuvHgEvEZ9PQ%3D"
+        //     let path2 = "https://kinvoicestdev.blob.core.windows.net/06141404941342/DTE-01-8VK8VUL7-085808497996953.json?sv=2021-10-04&st=2025-02-19T22%3A18%3A20Z&se=2025-02-20T22%3A18%3A20Z&sr=b&sp=r&sig=x4g%2FQmctgtGmv9wsDdVnhEsVFPmI7UIDr%2FoASH91TkM%3D"
+        //     
+        //     let dte = try? await invoiceService.getDocumentFromStorage(path: path)
+        //     let dte_invoice = try? await invoiceService.getDocumentFromStorage(path: path2)
+        //     
+        //     print("\(dte_invoice?.identificacion.numeroControl ?? "No hay control")")
+        //     return dte
+        // }
         
         func validateCredentialsAsync(_ invoice: Invoice) async  {
             let serviceClient  = InvoiceServiceClient()
@@ -218,7 +215,7 @@ extension InvoiceDetailView {
                     
                     udpateRelatedDocuemntFromCreditNote()
                     
-                    // Consume credit ONLY after successful sync
+                    // Consume credit ONLY after successful sync using PurchaseDataManager
                     consumeCreditForCompletedInvoice()
                     
                     await viewModel.backupPDF(invoice)
@@ -440,18 +437,8 @@ extension InvoiceDetailView {
             return false
         }
         
-        // Test accounts can always create invoices
-        if company.isTestAccount {
-            print("ℹ️ Test account - allowing invoice sync without credit check")
-            return true
-        }
-        
-        // For production accounts, check if they have available credits
-        let hasCredits = PurchaseDataManager.shared.canCreateInvoice()
-        print("💳 Credit check for production account: \(hasCredits ? "✅ Has credits" : "❌ No credits")")
-        print("📊 Available credits: \(PurchaseDataManager.shared.userProfile?.availableInvoices ?? 0)")
-        
-        return hasCredits
+        // Use PurchaseDataManager for centralized credit validation
+        return PurchaseDataManager.shared.validateCreditsBeforeInvoiceSync(for: customerId)
     }
     
     /// Consume credit for a completed invoice using N1CO system
@@ -473,29 +460,8 @@ extension InvoiceDetailView {
             return
         }
         
-        // Only consume credit for production companies
-        if company.isTestAccount {
-            print("ℹ️ Test account - no credit consumed for invoice: \(invoice.invoiceNumber)")
-            return
-        }
-        
-        // Consume credit using N1CO system
-        let beforeCredits = PurchaseDataManager.shared.userProfile?.availableInvoices ?? 0
-        
-        N1COEpayService.shared.consumeInvoiceCredit(for: invoice.inoviceId)
-        
-        // Verify the credit was actually consumed
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            let afterCredits = PurchaseDataManager.shared.userProfile?.availableInvoices ?? 0
-            
-            if beforeCredits > afterCredits || PurchaseDataManager.shared.userProfile?.isSubscriptionActive == true {
-                print("✅ Credit consumed successfully for invoice: \(self.invoice.invoiceNumber)")
-                print("📊 Credits before: \(beforeCredits), after: \(afterCredits)")
-            } else {
-                print("⚠️ Credit consumption may have failed for invoice: \(self.invoice.invoiceNumber)")
-                print("📊 Credits before: \(beforeCredits), after: \(afterCredits)")
-            }
-        }
+        // Use PurchaseDataManager for centralized credit consumption
+        PurchaseDataManager.shared.consumeCreditForCompletedInvoice(invoice.inoviceId, companyId: customerId)
     }
 }
 
