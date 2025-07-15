@@ -97,18 +97,6 @@ extension InvoiceDetailView {
             }
         }
         
-        //        // MARK: - Test/Debug Methods (commented out)
-        // func testDeserialize(_ invoice: Invoice) async -> DTE_Base? {
-        //     // Test URL paths for deserializing stored DTE documents
-        //     let path = "https://kinvoicestdev.blob.core.windows.net/06141404941342/DTE-01-KQACC1I2-558201638398652.json?sv=2021-10-04&st=2025-02-19T22%3A15%3A58Z&se=2025-02-20T22%3A15%3A58Z&sr=b&sp=r&sig=fWFyiepbo%2B5gbvPi47CIl2wnetFN2oEEuvHgEvEZ9PQ%3D"
-        //     let path2 = "https://kinvoicestdev.blob.core.windows.net/06141404941342/DTE-01-8VK8VUL7-085808497996953.json?sv=2021-10-04&st=2025-02-19T22%3A18%3A20Z&se=2025-02-20T22%3A18%3A20Z&sr=b&sp=r&sig=x4g%2FQmctgtGmv9wsDdVnhEsVFPmI7UIDr%2FoASH91TkM%3D"
-        //     
-        //     let dte = try? await invoiceService.getDocumentFromStorage(path: path)
-        //     let dte_invoice = try? await invoiceService.getDocumentFromStorage(path: path2)
-        //     
-        //     print("\(dte_invoice?.identificacion.numeroControl ?? "No hay control")")
-        //     return dte
-        // }
         
         func validateCredentialsAsync(_ invoice: Invoice) async  {
             let serviceClient  = InvoiceServiceClient()
@@ -420,6 +408,7 @@ extension InvoiceDetailView {
     
     /// Validate if user has available credits before attempting sync
     func validateCreditsBeforeSync() -> Bool {
+     
         // Get the company associated with this invoice
         guard let customerId = invoice.customer?.companyOwnerId else {
             print("⚠️ No company ID found for invoice")
@@ -436,7 +425,13 @@ extension InvoiceDetailView {
             print("⚠️ Company not found")
             return false
         }
-        
+
+        // if it's a test company, bypass credit validation
+        if company.isTestAccount {
+            print("🧪 Test company detected - bypassing credit validation")
+            return true
+        }
+
         // Use PurchaseDataManager for centralized credit validation
         return PurchaseDataManager.shared.validateCreditsBeforeInvoiceSync(for: customerId)
     }

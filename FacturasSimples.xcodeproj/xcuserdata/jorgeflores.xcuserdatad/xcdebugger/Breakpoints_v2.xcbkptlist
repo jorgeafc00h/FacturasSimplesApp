@@ -100,7 +100,7 @@
             landmarkType = "7">
             <Locations>
                <Location
-                  uuid = "EFF6D12E-8021-48BB-921E-E7EB88CF3D88 - 9f69dbfa01018b1f"
+                  uuid = "EFF6D12E-8021-48BB-921E-E7EB88CF3D88 - 9f69dbfa01018b3c"
                   shouldBeEnabled = "Yes"
                   ignoreCount = "0"
                   continueAfterRunningActions = "No"
@@ -110,11 +110,11 @@
                   urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/Services/InvoiceServiceClient.swift"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "65"
-                  endingLineNumber = "65">
+                  startingLineNumber = "64"
+                  endingLineNumber = "64">
                </Location>
                <Location
-                  uuid = "EFF6D12E-8021-48BB-921E-E7EB88CF3D88 - cab2d6299285761d"
+                  uuid = "EFF6D12E-8021-48BB-921E-E7EB88CF3D88 - cab2d6299285763e"
                   shouldBeEnabled = "Yes"
                   ignoreCount = "0"
                   continueAfterRunningActions = "No"
@@ -124,11 +124,11 @@
                   urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/Services/InvoiceServiceClient.swift"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "65"
-                  endingLineNumber = "65">
+                  startingLineNumber = "64"
+                  endingLineNumber = "64">
                </Location>
                <Location
-                  uuid = "EFF6D12E-8021-48BB-921E-E7EB88CF3D88 - 105f4f016dc690a2"
+                  uuid = "EFF6D12E-8021-48BB-921E-E7EB88CF3D88 - 105f4f016dc69081"
                   shouldBeEnabled = "Yes"
                   ignoreCount = "0"
                   continueAfterRunningActions = "No"
@@ -138,8 +138,8 @@
                   urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/Services/InvoiceServiceClient.swift"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "65"
-                  endingLineNumber = "65">
+                  startingLineNumber = "64"
+                  endingLineNumber = "64">
                </Location>
             </Locations>
          </BreakpointContent>
@@ -284,7 +284,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "236"
             endingLineNumber = "236"
-            landmarkName = "udpateRelatedDocuemntFromCreditNote()"
+            landmarkName = "deleteInvoice()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -314,8 +314,8 @@
             filePath = "FacturasSimples/Services/MHService.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "118"
-            endingLineNumber = "118"
+            startingLineNumber = "121"
+            endingLineNumber = "121"
             landmarkName = "mapReceptor(invoice:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -522,8 +522,8 @@
             filePath = "FacturasSimples/Services/MHService.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "258"
-            endingLineNumber = "258"
+            startingLineNumber = "275"
+            endingLineNumber = "275"
             landmarkName = "mapCreditNote(invoice:company:environmentCode:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -538,8 +538,8 @@
             filePath = "FacturasSimples/Services/MHService.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "392"
-            endingLineNumber = "392"
+            startingLineNumber = "409"
+            endingLineNumber = "409"
             landmarkName = "mapSujetoExcluido(invoice:company:environmentCode:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -570,8 +570,8 @@
             filePath = "FacturasSimples/Services/MHService.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "476"
-            endingLineNumber = "476"
+            startingLineNumber = "493"
+            endingLineNumber = "493"
             landmarkName = "mapSujetoExcluido(invoice:company:environmentCode:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -1003,6 +1003,98 @@
             startingLineNumber = "287"
             endingLineNumber = "287"
             landmarkName = "transactionExists(withId:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "7894A995-C473-456A-99B4-A972EDE22A88"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FacturasSimples/Services/MHService.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "130"
+            endingLineNumber = "130"
+            landmarkName = "mapReceptor(invoice:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "C7CC7615-F6A9-4F2E-B339-B2ED628B6728"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FacturasSimples/ViewModels/Invoices/InvoiceDetailViewModel.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "195"
+            endingLineNumber = "195"
+            landmarkName = "SyncInvoice()"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "C7CC7615-F6A9-4F2E-B339-B2ED628B6728 - 2a9d36a92ec53dc8"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "FacturasSimples.InvoiceDetailView.SyncInvoice() -&gt; ()"
+                  moduleName = "FacturasSimples.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/ViewModels/Invoices/InvoiceDetailViewModel.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "195"
+                  endingLineNumber = "195">
+               </Location>
+               <Location
+                  uuid = "C7CC7615-F6A9-4F2E-B339-B2ED628B6728 - 72932aa8748478b8"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 () async -&gt; () in FacturasSimples.InvoiceDetailView.SyncInvoice() -&gt; ()"
+                  moduleName = "FacturasSimples.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/ViewModels/Invoices/InvoiceDetailViewModel.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "195"
+                  endingLineNumber = "195">
+               </Location>
+               <Location
+                  uuid = "C7CC7615-F6A9-4F2E-B339-B2ED628B6728 - c5afaa8c4b64462c"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(1) suspend resume partial function for closure #1 () async -&gt; () in FacturasSimples.InvoiceDetailView.SyncInvoice() -&gt; ()"
+                  moduleName = "FacturasSimples.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/ViewModels/Invoices/InvoiceDetailViewModel.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "195"
+                  endingLineNumber = "195">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "78DA9245-3AE1-478A-B3FA-6ABEA860FA83"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FacturasSimples/ViewModels/Invoices/InvoiceDetailViewModel.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "424"
+            endingLineNumber = "424"
+            landmarkName = "validateCreditsBeforeSync()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

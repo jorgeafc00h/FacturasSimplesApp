@@ -299,7 +299,7 @@ class DataModel {
         // For now, we'll assume it's enabled if the container was created successfully
         // In a real implementation, you could track the CloudKit state more precisely
         do {
-            let context = getPurchaseModelContext()
+            _ = getPurchaseModelContext()
             // If we can access the context successfully, assume CloudKit is working
             return true
         } catch {

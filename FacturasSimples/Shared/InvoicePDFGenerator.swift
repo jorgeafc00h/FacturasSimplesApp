@@ -190,7 +190,13 @@ class InvoicePDFGenerator {
             
             // Column 3
             "N° Documento:".draw(at: CGPoint(x: receptorCol3, y: receptorY), withAttributes: grayAttributes)
-            (invoice.customer?.nationalId ?? "").draw(at: CGPoint(x: receptorCol3, y: receptorY + 10), withAttributes: regularAttributes)
+            
+            let documentNumber = (invoice.customer?.hasInvoiceSettings ?? false ) &&
+            ((invoice.customer?.nit.isEmpty ?? true) == false ) ?
+            invoice.customer?.nit ?? "" : invoice.customer?.nationalId ?? ""
+            
+            
+            (documentNumber).draw(at: CGPoint(x: receptorCol3, y: receptorY + 10), withAttributes: regularAttributes)
             
             "Dirección:".draw(at: CGPoint(x: receptorCol3, y: receptorY + receptorLabelSpacing), withAttributes: grayAttributes)
             SplitText(invoice.customer?.address ?? "", 40).draw(at: CGPoint(x: receptorCol3, y: receptorY + receptorLabelSpacing + 10), withAttributes: regularAttributes)

@@ -125,7 +125,7 @@ extension ContingencyRequestView {
                         print("❌ Failed to save invoice \(invoice.invoiceNumber): \(error)")
                     }
                 } else {
-                    print("❌ Invoice \(invoice.invoiceNumber) sync failed: \(response.estado ?? "Unknown")")
+                    print("❌ Invoice \(invoice.invoiceNumber) sync failed: \(response.estado)")
                 }
             }
             

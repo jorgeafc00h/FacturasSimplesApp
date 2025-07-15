@@ -45,11 +45,14 @@ class MhClient {
             tipoMoneda: "USD"
         )
         
+        let receptor = try mapReceptor(invoice: invoice)
+        
+        
         let dte = DTE_Base(
             identificacion: identificacion,
             documentoRelacionado: nil,
             emisor: emisor,
-            receptor: try mapReceptor(invoice: invoice),
+            receptor: receptor,
             cuerpoDocumento: items,
             resumen: resumen
         )
@@ -117,6 +120,19 @@ class MhClient {
         
         let nrc = invoice.isCCF ? customer?.nrc : nil
         
+        let nationalId = customer?.nationalId ?? ""
+        
+        let nit = customer?.nit ?? ""
+        
+        let reqquiredNit = invoice.invoiceType == .Factura &&
+        nit.isEmpty == false && (customer?.hasInvoiceSettings ?? false)
+        
+        let tipoDoc = reqquiredNit
+         ? "36" :
+        invoice.invoiceType == .Factura  && nationalId.isEmpty == false ? "13" : nil
+         
+        
+        
         let receptor = Receptor(
             nrc: nrc,
             nombre: customer?.fullName ?? "Unknown Customer",
@@ -132,10 +148,11 @@ class MhClient {
                 complemento: customer?.address),
             telefono: customer?.phone,
             correo : customer?.email,
-            tipoDocumento: invoice.invoiceType == .Factura ? "13" : nil,
-            numDocumento: invoice.isCCF ? nil :
+            tipoDocumento: tipoDoc,
+            numDocumento: reqquiredNit ? nit:
+                invoice.isCCF ? nil :
                 try Extensions.formatNationalId(customer?.nationalId ?? ""),
-            nit: invoice.isCCF ? customer?.nit : nil
+            nit: invoice.isCCF ? nit :  nil
         )
         return receptor
     }

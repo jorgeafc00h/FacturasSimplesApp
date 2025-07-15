@@ -1,5 +1,4 @@
 import Foundation
-import SwiftUI
 import SwiftData
 import CryptoKit
 //import JWTKit
@@ -427,7 +426,7 @@ class InvoiceServiceClient
                 // Try to parse error response
                 do {
                     let errorResponse = try JSONDecoder().decode(DTEErrorResponseWrapper.self, from: data)
-                    let errorMessage = errorResponse.descripcionMsg ?? "Error sending contingency request"
+                    let errorMessage = errorResponse.descripcionMsg
                     print("❌ InvoiceServiceClient: Error details: \(errorMessage)")
                     throw ApiErrors.custom(message: errorMessage)
                 } catch {

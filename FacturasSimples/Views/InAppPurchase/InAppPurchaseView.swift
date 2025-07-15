@@ -529,7 +529,7 @@ struct SwiftDataTransactionRow: View {
                     .foregroundColor(.secondary)
                 
                 if (transaction.invoiceCount ?? 0) > 0 {
-                    Text("\(transaction.invoiceCount) facturas")
+                    Text("\(String(describing: transaction.invoiceCount)) facturas")
                         .font(.caption)
                         .foregroundColor(.blue)
                 }

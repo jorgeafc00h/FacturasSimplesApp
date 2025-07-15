@@ -12,15 +12,7 @@ import SwiftUI
 
 // MARK: - Import Purchase Models
 // Ensure the purchase models are compiled and available at runtime
-fileprivate let _forceLoadModels: Bool = {
-    // Force evaluation of model types at load time
-    let _ = PurchaseTransaction.self
-    let _ = UserPurchaseProfile.self
-    let _ = InvoiceConsumption.self
-    let _ = SavedPaymentMethod.self
-    print("🔍 PurchaseDataManager: Force-loaded model types")
-    return true
-}()
+
 
 @MainActor
 class PurchaseDataManager: ObservableObject {
@@ -103,7 +95,7 @@ class PurchaseDataManager: ObservableObject {
                 schema: testSchema,
                 isStoredInMemoryOnly: true
             )
-            let testContainer = try ModelContainer(for: PurchaseTransaction.self, configurations: testConfig)
+            let _ = try ModelContainer(for: PurchaseTransaction.self, configurations: testConfig)
             print("✅ PurchaseDataManager: Basic SwiftData functionality confirmed")
             
             // Now try the full schema
@@ -188,6 +180,22 @@ class PurchaseDataManager: ObservableObject {
             return true
         }
         
+        // Check if this is a test company - test companies don't need credit validation
+        if let modelContext = modelContext {
+            let descriptor = FetchDescriptor<Company>(
+                predicate: #Predicate<Company> { company in
+                    company.id == companyId
+                }
+            )
+            
+            if let company = try? modelContext.fetch(descriptor).first {
+                if company.isTestAccount {
+                    print("🧪 PurchaseDataManager: Test company detected - bypassing credit validation")
+                    return true
+                }
+            }
+        }
+        
         guard let profile = getCurrentOrCreateProfile() else {
             print("❌ PurchaseDataManager: Cannot validate credits - no profile")
             return false
@@ -214,6 +222,20 @@ class PurchaseDataManager: ObservableObject {
         guard let modelContext = modelContext else {
             print("❌ PurchaseDataManager: No modelContext for credit consumption")
             return
+        }
+        
+        // Check if this is a test company - test companies don't consume credits
+        let descriptor = FetchDescriptor<Company>(
+            predicate: #Predicate<Company> { company in
+                company.id == companyId
+            }
+        )
+        
+        if let company = try? modelContext.fetch(descriptor).first {
+            if company.isTestAccount {
+                print("🧪 PurchaseDataManager: Test company detected - bypassing credit consumption for invoice: \(invoiceId)")
+                return
+            }
         }
         
         guard let profile = getCurrentOrCreateProfile() else {

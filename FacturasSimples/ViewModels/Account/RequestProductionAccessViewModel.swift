@@ -1293,8 +1293,8 @@ class RequestProductionAccessViewModel {
                     if notaDebitoCount > 0 {
                         self.notaDebitoProgress = Double(notaDebitoProcessed) / Double(notaDebitoCount)
                     }
-                default:
-                    break
+                default: break
+                    
                 }
                 
             } catch {
