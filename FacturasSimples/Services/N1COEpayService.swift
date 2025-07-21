@@ -43,12 +43,16 @@ class N1COEpayService: ObservableObject {
             subscriptionId: profile.currentSubscriptionId,
             transactions: manager.recentTransactions.map { transaction in
                 CustomStoredTransaction(
-                    id: transaction.id ?? "",
+                    id: transaction.id ?? UUID().uuidString,
                     productID: transaction.productID ?? "",
-                    purchaseDate: transaction.purchaseDate ?? Date(),
-                    invoiceCount: transaction.invoiceCount ?? 0,
+                    productName: transaction.productName,
                     amount: transaction.amount ?? 0.0,
-                    isRestored: transaction.isRestored ?? false
+                    currency: transaction.currency ?? "USD",
+                    purchaseDate: transaction.purchaseDate ?? Date(),
+                    status: transaction.status ?? "completed",
+                    isRestored: transaction.isRestored ?? false,
+                    invoiceCount: Int(transaction.invoiceCount ?? 0),
+                    isSubscription: transaction.isSubscription ?? false
                 )
             },
             hasImplementationFeePaid: profile.hasImplementationFeePaid ?? false

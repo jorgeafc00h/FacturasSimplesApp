@@ -46,6 +46,11 @@ struct PurchaseHistoryView: View {
             .refreshable {
                 await refreshPurchaseHistory()
             }
+            .onAppear {
+                Task {
+                    await refreshPurchaseHistory()
+                }
+            }
         }
     }
     
@@ -214,10 +219,20 @@ struct PurchaseHistoryView: View {
     
     // MARK: - Helper Functions
     private func refreshPurchaseHistory() async {
+        print("🔄 PurchaseHistoryView: Refreshing purchase history...")
+        
         // Reload data from SwiftData
-        purchaseManager.loadUserProfile()
-        // Notify N1CO service to refresh
-        n1coService.objectWillChange.send()
+        await MainActor.run {
+            purchaseManager.loadUserProfile()
+            purchaseManager.loadRecentTransactions() // 🔧 FIX: Load transactions!
+        }
+        
+        // Notify N1CO service to refresh UI
+        await MainActor.run {
+            n1coService.objectWillChange.send()
+        }
+        
+        print("✅ PurchaseHistoryView: Refresh completed")
     }
 }
 

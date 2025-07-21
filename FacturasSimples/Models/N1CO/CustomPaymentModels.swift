@@ -212,10 +212,14 @@ struct CustomUserCredits: Codable {
 struct CustomStoredTransaction: Codable, Identifiable {
     let id: String
     let productID: String
-    let purchaseDate: Date
-    let invoiceCount: Int
+    let productName: String?
     let amount: Double
+    let currency: String?
+    let purchaseDate: Date
+    let status: String?
     let isRestored: Bool
+    let invoiceCount: Int
+    let isSubscription: Bool
 }
 
 // MARK: - Payment Errors
