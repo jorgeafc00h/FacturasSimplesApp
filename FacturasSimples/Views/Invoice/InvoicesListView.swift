@@ -4,7 +4,6 @@ import SwiftData
  
 struct InvoicesListView: View {
     @Environment(\.modelContext) var modelContext
-    @StateObject private var n1coService = N1COEpayService.shared
     
     @Binding var selection: Invoice?
     

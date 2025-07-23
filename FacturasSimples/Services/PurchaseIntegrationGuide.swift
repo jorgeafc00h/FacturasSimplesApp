@@ -144,7 +144,7 @@ class InvoiceCreationHelper {
     }
     
     static func consumeCreditForInvoice(_ invoiceId: String) {
-        N1COEpayService.shared.consumeInvoiceCredit(for: invoiceId)
+        ExternalPaymentService.shared.consumeInvoiceCredit(for: invoiceId)
     }
     
     static func getRemainingCredits() -> Int {

@@ -445,6 +445,90 @@ class PurchaseDataManager: ObservableObject {
         return userProfile?.availableInvoices ?? 0
     }
     
+    /// Processes a successful payment response and adds credits to user account
+    /// - Parameter paymentResponse: The payment status response from the payment API
+    /// - Returns: True if credits were successfully added, false otherwise
+    func processPaymentSuccess(_ paymentResponse: PaymentStatusResponse) -> Bool {
+        guard paymentResponse.isPaymentCompleted else {
+            print("ℹ️ PurchaseDataManager: Payment not completed, skipping credit addition")
+            return false
+        }
+        
+        let creditsToAdd = paymentResponse.creditsToAdd
+        guard creditsToAdd > 0 else {
+            print("⚠️ PurchaseDataManager: No credits to add from payment response")
+            return false
+        }
+        
+        guard let modelContext = modelContext else {
+            print("❌ PurchaseDataManager: No modelContext for processing payment")
+            return false
+        }
+        
+        guard let profile = getCurrentOrCreateProfile() else {
+            print("❌ PurchaseDataManager: Cannot process payment - no profile")
+            return false
+        }
+        
+        // Use order reference as transaction ID to prevent duplicates
+        let transactionId = paymentResponse.orderRef ?? UUID().uuidString
+        
+        // Check if we've already processed this payment
+        if transactionExists(withId: transactionId) {
+            print("ℹ️ PurchaseDataManager: Payment \(transactionId) already processed, skipping")
+            return false
+        }
+        
+        // Add credits to user profile
+        let oldBalance = profile.availableInvoices ?? 0
+        profile.availableInvoices = oldBalance + creditsToAdd
+        
+        // Create transaction record
+        let purchaseTransaction = PurchaseTransaction(
+            id: transactionId,
+            productID: paymentResponse.productSku ?? "external_payment",
+            productName: "External Payment",
+            productDescription: "Credits from external payment system",
+            purchaseDate: paymentResponse.transactionDate ?? Date(),
+            amount: paymentResponse.paidAmountDouble ?? 0.0,
+            currency: "USD",
+            invoiceCount: creditsToAdd,
+            isRestored: false,
+            isSubscription: false,
+            paymentMethodId: "external",
+            n1coOrderId: paymentResponse.orderRef,
+            authorizationCode: nil,
+            status: "completed"
+        )
+        
+        // Associate transaction with profile
+        purchaseTransaction.userProfile = profile
+        
+        modelContext.insert(purchaseTransaction)
+        
+        do {
+            try modelContext.save()
+            
+            let newBalance = profile.availableInvoices ?? 0
+            print("✅ PurchaseDataManager: Payment processed successfully")
+            print("💰 PurchaseDataManager: Added \(creditsToAdd) credits from payment")
+            print("📊 PurchaseDataManager: Balance: \(oldBalance) → \(newBalance)")
+            print("🔗 PurchaseDataManager: Transaction ID: \(transactionId)")
+            
+            // Update published property on main thread
+            DispatchQueue.main.async {
+                self.userProfile = profile
+                // Force objectWillChange to notify observers
+                self.objectWillChange.send()
+            }
+            
+            return true
+        } catch {
+            print("❌ PurchaseDataManager: Failed to process payment: \(error)")
+            return false
+        }
+    }
+    
     // MARK: - Transaction History
     
     func loadRecentTransactions() {

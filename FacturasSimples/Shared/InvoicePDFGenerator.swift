@@ -186,7 +186,7 @@ class InvoicePDFGenerator {
             "DUI/NIT".draw(at: CGPoint(x: receptorCol2, y: receptorY + 10), withAttributes: regularAttributes)
             
             "Actividad Económica:".draw(at: CGPoint(x: receptorCol2, y: receptorY + receptorLabelSpacing), withAttributes: grayAttributes)
-            SplitText(invoice.customer?.descActividad ?? "", 35).draw(at: CGPoint(x: receptorCol2, y: receptorY + receptorLabelSpacing + 10), withAttributes: regularAttributes)s
+            SplitText(invoice.customer?.descActividad ?? "", 35).draw(at: CGPoint(x: receptorCol2, y: receptorY + receptorLabelSpacing + 10), withAttributes: regularAttributes)
             
             // Column 3
             "N° Documento:".draw(at: CGPoint(x: receptorCol3, y: receptorY), withAttributes: grayAttributes)

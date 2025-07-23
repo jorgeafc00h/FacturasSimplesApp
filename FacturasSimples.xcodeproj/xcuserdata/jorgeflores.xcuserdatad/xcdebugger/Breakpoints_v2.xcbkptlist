@@ -7,22 +7,6 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "63C51194-5524-48C6-AD31-6B9D8216E019"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FacturasSimples/Services/InvoiceServiceClient.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "447"
-            endingLineNumber = "447"
-            landmarkName = "InvoiceServiceClient"
-            landmarkType = "3">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
             uuid = "152D33DE-312A-47CB-A06A-25A809F978EF"
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
@@ -100,7 +84,7 @@
             landmarkType = "7">
             <Locations>
                <Location
-                  uuid = "EFF6D12E-8021-48BB-921E-E7EB88CF3D88 - 9f69dbfa01018b3c"
+                  uuid = "EFF6D12E-8021-48BB-921E-E7EB88CF3D88 - 9f69dbfa01018b1f"
                   shouldBeEnabled = "Yes"
                   ignoreCount = "0"
                   continueAfterRunningActions = "No"
@@ -110,11 +94,11 @@
                   urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/Services/InvoiceServiceClient.swift"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "64"
-                  endingLineNumber = "64">
+                  startingLineNumber = "65"
+                  endingLineNumber = "65">
                </Location>
                <Location
-                  uuid = "EFF6D12E-8021-48BB-921E-E7EB88CF3D88 - cab2d6299285763e"
+                  uuid = "EFF6D12E-8021-48BB-921E-E7EB88CF3D88 - cab2d6299285761d"
                   shouldBeEnabled = "Yes"
                   ignoreCount = "0"
                   continueAfterRunningActions = "No"
@@ -124,11 +108,11 @@
                   urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/Services/InvoiceServiceClient.swift"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "64"
-                  endingLineNumber = "64">
+                  startingLineNumber = "65"
+                  endingLineNumber = "65">
                </Location>
                <Location
-                  uuid = "EFF6D12E-8021-48BB-921E-E7EB88CF3D88 - 105f4f016dc69081"
+                  uuid = "EFF6D12E-8021-48BB-921E-E7EB88CF3D88 - 105f4f016dc690a2"
                   shouldBeEnabled = "Yes"
                   ignoreCount = "0"
                   continueAfterRunningActions = "No"
@@ -138,8 +122,8 @@
                   urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/Services/InvoiceServiceClient.swift"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "64"
-                  endingLineNumber = "64">
+                  startingLineNumber = "65"
+                  endingLineNumber = "65">
                </Location>
             </Locations>
          </BreakpointContent>
@@ -812,8 +796,8 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "306"
             endingLineNumber = "306"
-            landmarkName = "N1COEpayService"
-            landmarkType = "3">
+            landmarkName = "createPaymentMethod(customerName:customerEmail:customerPhone:cardNumber:expirationMonth:expirationYear:cvv:cardHolder:appleId:)"
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -1095,6 +1079,68 @@
             startingLineNumber = "424"
             endingLineNumber = "424"
             landmarkName = "validateCreditsBeforeSync()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "24383A59-0741-48DE-9DD9-665A0DA018FF"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FacturasSimples/Views/InAppPurchase/ExternalPaymentView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "270"
+            endingLineNumber = "270"
+            landmarkName = "checkPaymentStatus()"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "24383A59-0741-48DE-9DD9-665A0DA018FF - 7c39047bed9b3eef"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(1) suspend resume partial function for FacturasSimples.ExternalPaymentView.checkPaymentStatus() async -&gt; ()"
+                  moduleName = "FacturasSimples.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/Views/InAppPurchase/ExternalPaymentView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "270"
+                  endingLineNumber = "270">
+               </Location>
+               <Location
+                  uuid = "24383A59-0741-48DE-9DD9-665A0DA018FF - 682e4b1304c564ec"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(4) suspend resume partial function for FacturasSimples.ExternalPaymentView.checkPaymentStatus() async -&gt; ()"
+                  moduleName = "FacturasSimples.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/Views/InAppPurchase/ExternalPaymentView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "270"
+                  endingLineNumber = "270">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "6D87AC3F-7194-4396-BC9F-2BD0297BF709"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FacturasSimples/Services/InvoiceServiceClient.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "473"
+            endingLineNumber = "473"
+            landmarkName = "getPaymentStatus(orderId:isProduction:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

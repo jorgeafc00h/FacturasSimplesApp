@@ -10,7 +10,7 @@ import SwiftUI
 
 struct InAppPurchaseView: View {
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var paymentService = N1COEpayService.shared
+    @StateObject private var paymentService = ExternalPaymentService.shared
     @State private var selectedProduct: CustomPaymentProduct?
     @State private var showingCreditCardInput = false
     @State private var showPurchaseHistory = false
@@ -48,7 +48,7 @@ struct InAppPurchaseView: View {
         }
         .sheet(isPresented: $showingCreditCardInput) {
             if let product = selectedProduct {
-                CreditCardInputView(product: product) {
+                ExternalPaymentView(product: product) {
                     handlePaymentSuccess()
                 }
             }
@@ -75,7 +75,7 @@ struct InAppPurchaseView: View {
     // MARK: - Header Section
     private var headerSection: some View {
         VStack(spacing: 12) {
-            Image(systemName: "creditcard.fill")
+            Image(systemName: "link.circle.fill")
                 .font(.system(size: 50))
                 .foregroundColor(.blue)
             
@@ -83,7 +83,7 @@ struct InAppPurchaseView: View {
                 .font(.title2)
                 .fontWeight(.bold)
             
-            Text("Paga con tarjeta de crédito de forma segura y obtén créditos instantáneamente")
+            Text("Accede a nuestro portal de pagos seguro para completar tu compra con tarjeta de crédito")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
@@ -154,7 +154,7 @@ struct InAppPurchaseView: View {
                     CustomPurchaseBundleCard(
                         product: product,
                         isSelected: selectedProduct?.id == product.id,
-                        isPurchasing: paymentService.purchaseState == .processing,
+                        isPurchasing: paymentService.isLoading,
                         onPurchase: {
                             selectedProduct = product
                             showingCreditCardInput = true
@@ -169,7 +169,7 @@ struct InAppPurchaseView: View {
                     CustomPurchaseBundleCard(
                         product: implementationFee,
                         isSelected: selectedProduct?.id == implementationFee.id,
-                        isPurchasing: paymentService.purchaseState == .processing,
+                        isPurchasing: paymentService.isLoading,
                         onPurchase: {
                             selectedProduct = implementationFee
                             showingCreditCardInput = true
@@ -365,7 +365,7 @@ struct CustomPurchaseBundleCard: View {
                                 .scaleEffect(0.8)
                                 .foregroundColor(.white)
                         } else {
-                            Image(systemName: "creditcard.fill")
+                            Image(systemName: "link")
                             Text(product.isSubscription ? "Suscribirse" : "Comprar")
                                 .fontWeight(.semibold)
                         }

@@ -1,9 +1,10 @@
 import Foundation
+import SwiftUI
 import SwiftData
 import CryptoKit
 //import JWTKit
 
-class InvoiceServiceClient
+class InvoiceServiceClient: ObservableObject
 {
     
     private let encoder = JSONEncoder()
@@ -442,6 +443,161 @@ class InvoiceServiceClient
             print("❌ InvoiceServiceClient: Network error: \(error)")
             throw error
         }
+    }
+    
+    /// Checks the payment status for an external payment link order
+    /// - Parameters:
+    ///   - orderId: The order ID to check. If nil, uses the stored order ID from AppStorage
+    ///   - isProduction: Whether to use production or test environment
+    /// - Returns: PaymentStatusResponse containing payment status and transaction information
+    /// - Throws: ApiErrors if the request fails
+    func getPaymentStatus(orderId: String? = nil, isProduction: Bool) async throws -> PaymentStatusResponse {
+        // Use provided orderId or get from storage
+        let orderToCheck: String
+        if let providedOrderId = orderId {
+            orderToCheck = providedOrderId
+        } else if let storedOrderId = InvoiceServiceClient.getCurrentOrderId() {
+            orderToCheck = storedOrderId
+        } else {
+            print("❌ InvoiceServiceClient: No order ID provided and none stored")
+            throw ApiErrors.custom(message: "No order ID available for payment status check")
+        }
+        
+        print("💳 InvoiceServiceClient: Checking payment status for order: \(orderToCheck)")
+        
+        // todo remove this
+        let baseUrl = getBaseUrl(false)
+        //let baseUrl = getBaseUrl(isProduction)
+        
+        // Create URL with proper encoding
+        var components = URLComponents(string: baseUrl + "/payment/status")!
+        components.queryItems = [
+            URLQueryItem(name: "orderReference", value: orderToCheck)
+        ]
+        
+        guard let url = components.url else {
+            print("❌ InvoiceServiceClient: Invalid payment status URL")
+            throw ApiErrors.invalidURL
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(Constants.Apikey, forHTTPHeaderField: Constants.ApiKeyHeaderName)
+        
+        do {
+            let (data, response) = try await GetDefaultSesssion().data(for: request)
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                print("❌ InvoiceServiceClient: Invalid response type for payment status")
+                throw ApiErrors.invalidResponse
+            }
+            
+            print("💳 InvoiceServiceClient: Payment status response with status: \(httpResponse.statusCode)")
+            
+            if httpResponse.statusCode == 200 {
+                do {
+                    let paymentStatus = try JSONDecoder().decode(PaymentStatusResponse.self, from: data)
+                    print("✅ InvoiceServiceClient: Payment status retrieved successfully")
+                    
+                    // Log details based on format
+                    if let type = paymentStatus.type {
+                        // Legacy format
+                        print("💳 Payment Type: \(type)")
+                        print("💳 Payment Level: \(paymentStatus.level ?? "N/A")")
+                        print("💳 Description: \(paymentStatus.description ?? "N/A")")
+                        
+                        if let metadata = paymentStatus.metadata {
+                            print("💰 Paid Amount: \(metadata.paidAmount ?? "N/A")")
+                            print("👤 Buyer Email: \(metadata.buyerEmail ?? "N/A")")
+                            print("🔑 Authorization Code: \(metadata.authorizationCode ?? "N/A")")
+                        }
+                    } else {
+                        // New simplified format
+                        print("💳 Payment Success: \(paymentStatus.isSuccess ?? false)")
+                        print("💳 Order Reference: \(paymentStatus.orderRef ?? "N/A")")
+                        print("💳 Date: \(paymentStatus.date ?? "N/A")")
+                        print("💳 Invoice Count: \(paymentStatus.invoiceCount ?? 0)")
+                        print("💳 SKU: \(paymentStatus.sku ?? "N/A")")
+                        print("💰 Paid Amount: \(paymentStatus.paidAmount ?? 0)")
+                    }
+                    
+                    // Process successful payments and add credits automatically
+                    if paymentStatus.isPaymentCompleted {
+                        print("✅ Payment completed successfully - processing credits")
+                        print("💳 InvoiceCount to add: \(paymentStatus.creditsToAdd)")
+                        
+                        // Add credits through PurchaseDataManager
+                        let creditsAdded = await PurchaseDataManager.shared.processPaymentSuccess(paymentStatus)
+                        if creditsAdded {
+                            print("💰 Credits successfully added to user account")
+                            print("📊 New balance: \(await PurchaseDataManager.shared.getCreditBalance())")
+                        } else {
+                            print("⚠️ Credits were not added (may already exist)")
+                        }
+                        
+                        // Clear stored order ID
+                        InvoiceServiceClient.clearCurrentOrderId()
+                        print("🧹 Clearing stored order ID")
+                    }
+                    
+                    return paymentStatus
+                } catch {
+                    print("❌ InvoiceServiceClient: Failed to decode payment status response: \(error)")
+                    throw ApiErrors.invalidData
+                }
+            } else if httpResponse.statusCode == 404 {
+                print("⚠️ InvoiceServiceClient: Order not found (still in progress): \(orderToCheck)")
+                // Return a "not found" status indicating payment is still in progress
+                return PaymentStatusResponse(notFoundOrderId: orderToCheck)
+            } else {
+                print("❌ InvoiceServiceClient: Payment status request failed with status: \(httpResponse.statusCode)")
+                
+                let message = String(data: data, encoding: .utf8) ?? "Unknown error"
+                print("❌ InvoiceServiceClient: Raw error response: \(message)")
+                throw ApiErrors.custom(message: "Failed to get payment status: \(message)")
+            }
+        } catch let error as ApiErrors {
+            throw error
+        } catch {
+            print("❌ InvoiceServiceClient: Network error checking payment status: \(error)")
+            throw ApiErrors.custom(message: "Network error: \(error.localizedDescription)")
+        }
+    }
+    
+    /// Generates a payment URL for external credit purchase and stores the order ID
+    /// - Parameters:
+    ///   - emailPrefix: The email prefix from Apple account (e.g., "jorgeafc00h")
+    ///   - isProduction: Whether to use production environment
+    /// - Returns: The complete payment URL
+    static func generatePaymentURL(emailPrefix: String, isProduction: Bool = true) -> String {
+        let guid = UUID().uuidString.replacingOccurrences(of: "-", with: "").prefix(6)
+        let timestamp = String(Int(Date().timeIntervalSince1970))
+        let orderId = "\(emailPrefix)-\(guid)-\(timestamp)"
+        
+        // Store the order ID in AppStorage for later validation
+        UserDefaults.standard.set(orderId, forKey: "currentPaymentOrderId")
+        UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: "paymentOrderTimestamp")
+        
+        let baseURL = isProduction ? "https://www.facturassimples.pro" : "https://www.facturassimples.pro"
+        let paymentURL = "\(baseURL)/compra?orderId=\(orderId)"
+        
+        print("🔗 Generated payment URL: \(paymentURL)")
+        print("💾 Stored order ID: \(orderId)")
+        return paymentURL
+    }
+    
+    /// Gets the currently stored payment order ID from AppStorage
+    /// - Returns: The stored order ID if available
+    static func getCurrentOrderId() -> String? {
+        return UserDefaults.standard.string(forKey: "currentPaymentOrderId")
+    }
+    
+    /// Clears the stored payment order ID (called after successful payment)
+    static func clearCurrentOrderId() {
+        UserDefaults.standard.removeObject(forKey: "currentPaymentOrderId")
+        UserDefaults.standard.removeObject(forKey: "paymentOrderTimestamp")
+        print("🧹 Cleared stored order ID")
     }
     
 }
