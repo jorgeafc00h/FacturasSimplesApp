@@ -153,17 +153,17 @@ extension View {
 }
 */
 
-// PLACEHOLDER VIEW FOR COMPILATION
-struct CreditsGateView: View {
-    let onProceed: () -> Void
-    
-    var body: some View {
-        VStack {
-            Text("Credits Gate Disabled")
-            Button("Continue") {
-                onProceed()
-            }
-        }
-        .navigationTitle("Comprar Créditos")
-    }
-}
+//// PLACEHOLDER VIEW FOR COMPILATION
+//struct CreditsGateView: View {
+//    let onProceed: () -> Void
+//    
+//    var body: some View {
+//        VStack {
+//            Text("Credits Gate Disabled")
+//            Button("Continue") {
+//                onProceed()
+//            }
+//        }
+//        .navigationTitle("Comprar Créditos")
+//    }
+//}

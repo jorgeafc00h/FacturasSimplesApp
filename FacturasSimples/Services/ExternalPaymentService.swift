@@ -23,13 +23,39 @@ class ExternalPaymentService: ObservableObject {
     }
     
     private func loadAvailableProducts() {
-        // Static product definitions for external payment
+        // Static product definitions for external payment - Updated to match website pricing
         availableProducts = [
             CustomPaymentProduct(
-                id: "bundle_50",
-                name: "Paquete Básico",
-                description: "Ideal para emprendedores y pequeñas empresas",
+                id: "bundle_essential_25",
+                name: "Paquete Esencial",
+                description: "Ideal para emprendedores y pequeños negocios",
+                invoiceCount: 25,
+                price: 4.90,
+                formattedPrice: "$4.90",
+                isPopular: false,
+                productType: .consumable,
+                isImplementationFee: false,
+                subscriptionPeriod: nil,
+                specialOfferText: nil
+            ),
+            CustomPaymentProduct(
+                id: "bundle_initial_50",
+                name: "Paquete Inicial",
+                description: "Perfecto para pequeñas empresas",
                 invoiceCount: 50,
+                price: 9.99,
+                formattedPrice: "$9.99",
+                isPopular: true,
+                productType: .consumable,
+                isImplementationFee: false,
+                subscriptionPeriod: nil,
+                specialOfferText: "Popular"
+            ),
+            CustomPaymentProduct(
+                id: "bundle_professional_100",
+                name: "Paquete Profesional",
+                description: "La mejor opción para empresas en crecimiento",
+                invoiceCount: 100,
                 price: 15.00,
                 formattedPrice: "$15.00",
                 isPopular: false,
@@ -39,25 +65,12 @@ class ExternalPaymentService: ObservableObject {
                 specialOfferText: nil
             ),
             CustomPaymentProduct(
-                id: "bundle_100",
-                name: "Paquete Estándar",
-                description: "Perfecto para empresas en crecimiento",
-                invoiceCount: 100,
-                price: 25.00,
-                formattedPrice: "$25.00",
-                isPopular: true,
-                productType: .consumable,
-                isImplementationFee: false,
-                subscriptionPeriod: nil,
-                specialOfferText: "¡Más Popular!"
-            ),
-            CustomPaymentProduct(
-                id: "bundle_250",
-                name: "Paquete Profesional",
-                description: "Para empresas con alto volumen de facturación",
+                id: "bundle_enterprise_250",
+                name: "Paquete Empresarial",
+                description: "Para empresas de alto volumen",
                 invoiceCount: 250,
-                price: 50.00,
-                formattedPrice: "$50.00",
+                price: 29.99,
+                formattedPrice: "$29.99",
                 isPopular: false,
                 productType: .consumable,
                 isImplementationFee: false,
@@ -65,30 +78,30 @@ class ExternalPaymentService: ObservableObject {
                 specialOfferText: nil
             ),
             CustomPaymentProduct(
-                id: "bundle_500",
-                name: "Paquete Empresarial",
-                description: "Para grandes empresas y corporaciones",
-                invoiceCount: 500,
-                price: 90.00,
-                formattedPrice: "$90.00",
+                id: "enterprise_pro_monthly",
+                name: "Enterprise Pro",
+                description: "Suscripción mensual con facturación ilimitada para empresas grandes",
+                invoiceCount: -1,
+                price: 99.99,
+                formattedPrice: "$99.99",
                 isPopular: false,
-                productType: .consumable,
+                productType: .subscription,
                 isImplementationFee: false,
-                subscriptionPeriod: nil,
+                subscriptionPeriod: "monthly",
                 specialOfferText: "Mejor Valor"
             ),
             CustomPaymentProduct(
-                id: "implementation_fee",
-                name: "Tarifa de Implementación",
-                description: "Configuración inicial y activación del servicio",
-                invoiceCount: 0,
-                price: 25.00,
-                formattedPrice: "$25.00",
+                id: "enterprise_pro_yearly",
+                name: "Enterprise Pro Anual",
+                description: "Suscripción anual con facturación ilimitada para empresas grandes",
+                invoiceCount: -1,
+                price: 999.99,
+                formattedPrice: "$999.99",
                 isPopular: false,
-                productType: .consumable,
-                isImplementationFee: true,
-                subscriptionPeriod: nil,
-                specialOfferText: nil
+                productType: .subscription,
+                isImplementationFee: false,
+                subscriptionPeriod: "yearly",
+                specialOfferText: "Ahorra $200 vs plan mensual"
             )
         ]
     }

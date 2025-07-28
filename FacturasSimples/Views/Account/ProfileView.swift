@@ -6,6 +6,7 @@ struct ProfileView: View {
     
     @Environment(\.modelContext) var modelContext
     @StateObject private var purchaseManager = PurchaseDataManager.shared
+    @StateObject private var externalPaymentService = ExternalPaymentService.shared
     
     @State var isToggleOn = true
     
@@ -28,6 +29,7 @@ struct ProfileView: View {
     
     @State var viewModel = ProfileViewModel()
     @State private var showPurchaseView = false
+    @State private var showUnifiedPurchaseView = false
     @State private var showPurchaseHistory = false
     @State private var showProductionRequestSheet = false
     @State private var companyForProductionRequest: Company?
@@ -215,8 +217,8 @@ struct ProfileView: View {
                     // No company selected, show production company selection
                     viewModel.showProductionCompanySelectionDialog = true
                 } else {
-                    // Current company is production, proceed with purchase flow
-                    showPurchaseView = true
+                    // Current company is production, proceed with unified purchase flow
+                    showUnifiedPurchaseView = true
                 }
             }, label: {
                 HStack {
@@ -268,12 +270,15 @@ struct ProfileView: View {
         .sheet(isPresented: $viewModel.showAccountSummary){
             UserAccountView();
             }
+        .sheet(isPresented: $showUnifiedPurchaseView) {
+            UnifiedPurchaseView()
+        }
         .sheet(isPresented: $showPurchaseView) {
             InAppPurchaseView()
         }
         .sheet(isPresented: $showPurchaseHistory) {
             PurchaseHistoryView(onBrowseBundles: {
-                showPurchaseView = true
+                showUnifiedPurchaseView = true
             })
         }
         .sheet(isPresented: $viewModel.showProductionCompanySelectionDialog) {
@@ -340,8 +345,8 @@ struct ProfileView: View {
         viewModel.showSetProductionCompanyConfirmDialog = false
         viewModel.showProductionCompanySelectionDialog = false
         
-        // Now show the purchase view
-        showPurchaseView = true
+        // Now show the unified purchase view
+        showUnifiedPurchaseView = true
     }
     
     // Function for setting created production company as default and showing purchase view
@@ -359,8 +364,8 @@ struct ProfileView: View {
         // Refresh the view to update UI
         loadProfileAndSelectedCompany()
         
-        // Show the purchase view automatically
-        showPurchaseView = true
+        // Show the unified purchase view automatically
+        showUnifiedPurchaseView = true
     }
 }
 

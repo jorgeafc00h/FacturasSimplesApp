@@ -53,14 +53,14 @@ struct CustomPaymentProduct: Identifiable, Hashable, Codable {
         }
     }
     
-    // Static product definitions
-    static let bundleBasic = CustomPaymentProduct(
-        id: "facturas_bundle_basic_25",
-        name: "Básico E",
-        description: "Paquete básico para emprendedores",
+    // Static product definitions - Updated to match website pricing
+    static let bundleEssential = CustomPaymentProduct(
+        id: "facturas_bundle_essential_25",
+        name: "Paquete Esencial",
+        description: "Ideal para emprendedores y pequeños negocios",
         invoiceCount: 25,
-        price: 4.99,
-        formattedPrice: "$4.99",
+        price: 4.90,
+        formattedPrice: "$4.90",
         isPopular: false,
         productType: .consumable,
         isImplementationFee: false,
@@ -68,13 +68,27 @@ struct CustomPaymentProduct: Identifiable, Hashable, Codable {
         specialOfferText: nil
     )
     
-    static let bundle50 = CustomPaymentProduct(
-        id: "facturas_bundle_50",
+    static let bundleInitial = CustomPaymentProduct(
+        id: "facturas_bundle_initial_50",
         name: "Paquete Inicial",
         description: "Perfecto para pequeñas empresas",
         invoiceCount: 50,
         price: 9.99,
         formattedPrice: "$9.99",
+        isPopular: true,
+        productType: .consumable,
+        isImplementationFee: false,
+        subscriptionPeriod: nil,
+        specialOfferText: "Popular"
+    )
+    
+    static let bundleProfessional = CustomPaymentProduct(
+        id: "facturas_bundle_professional_100",
+        name: "Paquete Profesional",
+        description: "La mejor opción para empresas en crecimiento",
+        invoiceCount: 100,
+        price: 15.00,
+        formattedPrice: "$15.00",
         isPopular: false,
         productType: .consumable,
         isImplementationFee: false,
@@ -82,22 +96,8 @@ struct CustomPaymentProduct: Identifiable, Hashable, Codable {
         specialOfferText: nil
     )
     
-    static let bundle100 = CustomPaymentProduct(
-        id: "facturas_bundle_100",
-        name: "Paquete Profesional",
-        description: "La mejor opción para empresas en crecimiento",
-        invoiceCount: 100,
-        price: 15.00,
-        formattedPrice: "$15.00",
-        isPopular: true,
-        productType: .consumable,
-        isImplementationFee: false,
-        subscriptionPeriod: nil,
-        specialOfferText: nil
-    )
-    
-    static let bundle250 = CustomPaymentProduct(
-        id: "facturas_bundle_250",
+    static let bundleEnterprise = CustomPaymentProduct(
+        id: "facturas_bundle_enterprise_250",
         name: "Paquete Empresarial",
         description: "Para empresas de alto volumen",
         invoiceCount: 250,
@@ -112,7 +112,7 @@ struct CustomPaymentProduct: Identifiable, Hashable, Codable {
     
     static let enterpriseProMonthly = CustomPaymentProduct(
         id: "facturas_enterprise_pro_monthly",
-        name: "Enterprise Pro Unlimited",
+        name: "Enterprise Pro",
         description: "Suscripción mensual con facturación ilimitada para empresas grandes",
         invoiceCount: -1,
         price: 99.99,
@@ -121,12 +121,12 @@ struct CustomPaymentProduct: Identifiable, Hashable, Codable {
         productType: .subscription,
         isImplementationFee: false,
         subscriptionPeriod: "monthly",
-        specialOfferText: nil
+        specialOfferText: "Mejor Valor"
     )
     
     static let enterpriseProYearly = CustomPaymentProduct(
         id: "facturas_enterprise_pro_yearly",
-        name: "Enterprise Pro Unlimited Anual",
+        name: "Enterprise Pro Anual",
         description: "Suscripción anual con facturación ilimitada para empresas grandes",
         invoiceCount: -1,
         price: 999.99,
@@ -135,7 +135,7 @@ struct CustomPaymentProduct: Identifiable, Hashable, Codable {
         productType: .subscription,
         isImplementationFee: false,
         subscriptionPeriod: "yearly",
-        specialOfferText: "AHORRA HASTA $200"
+        specialOfferText: "Ahorra $200 vs plan mensual"
     )
     
     static let implementationFee = CustomPaymentProduct(
@@ -143,8 +143,8 @@ struct CustomPaymentProduct: Identifiable, Hashable, Codable {
         name: "Costo de Implementación",
         description: "Tarifa única para activar cuenta de producción",
         invoiceCount: 0,
-        price: 165.00,
-        formattedPrice: "$165.00",
+        price: 250.00,
+        formattedPrice: "$250.00",
         isPopular: false,
         productType: .consumable,
         isImplementationFee: true,
@@ -153,8 +153,8 @@ struct CustomPaymentProduct: Identifiable, Hashable, Codable {
     )
     
     static let allProducts: [CustomPaymentProduct] = [
-        bundleBasic, bundle50, bundle100, bundle250, 
-        enterpriseProMonthly, enterpriseProYearly, 
+        bundleEssential, bundleInitial, bundleProfessional, bundleEnterprise,
+        enterpriseProMonthly, enterpriseProYearly,
         implementationFee
     ]
 }

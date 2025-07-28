@@ -994,7 +994,7 @@
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "7894A995-C473-456A-99B4-A972EDE22A88"
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FacturasSimples/Services/MHService.swift"
@@ -1086,7 +1086,7 @@
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "24383A59-0741-48DE-9DD9-665A0DA018FF"
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FacturasSimples/Views/InAppPurchase/ExternalPaymentView.swift"
@@ -1096,36 +1096,6 @@
             endingLineNumber = "270"
             landmarkName = "checkPaymentStatus()"
             landmarkType = "7">
-            <Locations>
-               <Location
-                  uuid = "24383A59-0741-48DE-9DD9-665A0DA018FF - 7c39047bed9b3eef"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(1) suspend resume partial function for FacturasSimples.ExternalPaymentView.checkPaymentStatus() async -&gt; ()"
-                  moduleName = "FacturasSimples.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/Views/InAppPurchase/ExternalPaymentView.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "270"
-                  endingLineNumber = "270">
-               </Location>
-               <Location
-                  uuid = "24383A59-0741-48DE-9DD9-665A0DA018FF - 682e4b1304c564ec"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(4) suspend resume partial function for FacturasSimples.ExternalPaymentView.checkPaymentStatus() async -&gt; ()"
-                  moduleName = "FacturasSimples.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/jorgeflores/Apps/FacturasSimplesApp/FacturasSimples/Views/InAppPurchase/ExternalPaymentView.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "270"
-                  endingLineNumber = "270">
-               </Location>
-            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy

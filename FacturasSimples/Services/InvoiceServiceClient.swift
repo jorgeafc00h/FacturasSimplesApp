@@ -466,8 +466,8 @@ class InvoiceServiceClient: ObservableObject
         print("💳 InvoiceServiceClient: Checking payment status for order: \(orderToCheck)")
         
         // todo remove this
-        let baseUrl = getBaseUrl(false)
-        //let baseUrl = getBaseUrl(isProduction)
+        //let baseUrl = getBaseUrl(false)
+        let baseUrl = getBaseUrl(isProduction)
         
         // Create URL with proper encoding
         var components = URLComponents(string: baseUrl + "/payment/status")!

@@ -25,89 +25,87 @@ struct LogoEditorView: View {
     @State private var viewModel = LogoEditorViewModel()
     
     var body: some View {
-        NavigationView {
-            Form {
-                Section("Logo Facturas") {
-                    VStack(spacing: 16) {
-                        Button("Seleccionar Imagen") {
-                            viewModel.isFileImporterPresented = true
-                        }
-                        .buttonStyle(.bordered)
-                        .controlSize(.regular)
-                        
-                        if !company.invoiceLogo.isEmpty {
-                            if let data = Data(base64Encoded: company.invoiceLogo),
-                               let uiImage = UIImage(data: data) {
-                                Image(uiImage: uiImage)
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(maxHeight: 200)
-                                    .background(Color(.systemGray6))
-                                    .cornerRadius(8)
-                            }
-                        } else {
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color(.systemGray6))
-                                .frame(height: 120)
-                                .overlay {
-                                    VStack(spacing: 8) {
-                                        Image(systemName: "photo")
-                                            .font(.title2)
-                                            .foregroundStyle(.secondary)
-                                        Text("Sin logo seleccionado")
-                                            .font(.caption)
-                                            .foregroundStyle(.secondary)
-                                    }
-                                }
-                        }
+        Form {
+            Section("Logo Facturas") {
+                VStack(spacing: 16) {
+                    Button("Seleccionar Imagen") {
+                        viewModel.isFileImporterPresented = true
                     }
-                    .padding(.vertical, 8)
-                }
-                
-                Section("Dimensiones del Logo") {
-                    HStack {
-                        Label("Ancho", systemImage: "arrow.left.and.right")
-                        Spacer()
-                        TextField("Ancho", value: $company.logoWidht, format: .number)
-                            .keyboardType(.numberPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 80)
-                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.regular)
                     
-                    HStack {
-                        Label("Alto", systemImage: "arrow.up.and.down")
-                        Spacer()
-                        TextField("Alto", value: $company.logoHeight, format: .number)
-                            .keyboardType(.numberPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 80)
+                    if !company.invoiceLogo.isEmpty {
+                        if let data = Data(base64Encoded: company.invoiceLogo),
+                           let uiImage = UIImage(data: data) {
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(maxHeight: 200)
+                                .background(Color(.systemGray6))
+                                .cornerRadius(8)
+                        }
+                    } else {
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color(.systemGray6))
+                            .frame(height: 120)
+                            .overlay {
+                                VStack(spacing: 8) {
+                                    Image(systemName: "photo")
+                                        .font(.title2)
+                                        .foregroundStyle(.secondary)
+                                    Text("Sin logo seleccionado")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
                     }
                 }
+                .padding(.vertical, 8)
+            }
+            
+            Section("Dimensiones del Logo") {
+                HStack {
+                    Label("Ancho", systemImage: "arrow.left.and.right")
+                    Spacer()
+                    TextField("Ancho", value: $company.logoWidht, format: .number)
+                        .keyboardType(.numberPad)
+                        .multilineTextAlignment(.trailing)
+                        .frame(width: 80)
+                }
                 
-                Section {
-                    Button(action: saveChanges) {
-                        HStack {
-                            Image(systemName: "checkmark.circle")
-                            Text("Guardar Cambios")
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
+                HStack {
+                    Label("Alto", systemImage: "arrow.up.and.down")
+                    Spacer()
+                    TextField("Alto", value: $company.logoHeight, format: .number)
+                        .keyboardType(.numberPad)
+                        .multilineTextAlignment(.trailing)
+                        .frame(width: 80)
                 }
             }
-            .navigationTitle("Editar Logo")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancelar") {
-                        dismiss()
+            
+            Section {
+                Button(action: saveChanges) {
+                    HStack {
+                        Image(systemName: "checkmark.circle")
+                        Text("Guardar Cambios")
                     }
+                    .frame(maxWidth: .infinity)
                 }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Guardar") {
-                        saveChanges()
-                    }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+            }
+        }
+        .navigationTitle("Editar Logo")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Cancelar") {
+                    dismiss()
+                }
+            }
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Guardar") {
+                    saveChanges()
                 }
             }
         }

@@ -10,6 +10,10 @@ struct AddCompanyView: View {
     @Binding var intro: PageIntro
     @Environment(\.modelContext)  var modelContext
     
+    // Access stored Apple account information
+    @AppStorage("storedEmail") var storedEmail: String = ""
+    @AppStorage("storedName") var storedName: String = ""
+    
     var syncService = InvoiceServiceClient()
     var body: some View {
         
@@ -47,6 +51,11 @@ struct AddCompanyView: View {
             intro.canContinue = canContinue()
         }
         .onAppear(){
+            // Set default values from Apple account if available and fields are empty
+            if company.nombre.isEmpty && !storedName.isEmpty {
+                company.nombre = storedName
+            }
+            
             intro.canContinue = canContinue()
             // Don't set intro.hintColor here as it can interfere with validation colors
         }
@@ -128,6 +137,9 @@ struct AddCompanyView2: View {
     var municipios : [CatalogOption]
     
     @State var viewModel = AddcompnayStep2ViewModel()
+    
+    // Access stored Apple email
+    @AppStorage("storedEmail") var storedEmail: String = ""
    
     var filteredMunicipios: [CatalogOption] {
         return company.departamentoCode.isEmpty ?
@@ -177,6 +189,11 @@ struct AddCompanyView2: View {
             intro.canContinue = canContinue()
         }
         .onAppear(){
+            // Set default email from Apple account if available and company email is empty
+            if company.correo.isEmpty && !storedEmail.isEmpty {
+                company.correo = storedEmail
+            }
+            
             intro.canContinue = canContinue()
             intro.hintColor = .tabBar
         }

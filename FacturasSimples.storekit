@@ -5,6 +5,21 @@
   ],
   "products" : [
     {
+      "displayPrice" : "4.90",
+      "familyShareable" : false,
+      "internalID" : "1000",
+      "localizations" : [
+        {
+          "description" : "Ideal para emprendedores y pequeños negocios",
+          "displayName" : "Paquete Esencial",
+          "locale" : "es_SV"
+        }
+      ],
+      "productID" : "com.kandangalabs.facturas.bundle25",
+      "referenceName" : "Paquete Esencial",
+      "type" : "Consumable"
+    },
+    {
       "displayPrice" : "9.99",
       "familyShareable" : false,
       "internalID" : "1001",
