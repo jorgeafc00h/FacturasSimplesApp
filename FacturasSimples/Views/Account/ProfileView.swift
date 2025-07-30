@@ -94,11 +94,11 @@ struct ProfileView: View {
                 }
             }
             .navigationTitle("configuración")
-            .onChange(of: selectedCompanyId) {
+            .onChange(of: selectedCompanyId) { _, _ in
                 print("🔄 selectedCompanyId changed to: \(selectedCompanyId)")
                 loadProfileAndSelectedCompany()
             }
-            .onChange(of: companyId) {
+            .onChange(of: companyId) { _, _ in
                 print("🔄 companyId changed to: \(companyId)")
                 // The didSet already updates selectedCompanyId, so loadProfileAndSelectedCompany 
                 // will be called by the selectedCompanyId onChange

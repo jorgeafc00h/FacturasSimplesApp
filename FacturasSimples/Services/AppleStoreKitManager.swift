@@ -10,6 +10,18 @@ import Foundation
 import StoreKit
 import SwiftUI
 
+// MARK: - Applied Discount Model
+struct AppliedDiscount {
+    let couponCode: String
+    let discountPercentage: Double
+    let discountedPrice: String
+    let discountedPriceFormatted: String?
+    let savings: String
+    let savingsFormatted: String?
+    let applicableProductIds: [String]
+    let expirationDate: Date?
+}
+
 class AppleStoreKitManager: NSObject, ObservableObject {
     static let shared = AppleStoreKitManager()
     
@@ -17,6 +29,11 @@ class AppleStoreKitManager: NSObject, ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     @Published var purchaseState: ApplePurchaseState = .idle
+    
+    // Coupon and promotional offer support
+    @Published var currentCouponCode: String = ""
+    @Published var appliedDiscount: AppliedDiscount?
+    @Published var discountValidationState: DiscountValidationState = .idle
     
     // Product IDs that match our StoreKit configuration
     private let productIDs: Set<String> = [
@@ -51,6 +68,10 @@ class AppleStoreKitManager: NSObject, ObservableObject {
     }
     
     func purchase(_ product: SKProduct) {
+        purchase(product, withPromotionalOffer: nil)
+    }
+    
+    func purchase(_ product: SKProduct, withPromotionalOffer discount: SKProductDiscount?) {
         guard SKPaymentQueue.canMakePayments() else {
             errorMessage = "Las compras dentro de la app están deshabilitadas"
             return
@@ -59,8 +80,91 @@ class AppleStoreKitManager: NSObject, ObservableObject {
         purchaseState = .processing
         errorMessage = nil
         
-        let payment = SKPayment(product: product)
+        let payment: SKMutablePayment
+        
+        if let discount = discount {
+            // Create payment with promotional offer
+            payment = SKMutablePayment(product: product)
+            payment.paymentDiscount = SKPaymentDiscount(identifier: discount.identifier ?? "", 
+                                                      keyIdentifier: discount.paymentMode.rawValue.description, 
+                                                      nonce: UUID(), 
+                                                      signature: "", 
+                                                      timestamp: NSNumber(value: Date().timeIntervalSince1970))
+        } else {
+            payment = SKMutablePayment(product: product)
+        }
+        
         SKPaymentQueue.default().add(payment)
+    }
+    
+    // MARK: - Coupon Code and Promotional Offers
+    
+    func validateCouponCode(_ code: String, for product: SKProduct) {
+        guard !code.isEmpty else {
+            discountValidationState = .idle
+            currentCouponCode = ""
+            appliedDiscount = nil
+            return
+        }
+        
+        discountValidationState = .validating
+        currentCouponCode = code
+        
+        // Demo validation logic - in production, validate against your server
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+            guard let self = self else { return }
+            
+            if let discount = self.createDiscountForCode(code, product: product) {
+                self.appliedDiscount = discount
+                self.discountValidationState = .valid
+            } else {
+                self.appliedDiscount = nil
+                self.discountValidationState = .invalid
+            }
+        }
+    }
+    
+    private func createDiscountForCode(_ code: String, product: SKProduct) -> AppliedDiscount? {
+        // Demo validation logic - replace with your server API call
+        let validCodes: [String: Double] = [
+            "DEMO10": 0.10,    // 10% off
+            "SAVE20": 0.20,    // 20% off  
+            "WELCOME25": 0.25, // 25% off
+            "PROMO50": 0.50,   // 50% off
+            "SPECIAL30": 0.30  // 30% off
+        ]
+        
+        guard let discountPercentage = validCodes[code.uppercased()] else {
+            return nil
+        }
+        
+        let originalPrice = product.price.doubleValue
+        let discountAmount = originalPrice * discountPercentage
+        let discountedPrice = originalPrice - discountAmount
+        
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.locale = product.priceLocale
+        
+        let discountedPriceFormatted = formatter.string(from: NSDecimalNumber(value: discountedPrice))
+        let savingsFormatted = formatter.string(from: NSDecimalNumber(value: discountAmount))
+        
+        return AppliedDiscount(
+            couponCode: code,
+            discountPercentage: discountPercentage * 100, // Convert to percentage
+            discountedPrice: "$\(String(format: "%.2f", discountedPrice))",
+            discountedPriceFormatted: discountedPriceFormatted,
+            savings: "$\(String(format: "%.2f", discountAmount))",
+            savingsFormatted: savingsFormatted,
+            applicableProductIds: [], // Empty means applies to all products
+            expirationDate: Calendar.current.date(byAdding: .day, value: 30, to: Date()) // 30 days from now
+        )
+    }
+    
+    func clearCouponCode() {
+        currentCouponCode = ""
+        appliedDiscount = nil
+        discountValidationState = .idle
     }
     
     // MARK: - Helper Methods
@@ -329,11 +433,62 @@ enum ApplePurchaseResult: Equatable {
     case failed(String)
 }
 
+enum DiscountValidationState: Equatable {
+    case idle
+    case validating
+    case valid
+    case invalid
+    case expired
+}
+
 extension ApplePurchaseResult {
     var isSuccess: Bool {
         if case .success = self {
             return true
         }
         return false
+    }
+}
+
+extension AppleStoreKitManager {
+    // MARK: - Discount Helpers
+    
+    /// Checks if the applied discount is valid for a specific product
+    func isDiscountValidForProduct(_ productId: String) -> Bool {
+        guard let discount = appliedDiscount else { return false }
+        
+        // If no specific products are defined, discount applies to all
+        if discount.applicableProductIds.isEmpty {
+            return true
+        }
+        
+        return discount.applicableProductIds.contains(productId)
+    }
+    
+    /// Gets the discounted price for a specific product
+    func getDiscountedPrice(for product: SKProduct) -> String? {
+        guard let discount = appliedDiscount,
+              isDiscountValidForProduct(product.productIdentifier) else {
+            return nil
+        }
+        
+        return discount.discountedPriceFormatted
+    }
+    
+    /// Gets the savings amount for a specific product
+    func getSavings(for product: SKProduct) -> String? {
+        guard let discount = appliedDiscount,
+              isDiscountValidForProduct(product.productIdentifier) else {
+            return nil
+        }
+        
+        return discount.savingsFormatted
+    }
+    
+    /// Clears the currently applied discount
+    func clearAppliedDiscount() {
+        appliedDiscount = nil
+        currentCouponCode = ""
+        discountValidationState = .idle
     }
 }

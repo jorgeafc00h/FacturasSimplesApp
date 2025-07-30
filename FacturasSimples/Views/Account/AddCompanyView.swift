@@ -19,11 +19,24 @@ struct AddCompanyView: View {
         
         
         VStack(spacing:10){
-            CustomTextField(text:$company.nit,
-                            hint:"NIT *",
-                            leadingIcon: "person.text.rectangle.fill",
-                            hintColor: getFieldColor(for: company.nit),
-                            keyboardType: .numberPad)
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    CustomTextField(text:$company.nit,
+                                    hint:"NIT (Opcional)",
+                                    leadingIcon: "person.text.rectangle.fill",
+                                    hintColor: .tabBar, // Always normal color since optional
+                                    keyboardType: .numberPad)
+                    
+                    InfoTooltipButton(
+                        title: "¿Qué es el NIT?",
+                        message: "El Número de Identificación Tributaria (NIT) es requerido por el Ministerio de Hacienda para la configuración del sistema de facturación electrónica. Es opcional para uso básico de la app.",
+                        icon: "info.circle"
+                    )
+                }
+                Text("Campo opcional - requerido para integración con Ministerio de Hacienda")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
             
             CustomTextField(text:$company.nombre,
                             hint:"Nombres y Apellidos *",
@@ -37,17 +50,30 @@ struct AddCompanyView: View {
                             hintColor: getFieldColor(for: company.nombreComercial),
                             keyboardType: .default)
             
-            CustomTextField(text:$company.nrc,
-                            hint:"NRC *",
-                            leadingIcon: "building.columns.circle",
-                            hintColor: getFieldColor(for: company.nrc),
-                            keyboardType: .numberPad)
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    CustomTextField(text:$company.nrc,
+                                    hint:"NRC (Opcional)",
+                                    leadingIcon: "building.columns.circle",
+                                    hintColor: .tabBar, // Always normal color since optional
+                                    keyboardType: .numberPad)
+                    
+                    InfoTooltipButton(
+                        title: "¿Qué es el NRC?",
+                        message: "El Número de Registro de Contribuyente (NRC) es utilizado por el Ministerio de Hacienda para identificar a los contribuyentes en el sistema de facturación electrónica oficial.",
+                        icon: "info.circle"
+                    )
+                }
+                Text("Campo opcional - requerido para configuración completa con Hacienda")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
             
             Spacer()
             
             Spacer(minLength: 5)
         }
-        .onChange(of: [company.nit,company.nrc,company.nombreComercial, company.nombre]){
+        .onChange(of: [company.nit,company.nrc,company.nombreComercial, company.nombre]) { _, _ in
             intro.canContinue = canContinue()
         }
         .onAppear(){
@@ -66,12 +92,12 @@ struct AddCompanyView: View {
         
     }
     func canContinue()->Bool{
-        return !company.nit.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && 
-               !company.nombre.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && 
-               !company.nrc.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && 
+        // Only require nombre and nombreComercial - NIT and NRC are now optional
+        return !company.nombre.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && 
                !company.nombreComercial.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
     
+    @MainActor
     func SyncCatalogsAsync() async {
         
         if(catalog.isEmpty){
@@ -138,8 +164,15 @@ struct AddCompanyView2: View {
     
     @State var viewModel = AddcompnayStep2ViewModel()
     
-    // Access stored Apple email
+    // Access stored Apple email and check if user signed in with Apple
     @AppStorage("storedEmail") var storedEmail: String = ""
+    @AppStorage("storedName") var storedName: String = ""
+    @State private var isEditingEmail = false
+    
+    // Check if user signed in with Apple
+    var didSignInWithApple: Bool {
+        UserDefaults.standard.bool(forKey: "didSignInWithApple")
+    }
    
     var filteredMunicipios: [CatalogOption] {
         return company.departamentoCode.isEmpty ?
@@ -149,17 +182,81 @@ struct AddCompanyView2: View {
     
     var body: some View {
         VStack(spacing:10){
-            CustomTextField(text:$company.correo,
-                            hint:"Correo Electrónico",
-                            leadingIcon: "envelope.fill",
-                            hintColor: intro.hintColor,
-                            keyboardType: .emailAddress)
+            // Email field - editable with Apple Sign-In context
+            if didSignInWithApple && !isEditingEmail {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Image(systemName: "envelope.fill")
+                            .foregroundColor(.blue)
+                        Text("Correo Electrónico (desde Apple)")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        Button("Editar") {
+                            isEditingEmail = true
+                        }
+                        .font(.caption)
+                        .foregroundColor(.blue)
+                    }
+                    
+                    HStack {
+                        Text(company.correo.isEmpty ? storedEmail : company.correo)
+                            .padding()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Color(.systemGray6))
+                            .cornerRadius(8)
+                            .foregroundColor(.primary)
+                        
+                        Button(action: {
+                            isEditingEmail = true
+                        }) {
+                            Image(systemName: "pencil")
+                                .foregroundColor(.blue)
+                                .padding(8)
+                                .background(Color.blue.opacity(0.1))
+                                .cornerRadius(6)
+                        }
+                    }
+                    
+                    Text("Puede editar este correo si tiene otro registrado con el Ministerio de Hacienda")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+            } else {
+                VStack(alignment: .leading, spacing: 4) {
+                    CustomTextField(text:$company.correo,
+                                    hint:"Correo Electrónico",
+                                    leadingIcon: "envelope.fill",
+                                    hintColor: intro.hintColor,
+                                    keyboardType: .emailAddress)
+                    if didSignInWithApple {
+                        HStack {
+                            Text("Editando correo de Apple")
+                                .font(.caption2)
+                                .foregroundColor(.blue)
+                            Spacer()
+                            Button("Cancelar") {
+                                isEditingEmail = false
+                                company.correo = storedEmail
+                            }
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                        }
+                    }
+                }
+            }
             
-            CustomTextField(text:$company.telefono,
-                            hint:"Teléfono",
-                            leadingIcon: "phone.fill",
-                            hintColor: intro.hintColor,
-                            keyboardType: .phonePad)
+            // Phone number - now optional
+            VStack(alignment: .leading, spacing: 4) {
+                CustomTextField(text:$company.telefono,
+                                hint:"Teléfono (Opcional)",
+                                leadingIcon: "phone.fill",
+                                hintColor: .tabBar, // Always use normal color since it's optional
+                                keyboardType: .phonePad)
+                Text("Este campo es opcional y puede completarlo más tarde")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
             
             CustomTextField(text:$company.complemento,
                             hint:"Dirección",
@@ -178,14 +275,14 @@ struct AddCompanyView2: View {
             Spacer(minLength: 7)
  
         }
-        .onChange(of: company.departamentoCode){
+        .onChange(of: company.departamentoCode) { _, _ in
             onDepartamentoChange()
            
         }
-        .onChange(of: company.municipioCode){
+        .onChange(of: company.municipioCode) { _, _ in
             onMunicipioChange()
         }
-        .onChange(of: [company.correo,company.telefono,company.complemento]){
+        .onChange(of: [company.correo,company.telefono,company.complemento]) { _, _ in
             intro.canContinue = canContinue()
         }
         .onAppear(){
@@ -214,7 +311,9 @@ struct AddCompanyView2: View {
         }
     }
     func canContinue()->Bool{
-        return !company.correo.isEmpty && !company.telefono.isEmpty && !company.complemento.isEmpty
+        // Only require email and address - phone is now optional
+        let hasValidEmail = !company.correo.isEmpty || (didSignInWithApple && !storedEmail.isEmpty)
+        return hasValidEmail && !company.complemento.isEmpty
     }
     
     
@@ -367,8 +466,14 @@ struct AddCompanyView4: View {
             
             Spacer(minLength: 10)
             Button{
-                if intro.canContinue{
+                if intro.canContinue || FeatureFlags.shared.isDemoMode {
                     saveChanges()
+                    
+                    // In demo mode, pre-populate demo data
+                    if FeatureFlags.shared.isDemoMode && company.nit.isEmpty {
+                        setupDemoCompanyData()
+                    }
+                    
                     requiresOnboarding = false
                     companyId = company.id
                     selectedCompanyName = company.nombreComercial
@@ -497,6 +602,153 @@ struct AddCompanyView4: View {
                 .padding(EdgeInsets(top: 11, leading: 18, bottom: 15, trailing: 15))
                 .overlay(RoundedRectangle(cornerRadius: 6)
                     .stroke(Color(.gray), lineWidth: 3).shadow(color: .white, radius: 6))
+    }
+    
+    // MARK: - Demo Mode Setup
+    private func setupDemoCompanyData() {
+        // Pre-fill demo data for App Store reviewers
+        if company.nit.isEmpty {
+            company.nit = "12345678901234"
+        }
+        if company.nrc.isEmpty {
+            company.nrc = "123456"
+        }
+        if company.certificatePath.isEmpty {
+            // Use a placeholder certificate path for demo
+            company.certificatePath = "demo_certificate.p12"
+            company.certificatePassword = "demo123"
+        }
+        // Set demo credentials
+        viewModel.password = "demo123"
+        viewModel.confirmPassword = "demo123"
+    }
+}
+
+// MARK: - Info Tooltip Button Component
+struct InfoTooltipButton: View {
+    let title: String
+    let message: String
+    let icon: String
+    @State private var showTooltip = false
+    
+    var body: some View {
+        Button(action: {
+            showTooltip = true
+        }) {
+            Image(systemName: icon)
+                .foregroundColor(.blue)
+                .font(.system(size: 16))
+                .padding(4)
+        }
+        .alert(title, isPresented: $showTooltip) {
+            Button("Entendido", role: .cancel) { }
+        } message: {
+            Text(message)
+        }
+    }
+}
+
+// MARK: - Fancy Tooltip Component (Alternative Implementation)
+struct FancyTooltipButton: View {
+    let title: String
+    let message: String
+    let icon: String
+    @State private var showTooltip = false
+    
+    var body: some View {
+        Button(action: {
+            showTooltip = true
+        }) {
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.blue.opacity(0.2), Color.blue.opacity(0.1)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 28, height: 28)
+                
+                Image(systemName: icon)
+                    .foregroundColor(.blue)
+                    .font(.system(size: 14, weight: .medium))
+            }
+        }
+        .sheet(isPresented: $showTooltip) {
+            TooltipModalView(title: title, message: message, showModal: $showTooltip)
+        }
+    }
+}
+
+// MARK: - Tooltip Modal View
+struct TooltipModalView: View {
+    let title: String
+    let message: String
+    @Binding var showModal: Bool
+    
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 24) {
+                // Header with icon
+                VStack(spacing: 16) {
+                    ZStack {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.blue, Color.blue.opacity(0.8)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 80, height: 80)
+                        
+                        Image(systemName: "building.columns")
+                            .font(.system(size: 32, weight: .medium))
+                            .foregroundColor(.white)
+                    }
+                    
+                    Text(title)
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .multilineTextAlignment(.center)
+                }
+                
+                // Message content
+                VStack(alignment: .leading, spacing: 16) {
+                    Text(message)
+                        .font(.body)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.leading)
+                        .lineLimit(nil)
+                    
+                    // Additional context
+                    HStack(spacing: 12) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundColor(.orange)
+                        Text("Este campo es necesario para la facturación electrónica oficial del gobierno.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding()
+                    .background(Color.orange.opacity(0.1))
+                    .cornerRadius(8)
+                }
+                
+                Spacer()
+            }
+            .padding(24)
+            .navigationTitle("Información")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Cerrar") {
+                        showModal = false
+                    }
+                }
+            }
+        }
+        .presentationDetents([.medium])
     }
 }
 

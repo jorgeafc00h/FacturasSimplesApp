@@ -136,12 +136,12 @@ struct InvoicesView: View {
                         Text(scope.rawValue).tag(scope)
                     }
                 }
-                .onChange(of: searchText) { oldValue, newValue in
+                .onChange(of: searchText) { _, _ in
                     Task {
                         await loadSearchSuggestions()
                     }
                 }
-                .onChange(of: searchScope) { oldValue, newValue in
+                .onChange(of: searchScope) { _, _ in
                     Task {
                         await loadSearchSuggestions()
                     }

@@ -96,6 +96,15 @@ extension LoginSectionView {
             userID = credential.user
             identityToken = credential.identityToken?.base64EncodedString() ?? ""
             
+            // Set flag to indicate user signed in with Apple
+            UserDefaults.standard.set(true, forKey: "didSignInWithApple")
+            
+            // Check for demo credentials and enable appropriate modes
+            if credential.email == "reviewer@apple.com" || credential.email == "demo@facturassimples.com" {
+                FeatureFlags.shared.enableDemoMode()
+                FeatureFlags.shared.enableAppleIAPOnly()
+            }
+            
             // Update UI on main thread
             DispatchQueue.main.async {
                 self.isAuthenticated = true

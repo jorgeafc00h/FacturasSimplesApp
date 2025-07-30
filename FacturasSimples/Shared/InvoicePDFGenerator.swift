@@ -263,7 +263,9 @@ class InvoicePDFGenerator {
                 "$0.00".draw(at: CGPoint(x: currentX + 2, y: currentY), withAttributes: regularAttributes)
                 currentX += columnWidths[6]
                 
-                item.productTotal.formatted(.currency(code: "USD")).draw(at: CGPoint(x: currentX + 2, y: currentY), withAttributes: regularAttributes)
+                let productTotal = invoice.isCCF ? item.productTotalWithoutTax.asDoubleRounded : item.productTotal.asDoubleRounded
+                
+                productTotal.formatted(.currency(code: "USD")).draw(at: CGPoint(x: currentX + 2, y: currentY), withAttributes: regularAttributes)
                 
                 currentY += 15
             }
@@ -310,7 +312,9 @@ class InvoicePDFGenerator {
             
             let total =
             invoice.customer?.hasContributorRetention == true ?
-            (invoice.totalAmount.asDoubleRounded - invoice.ivaRete1.asDoubleRounded) :
+            (invoice.totalWithoutTax.asDoubleRounded - invoice.ivaRete1.asDoubleRounded) :
+            invoice.isCCF ?
+            invoice.totalWithoutTax.asDoubleRounded :
             invoice.totalAmount.asDoubleRounded
             
             

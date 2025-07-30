@@ -108,10 +108,10 @@ struct AddInvoiceView: View {
             .sheet(isPresented: $showCreditsGate) {
                 InAppPurchaseView()
             }
-            .onChange(of: viewModel.invoiceType){
+            .onChange(of: viewModel.invoiceType) { _, _ in
                 getNextInoviceOrCCFNumber(invoiceType: viewModel.invoiceType)
             }
-            .onChange(of: showCreditsGate) { oldValue, newValue in
+            .onChange(of: showCreditsGate) { _, _ in
                 // Refresh credits when purchase view is dismissed
 //                if oldValue == true && newValue == false {
 //                    print("🔄 Purchase view dismissed, refreshing credits...")
@@ -121,7 +121,7 @@ struct AddInvoiceView: View {
             .sheet(isPresented: $viewModel.showImplementationFee) {
                 InAppPurchaseView()
             }
-            .onChange(of: viewModel.showImplementationFee) { oldValue, newValue in
+            .onChange(of: viewModel.showImplementationFee) { _, _ in
                 // Refresh credits when purchase view is dismissed
                  
             }

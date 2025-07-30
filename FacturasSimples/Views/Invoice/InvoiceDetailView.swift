@@ -64,7 +64,7 @@ struct InvoiceDetailView: View {
 //        .onChange(of: invoice) {
 //            refreshPDF()
 //        }
-        .onChange(of: viewModel.company){
+        .onChange(of: viewModel.company) { _, _ in
             refreshPDF()
         }
         .sheet(isPresented: $viewModel.showShareSheet) {

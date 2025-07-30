@@ -3,7 +3,7 @@ import SwiftUI
 import SwiftData
 
 @Model
-class Catalog : Identifiable
+class Catalog : Identifiable, @unchecked Sendable
 {
     // Remove unique constraint for CloudKit compatibility
     var id: String = ""
@@ -22,7 +22,7 @@ class Catalog : Identifiable
 }
 
 @Model
-class CatalogOption : Identifiable{
+class CatalogOption : Identifiable, @unchecked Sendable{
 
     var code: String = ""
     var details: String = ""
