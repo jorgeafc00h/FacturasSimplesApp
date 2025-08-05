@@ -19,7 +19,7 @@ struct ProductionCompanySelectionView: View {
     var body: some View {
         VStack(spacing: 20) {
             VStack(spacing: 12) {
-                Image(systemName: "creditcard.fill")
+                Image(systemName: "doc.text.fill")
                     .font(.system(size: 50))
                     .foregroundColor(.darkCyan)
                     .symbolEffect(.bounce, options: .nonRepeating)

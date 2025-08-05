@@ -18,11 +18,8 @@ class FeatureFlags {
     
     // Force only Apple In-App Purchases for App Store compliance
     var shouldUseOnlyAppleInAppPurchases: Bool {
-        #if APPSTORE
-        return true // Always use only Apple IAP for App Store builds
-        #else
-        return UserDefaults.standard.bool(forKey: "forceAppleIAPOnly")
-        #endif
+        // Always return true for App Store compliance
+        return true
     }
     
     private func checkForDemoCredentials() -> Bool {

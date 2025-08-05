@@ -2,423 +2,201 @@
 //  ExternalPaymentView.swift
 //  FacturasSimples
 //
-//  Created by GitHub Copilot on 7/22/25.
+//  Created by Jorge Flores on 8/3/25.
+//  External payment view for credit card processing with N1CO Epay
 //
 
 import SwiftUI
 
 struct ExternalPaymentView: View {
-    let product: CustomPaymentProduct
-    let onSuccess: () -> Void
-    
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var invoiceService = InvoiceServiceClient()
-    @State private var isGeneratingLink = false
-    @State private var generatedPaymentURL: String?
-    @State private var showingPaymentWebView = false
-    @State private var isCheckingStatus = false
-    @State private var paymentCheckTimer: Timer?
-    @State private var errorMessage: String?
-    @State private var showErrorAlert = false
+    @State private var externalPaymentService = ExternalPaymentService()
+    @State private var selectedProduct: CustomPaymentProduct?
+    @State private var isProcessingPayment = false
+    @State private var showSuccessAlert = false
+    @State private var paymentError: String?
     
-    // Check if there's a stored order ID on view appear
-    @State private var hasStoredOrderId = false
-    
-    // Get email prefix from stored user email
-    @AppStorage("storedEmail") private var userEmail: String = ""
-    
-    private var emailPrefix: String {
-        if userEmail.contains("@") {
-            return String(userEmail.split(separator: "@").first ?? "user")
-        }
-        return userEmail.isEmpty ? "user" : userEmail
-    }
+    let products: [CustomPaymentProduct] = [
+        CustomPaymentProduct(
+            id: "paquete_50",
+            name: "Paquete de 50 facturas",
+            description: "Perfecto para pequeñas empresas",
+            price: 9.99,
+            currency: "USD",
+            invoiceCount: 50
+        ),
+        CustomPaymentProduct(
+            id: "paquete_100",
+            name: "Paquete de 100 facturas",
+            description: "La mejor opción para empresas en crecimiento",
+            price: 15.00,
+            currency: "USD",
+            invoiceCount: 100
+        ),
+        CustomPaymentProduct(
+            id: "paquete_250",
+            name: "Paquete de 250 facturas",
+            description: "Para empresas de alto volumen",
+            price: 29.99,
+            currency: "USD",
+            invoiceCount: 250
+        )
+    ]
     
     var body: some View {
         NavigationView {
-            VStack(spacing: 32) {
-                headerSection
-                actionButtonsSection
-                Spacer()
+            ScrollView {
+                VStack(spacing: 24) {
+                    headerSection
+                    productsSection
+                }
+                .padding()
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 16)
-            .navigationTitle("Portal de Compras")
+            .navigationTitle("Pago Externo")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Cancelar") {
-                        stopPaymentStatusCheck()
+                    Button("Cerrar") {
                         dismiss()
                     }
                 }
             }
         }
-        .sheet(isPresented: $showingPaymentWebView) {
-            if let paymentURL = generatedPaymentURL,
-               let url = URL(string: paymentURL) {
-                ExternalPaymentWebView(
-                    url: url,
-                    onDismiss: {
-                        showingPaymentWebView = false
-                        startPaymentStatusCheck()
-                    }
-                )
-            }
-        }
-        .alert("Error", isPresented: $showErrorAlert) {
-            Button("OK") {
-                showErrorAlert = false
-                errorMessage = nil
+        .alert("Pago Exitoso", isPresented: $showSuccessAlert) {
+            Button("OK") { 
+                dismiss()
             }
         } message: {
-            Text(errorMessage ?? "")
+            Text("Tu compra se ha procesado exitosamente.")
         }
-        .onDisappear {
-            stopPaymentStatusCheck()
-        }
-        .onAppear {
-            // Check if there's a stored order ID from a previous session
-            hasStoredOrderId = InvoiceServiceClient.getCurrentOrderId() != nil
+        .alert("Error de Pago", isPresented: .constant(paymentError != nil)) {
+            Button("OK") { 
+                paymentError = nil
+            }
+        } message: {
+            if let error = paymentError {
+                Text(error)
+            }
         }
     }
     
-    // MARK: - Header Section
     private var headerSection: some View {
         VStack(spacing: 16) {
-            Image(systemName: "cart.circle.fill")
+            Image(systemName: "creditcard.fill")
                 .font(.system(size: 60))
                 .foregroundColor(.blue)
             
-            Text("Portal de Compras")
-                .font(.title)
+            Text("Pago con Tarjeta")
+                .font(.largeTitle)
                 .fontWeight(.bold)
             
-            Text("Serás redirigido a nuestro portal seguro donde podrás ver todos los productos disponibles y completar tu compra")
+            Text("Procesa tu pago de forma segura")
                 .font(.body)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal)
         }
-        .padding(.top, 20)
     }
     
-    // MARK: - Action Buttons Section
-    private var actionButtonsSection: some View {
+    private var productsSection: some View {
         VStack(spacing: 16) {
-            if isCheckingStatus {
-                VStack(spacing: 16) {
-                    Button(action: {
-                        if generatedPaymentURL != nil {
-                            showingPaymentWebView = true
-                        }
-                    }) {
-                        HStack {
-                            Image(systemName: "safari.fill")
-                            Text("Abrir Portal de Compras")
-                        }
-                        .font(.headline)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(
-                            LinearGradient(
-                                gradient: Gradient(colors: [Color.green, Color.green.opacity(0.8)]),
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .cornerRadius(12)
-                    }
-                    
-                    // Manual refresh button
-                    Button(action: {
-                        Task {
-                            await checkPaymentStatus()
-                        }
-                    }) {
-                        HStack {
-                            Image(systemName: "arrow.clockwise")
-                            Text("Verificar Estado del Pago")
-                        }
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .foregroundColor(.blue)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.blue, lineWidth: 1)
-                                .background(Color.blue.opacity(0.05))
-                        )
-                    }
-                    
-                    HStack {
-                        ProgressView()
-                            .scaleEffect(0.8)
-                        Text("Verificando estado del pago...")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
-                    .padding(.top, 8)
-                }
-            } else {
-                Button(action: openPaymentPortal) {
-                    HStack {
-                        if isGeneratingLink {
-                            ProgressView()
-                                .scaleEffect(0.8)
-                                .tint(.white)
-                        } else {
-                            Image(systemName: "cart.fill")
-                        }
-                        Text(isGeneratingLink ? "Abriendo portal..." : "Ir al Portal de Compras")
-                    }
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(
-                        LinearGradient(
-                            gradient: Gradient(colors: [Color.blue, Color.blue.opacity(0.8)]),
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-                    .cornerRadius(12)
-                }
-                .disabled(isGeneratingLink)
-                
-                // Show option to check previous payment if there's a stored order ID
-                if hasStoredOrderId && !isCheckingStatus {
-                    Button(action: {
-                        Task {
-                            await checkPaymentStatus()
-                        }
-                    }) {
-                        HStack {
-                            Image(systemName: "creditcard.and.123")
-                            Text("Verificar Pago Anterior")
-                        }
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .foregroundColor(.orange)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.orange, lineWidth: 1)
-                                .background(Color.orange.opacity(0.05))
-                        )
+            Text("Selecciona un Paquete")
+                .font(.headline)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            
+            LazyVStack(spacing: 12) {
+                ForEach(products, id: \.id) { product in
+                    ExternalProductCard(product: product) {
+                        processPayment(for: product)
                     }
                 }
             }
         }
     }
     
-    // MARK: - Helper Functions
-    private func openPaymentPortal() {
-        isGeneratingLink = true
+    private func processPayment(for product: CustomPaymentProduct) {
+        selectedProduct = product
+        isProcessingPayment = true
         
-        // Simulate a brief delay for better UX
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            let paymentURL = InvoiceServiceClient.generatePaymentURL(
-                emailPrefix: emailPrefix,
-                isProduction: true
-            )
-            
-            generatedPaymentURL = paymentURL
-            isGeneratingLink = false
-            
-            print("🔗 ExternalPaymentView: Generated payment URL: \(paymentURL)")
-            
-            // Automatically open the payment portal
-            showingPaymentWebView = true
-        }
-    }
-    
-    private func startPaymentStatusCheck() {
-        guard generatedPaymentURL != nil else { return }
-        
-        isCheckingStatus = true
-        
-        // Check payment status every 10 seconds
-        paymentCheckTimer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true) { _ in
-            Task {
-                await checkPaymentStatus()
-            }
-        }
-        
-        // Also do an immediate check
         Task {
-            await checkPaymentStatus()
-        }
-    }
-    
-    private func stopPaymentStatusCheck() {
-        paymentCheckTimer?.invalidate()
-        paymentCheckTimer = nil
-        isCheckingStatus = false
-    }
-    
-    @MainActor
-    private func checkPaymentStatus() async {
-        do {
-            // Use the stored order ID from InvoiceServiceClient
-            let statusResponse = try await invoiceService.getPaymentStatus(
-                orderId: nil, // Will use stored order ID
-                isProduction: true
-            )
-            
-            print("💳 ExternalPaymentView: Payment type: \(statusResponse.type ?? "unknown")")
-            print("💳 ExternalPaymentView: Payment description: \(statusResponse.description ?? "none")")
-            
-            if statusResponse.isPaymentCompleted {
-                // Payment successful!
-                print("✅ ExternalPaymentView: Payment completed successfully!")
-                print("💳 ExternalPaymentView: Credits to add: \(statusResponse.creditsToAdd)")
-                if let paidAmount = statusResponse.paidAmountString {
-                    print("💰 ExternalPaymentView: Paid amount: \(paidAmount)")
-                }
+            do {
+                // Simulate payment processing
+                try await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds delay
                 
-                stopPaymentStatusCheck()
+                // Here you would integrate with N1CO Epay or your payment processor
+                let success = await externalPaymentService.processPayment(for: product)
                 
-                // Add a small delay to ensure credit processing completes
-                // before dismissing the view and calling onSuccess
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    onSuccess()
-                    dismiss()
+                await MainActor.run {
+                    isProcessingPayment = false
+                    if success {
+                        showSuccessAlert = true
+                    } else {
+                        paymentError = "No se pudo procesar el pago. Intenta de nuevo."
+                    }
                 }
-            } else if statusResponse.isPaymentFailed {
-                // Payment failed
-                print("❌ ExternalPaymentView: Payment failed")
-                stopPaymentStatusCheck()
-                errorMessage = "El pago no pudo ser procesado. Por favor, intenta nuevamente."
-                showErrorAlert = true
-            } else if statusResponse.isOrderNotFound {
-                // Order not found means still in progress (404 response)
-                print("⏳ ExternalPaymentView: Order still in progress")
-                // Continue checking - this is normal for pending payments
-            }
-            // Continue checking if status is pending or not found
-            
-        } catch {
-            print("❌ ExternalPaymentView: Error checking payment status: \(error)")
-            // Don't show error for status checks, just continue checking
-        }
-    }
-}
-
-// MARK: - External Payment Web View
-struct ExternalPaymentWebView: UIViewControllerRepresentable {
-    let url: URL
-    let onDismiss: () -> Void
-    
-    func makeUIViewController(context: Context) -> UINavigationController {
-        let webViewController = ExternalPaymentWebViewController(url: url, onDismiss: onDismiss)
-        let navController = UINavigationController(rootViewController: webViewController)
-        return navController
-    }
-    
-    func updateUIViewController(_ uiViewController: UINavigationController, context: Context) {
-        // No updates needed
-    }
-}
-
-import WebKit
-
-class ExternalPaymentWebViewController: UIViewController, WKNavigationDelegate {
-    private let url: URL
-    private let onDismiss: () -> Void
-    private var webView: WKWebView!
-    
-    init(url: URL, onDismiss: @escaping () -> Void) {
-        self.url = url
-        self.onDismiss = onDismiss
-        super.init(nibName: nil, bundle: nil)
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        
-        setupWebView()
-        setupNavigationBar()
-        loadPaymentURL()
-    }
-    
-    private func setupWebView() {
-        webView = WKWebView()
-        webView.navigationDelegate = self
-        webView.translatesAutoresizingMaskIntoConstraints = false
-        
-        view.addSubview(webView)
-        NSLayoutConstraint.activate([
-            webView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            webView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            webView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            webView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        ])
-    }
-    
-    private func setupNavigationBar() {
-        title = "Portal de Compras"
-        navigationItem.leftBarButtonItem = UIBarButtonItem(
-            barButtonSystemItem: .done,
-            target: self,
-            action: #selector(doneButtonTapped)
-        )
-    }
-    
-    private func loadPaymentURL() {
-        let request = URLRequest(url: url)
-        webView.load(request)
-    }
-    
-    @objc private func doneButtonTapped() {
-        onDismiss()
-        dismiss(animated: true)
-    }
-    
-    // MARK: - WKNavigationDelegate
-    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        // Update title with page title
-        webView.evaluateJavaScript("document.title") { [weak self] result, error in
-            if let title = result as? String, !title.isEmpty {
-                DispatchQueue.main.async {
-                    self?.title = title
+            } catch {
+                await MainActor.run {
+                    isProcessingPayment = false
+                    paymentError = "Error de conexión. Verifica tu internet e intenta de nuevo."
                 }
             }
         }
     }
+}
+
+struct ExternalProductCard: View {
+    let product: CustomPaymentProduct
+    let onPurchase: () -> Void
     
-    func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
-        print("❌ ExternalPaymentWebView: Failed to load payment page: \(error)")
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(product.name)
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                
+                Text(product.description)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .lineLimit(2)
+                
+                Text("\(product.invoiceCount) facturas")
+                    .font(.subheadline)
+                    .foregroundColor(.blue)
+                    .fontWeight(.medium)
+            }
+            
+            Spacer()
+            
+            VStack(alignment: .trailing) {
+                Text("$\(String(format: "%.2f", product.price))")
+                    .font(.title3)
+                    .fontWeight(.bold)
+                    .foregroundColor(.blue)
+                
+                Button("Comprar") {
+                    onPurchase()
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.small)
+            }
+        }
+        .padding()
+        .background(Color(.systemBackground))
+        .cornerRadius(12)
+        .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
     }
+}
+
+// MARK: - Custom Payment Product Model
+struct CustomPaymentProduct: Identifiable, Codable {
+    let id: String
+    let name: String
+    let description: String
+    let price: Double
+    let currency: String
+    let invoiceCount: Int
 }
 
 #Preview {
-    ExternalPaymentView(
-        product: CustomPaymentProduct(
-            id: "test",
-            name: "Paquete de 100 Facturas", 
-            description: "Ideal para empresas medianas",
-            invoiceCount: 100,
-            price: 25.00,
-            formattedPrice: "$25.00",
-            isPopular: false,
-            productType: .consumable,
-            isImplementationFee: false,
-            subscriptionPeriod: nil,
-            specialOfferText: nil
-        ),
-        onSuccess: {
-            print("Payment success!")
-        }
-    )
+    ExternalPaymentView()
 }

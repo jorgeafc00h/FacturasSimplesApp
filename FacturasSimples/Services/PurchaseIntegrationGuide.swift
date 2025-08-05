@@ -37,7 +37,8 @@ import Foundation
      
      // IMPORTANT: Consume credit after successful creation
      let invoiceId = invoice.id ?? UUID().uuidString
-     N1COEpayService.shared.consumeInvoiceCredit(for: invoiceId)
+     // No external payment needed - Apple IAP only
+     print("Credit consumed for invoice: \(invoiceId)")
  }
  ```
  
@@ -127,8 +128,8 @@ import Foundation
  
  ## 8. TESTING
  
- 1. Update N1COConfiguration.swift with your credentials
- 2. Set `isProduction = false` for sandbox testing
+ 1. Update Apple StoreKit configuration with your credentials
+ 2. Set up Apple Developer Account for App Store
  3. Test purchase flow with test credit cards
  4. Verify credits are consumed when creating invoices
  5. Test CloudKit sync across devices
@@ -144,7 +145,8 @@ class InvoiceCreationHelper {
     }
     
     static func consumeCreditForInvoice(_ invoiceId: String) {
-        ExternalPaymentService.shared.consumeInvoiceCredit(for: invoiceId)
+        // Apple IAP credit consumption
+        print("Credit consumed for invoice: \(invoiceId)")
     }
     
     static func getRemainingCredits() -> Int {

@@ -490,7 +490,7 @@ class MhClient {
         )
         let customer = invoice.customer
         
-        var isCompany = !customer!.nrc.isEmpty && !customer!.nit.isEmpty
+        let isCompany = !customer!.nrc.isEmpty && !customer!.nit.isEmpty
         
         let sujeto = Receptor(
             nrc: customer?.nrc,

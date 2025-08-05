@@ -55,15 +55,6 @@ struct InvoiceBundle: Identifiable, Hashable {
     
     static let allBundles: [InvoiceBundle] = []
     static let allProductIDs: [String] = []
-    
-    // Convert from CustomPaymentProduct for backward compatibility
-    init(from product: CustomPaymentProduct) {
-        self.id = product.id
-        self.name = product.name
-        self.description = product.description
-        self.invoiceCount = product.invoiceCount
-        self.basePrice = Decimal(product.price)
-    }
 }
 
 // MARK: - Stored Transaction (Legacy compatibility)
@@ -73,13 +64,4 @@ struct StoredTransaction: Identifiable, Codable {
     let purchaseDate: Date
     let invoiceCount: Int
     let isRestored: Bool
-    
-    // Convert from CustomStoredTransaction for backward compatibility
-    init(from transaction: CustomStoredTransaction) {
-        self.id = transaction.id
-        self.productID = transaction.productID
-        self.purchaseDate = transaction.purchaseDate
-        self.invoiceCount = transaction.invoiceCount
-        self.isRestored = transaction.isRestored
-    }
 }

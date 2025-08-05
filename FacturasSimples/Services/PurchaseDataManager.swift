@@ -496,7 +496,7 @@ class PurchaseDataManager: ObservableObject {
             isRestored: false,
             isSubscription: false,
             paymentMethodId: "external",
-            n1coOrderId: paymentResponse.orderRef,
+            externalOrderId: paymentResponse.orderRef,
             authorizationCode: nil,
             status: "completed"
         )
@@ -605,7 +605,7 @@ class PurchaseDataManager: ObservableObject {
         }
     }
     
-    // MARK: - Transaction Management (N1CO Compatibility)
+    // MARK: - Transaction Management (External Payment Compatibility)
     
     func addTransaction(
         productID: String, 
@@ -615,7 +615,7 @@ class PurchaseDataManager: ObservableObject {
         currency: String = "USD",
         invoiceCount: Int, 
         isSubscription: Bool = false,
-        n1coOrderId: String? = nil,
+        externalOrderId: String? = nil,
         authorizationCode: String? = nil,
         billingCycle: String? = nil,
         status: String = "completed"
@@ -626,7 +626,7 @@ class PurchaseDataManager: ObservableObject {
         }
         
         // Generate a unique transaction ID
-        let transactionId = n1coOrderId ?? UUID().uuidString
+        let transactionId = externalOrderId ?? UUID().uuidString
         
         // Check if transaction already exists to avoid duplicates
         if transactionExists(withId: transactionId) {
@@ -638,12 +638,12 @@ class PurchaseDataManager: ObservableObject {
             id: transactionId,
             productID: productID,
             productName: productName,
-            productDescription: productDescription ?? "Transaction from N1CO",
+            productDescription: productDescription ?? "Transaction from external payment",
             amount: amount,
             currency: currency,
             invoiceCount: invoiceCount,
             isSubscription: isSubscription,
-            n1coOrderId: n1coOrderId,
+            externalOrderId: externalOrderId,
             authorizationCode: authorizationCode,
             status: status,
             billingCycle: billingCycle

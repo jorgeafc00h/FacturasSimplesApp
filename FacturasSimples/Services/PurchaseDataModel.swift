@@ -3,7 +3,7 @@
 //  FacturasSimples
 //
 //  Created by Jorge Flores on 1/14/25.
-//  SwiftData models for N1CO purchase tracking - Local only, no CloudKit
+//  SwiftData models for purchase tracking - Local only, no CloudKit
 //
 
 import Foundation
@@ -24,7 +24,7 @@ class PurchaseTransaction {
     var isRestored: Bool?
     var isSubscription: Bool?
     var paymentMethodId: String?
-    var n1coOrderId: String?
+    var externalOrderId: String?
     var authorizationCode: String?
     var status: String? // "completed", "pending", "failed", "refunded"
     
@@ -49,7 +49,7 @@ class PurchaseTransaction {
         isRestored: Bool = false,
         isSubscription: Bool = false,
         paymentMethodId: String? = nil,
-        n1coOrderId: String? = nil,
+        externalOrderId: String? = nil,
         authorizationCode: String? = nil,
         status: String = "completed",
         subscriptionPlanId: Int? = nil,
@@ -67,7 +67,7 @@ class PurchaseTransaction {
         self.isRestored = isRestored
         self.isSubscription = isSubscription
         self.paymentMethodId = paymentMethodId
-        self.n1coOrderId = n1coOrderId
+        self.externalOrderId = externalOrderId
         self.authorizationCode = authorizationCode
         self.status = status
         self.subscriptionPlanId = subscriptionPlanId
@@ -100,7 +100,7 @@ class UserPurchaseProfile {
     var hasImplementationFeePaid: Bool?
     var implementationFeePaidDate: Date?
     
-    // Customer information (for N1CO)
+    // Customer information (optional)
     var customerName: String?
     var customerEmail: String?
     var customerPhone: String?
@@ -241,7 +241,7 @@ class UserPurchaseProfile {
         if isSubscription {
             print("🔄 UserPurchaseProfile: SUBSCRIPTION - Setting up subscription")
             hasActiveSubscription = true
-            currentSubscriptionId = transaction.n1coOrderId
+            currentSubscriptionId = transaction.externalOrderId
             subscriptionProductId = transaction.productID
             print("📋 UserPurchaseProfile: SUBSCRIPTION - ID: \(currentSubscriptionId ?? "none")")
             print("🏷️ UserPurchaseProfile: SUBSCRIPTION - Product ID: \(subscriptionProductId ?? "none")")
@@ -340,7 +340,7 @@ class InvoiceConsumption {
 class SavedPaymentMethod {
     // Made all attributes optional with default values for CloudKit compatibility
     var id: String?
-    var n1coPaymentMethodId: String?
+    var externalPaymentMethodId: String?
     var cardLast4: String?
     var cardBrand: String?
     var cardholderName: String?
@@ -352,7 +352,7 @@ class SavedPaymentMethod {
     
     init(
         id: String = UUID().uuidString,
-        n1coPaymentMethodId: String,
+        externalPaymentMethodId: String,
         cardLast4: String,
         cardBrand: String,
         cardholderName: String,
@@ -361,7 +361,7 @@ class SavedPaymentMethod {
         isDefault: Bool = false
     ) {
         self.id = id
-        self.n1coPaymentMethodId = n1coPaymentMethodId
+        self.externalPaymentMethodId = externalPaymentMethodId
         self.cardLast4 = cardLast4
         self.cardBrand = cardBrand
         self.cardholderName = cardholderName

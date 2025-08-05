@@ -6,7 +6,6 @@ struct ProfileView: View {
     
     @Environment(\.modelContext) var modelContext
     @StateObject private var purchaseManager = PurchaseDataManager.shared
-    @StateObject private var externalPaymentService = ExternalPaymentService.shared
     
     @State var isToggleOn = true
     
@@ -222,7 +221,7 @@ struct ProfileView: View {
                 }
             }, label: {
                 HStack {
-                    Image(systemName: "creditcard.fill").padding(.horizontal, 5.0)
+                    Image(systemName: "doc.text.fill").padding(.horizontal, 5.0)
                         .foregroundColor(Color.white)
                     VStack(alignment: .leading) {
                         Text("Comprar Créditos")
@@ -270,9 +269,9 @@ struct ProfileView: View {
         .sheet(isPresented: $viewModel.showAccountSummary){
             UserAccountView();
             }
-        .sheet(isPresented: $showUnifiedPurchaseView) {
-            UnifiedPurchaseView()
-        }
+//        .sheet(isPresented: $showUnifiedPurchaseView) {
+//            UnifiedPurchaseView()
+//        }
         .sheet(isPresented: $showPurchaseView) {
             InAppPurchaseView()
         }

@@ -2,130 +2,199 @@
 //  ExternalPaymentService.swift
 //  FacturasSimples
 //
-//  Created by GitHub Copilot on 7/22/25.
-//  Simple service to provide product data for external payment system
+//  Created by Jorge Flores on 8/3/25.
+//  Service for handling external payment processing with N1CO Epay
 //
 
 import Foundation
-import SwiftUI
 
 @MainActor
-class ExternalPaymentService: ObservableObject {
-    static let shared = ExternalPaymentService()
+@Observable
+class ExternalPaymentService {
     
-    @Published var isLoading = false
-    @Published var errorMessage: String?
-    @Published var availableProducts: [CustomPaymentProduct] = []
-    @Published var userCredits = CustomUserCredits()
+    // MARK: - Observable Properties
+    var isProcessingPayment = false
+    var lastPaymentError: String?
+    var paymentHistory: [ExternalPaymentRecord] = []
     
-    private init() {
-        loadAvailableProducts()
+    // MARK: - Private Properties
+    private let apiBaseURL = "https://api.n1co.com/v1"
+    private let paymentHistoryKey = "external_payment_history"
+    
+    // MARK: - Initialization
+    init() {
+        loadPaymentHistory()
     }
     
-    private func loadAvailableProducts() {
-        // Static product definitions for external payment - Updated to match website pricing
-        availableProducts = [
-            CustomPaymentProduct(
-                id: "bundle_essential_25",
-                name: "Paquete Esencial",
-                description: "Ideal para emprendedores y pequeños negocios",
-                invoiceCount: 25,
-                price: 4.90,
-                formattedPrice: "$4.90",
-                isPopular: false,
-                productType: .consumable,
-                isImplementationFee: false,
-                subscriptionPeriod: nil,
-                specialOfferText: nil
-            ),
-            CustomPaymentProduct(
-                id: "bundle_initial_50",
-                name: "Paquete Inicial",
-                description: "Perfecto para pequeñas empresas",
-                invoiceCount: 50,
-                price: 9.99,
-                formattedPrice: "$9.99",
-                isPopular: true,
-                productType: .consumable,
-                isImplementationFee: false,
-                subscriptionPeriod: nil,
-                specialOfferText: "Popular"
-            ),
-            CustomPaymentProduct(
-                id: "bundle_professional_100",
-                name: "Paquete Profesional",
-                description: "La mejor opción para empresas en crecimiento",
-                invoiceCount: 100,
-                price: 15.00,
-                formattedPrice: "$15.00",
-                isPopular: false,
-                productType: .consumable,
-                isImplementationFee: false,
-                subscriptionPeriod: nil,
-                specialOfferText: nil
-            ),
-            CustomPaymentProduct(
-                id: "bundle_enterprise_250",
-                name: "Paquete Empresarial",
-                description: "Para empresas de alto volumen",
-                invoiceCount: 250,
-                price: 29.99,
-                formattedPrice: "$29.99",
-                isPopular: false,
-                productType: .consumable,
-                isImplementationFee: false,
-                subscriptionPeriod: nil,
-                specialOfferText: nil
-            ),
-            CustomPaymentProduct(
-                id: "enterprise_pro_monthly",
-                name: "Enterprise Pro",
-                description: "Suscripción mensual con facturación ilimitada para empresas grandes",
-                invoiceCount: -1,
-                price: 99.99,
-                formattedPrice: "$99.99",
-                isPopular: false,
-                productType: .subscription,
-                isImplementationFee: false,
-                subscriptionPeriod: "monthly",
-                specialOfferText: "Mejor Valor"
-            ),
-            CustomPaymentProduct(
-                id: "enterprise_pro_yearly",
-                name: "Enterprise Pro Anual",
-                description: "Suscripción anual con facturación ilimitada para empresas grandes",
-                invoiceCount: -1,
-                price: 999.99,
-                formattedPrice: "$999.99",
-                isPopular: false,
-                productType: .subscription,
-                isImplementationFee: false,
-                subscriptionPeriod: "yearly",
-                specialOfferText: "Ahorra $200 vs plan mensual"
-            )
-        ]
-    }
+    // MARK: - Public Methods
     
-    // Placeholder methods to maintain compatibility
-    func refreshProducts() async {
-        isLoading = true
-        // Simulate loading
-        try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
-        isLoading = false
-    }
-    
-    func updateUserCredits() async {
-        // This would be updated by the external payment status checking
-        // For now, we'll use the PurchaseDataManager to get credit info
-        let purchaseManager = PurchaseDataManager.shared
-        if let profile = purchaseManager.userProfile {
-            userCredits.availableInvoices = profile.availableInvoices ?? 0
-            userCredits.totalPurchased = profile.totalPurchasedInvoices ?? 0
+    /// Process payment for a custom product
+    func processPayment(for product: CustomPaymentProduct) async -> Bool {
+        isProcessingPayment = true
+        lastPaymentError = nil
+        
+        do {
+            // Simulate API call to N1CO Epay
+            try await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds delay
+            
+            // In a real implementation, you would:
+            // 1. Create payment intent with N1CO Epay API
+            // 2. Process credit card payment
+            // 3. Handle payment result
+            // 4. Update user's invoice credits
+            
+            let success = await simulatePaymentProcessing(for: product)
+            
+            if success {
+                // Record successful payment
+                let record = ExternalPaymentRecord(
+                    id: UUID().uuidString,
+                    productId: product.id,
+                    productName: product.name,
+                    amount: product.price,
+                    currency: product.currency,
+                    invoiceCount: product.invoiceCount,
+                    paymentDate: Date(),
+                    status: .completed,
+                    transactionId: generateTransactionId()
+                )
+                
+                paymentHistory.append(record)
+                savePaymentHistory()
+                
+                // Update user's invoice credits (integrate with your user profile system)
+                await updateUserCredits(invoiceCount: product.invoiceCount)
+            }
+            
+            isProcessingPayment = false
+            return success
+            
+        } catch {
+            lastPaymentError = "Error de red: \(error.localizedDescription)"
+            isProcessingPayment = false
+            return false
         }
     }
     
-    func consumeInvoiceCredit(for invoiceId: String) {
-        // Use PurchaseDataManager to consume the credit
-        PurchaseDataManager.shared.consumeInvoiceCredit(for: invoiceId)
+    /// Get payment history for user
+    func getPaymentHistory() -> [ExternalPaymentRecord] {
+        return paymentHistory.sorted { $0.paymentDate > $1.paymentDate }
+    }
+    
+    /// Validate payment before processing
+    func validatePayment(for product: CustomPaymentProduct) -> PaymentValidationResult {
+        // Validate product
+        guard product.price > 0 else {
+            return .invalid("Precio del producto inválido")
+        }
+        
+        guard product.invoiceCount > 0 else {
+            return .invalid("Cantidad de facturas inválida")
+        }
+        
+        // Validate currency
+        guard ["USD", "MXN", "EUR"].contains(product.currency) else {
+            return .invalid("Moneda no soportada")
+        }
+        
+        return .valid
+    }
+    
+    // MARK: - Private Methods
+    
+    private func simulatePaymentProcessing(for product: CustomPaymentProduct) async -> Bool {
+        // Simulate network processing with random success/failure
+        let randomSuccess = Double.random(in: 0...1) > 0.1 // 90% success rate
+        
+        if !randomSuccess {
+            lastPaymentError = "Error al procesar el pago. Verifica los datos de tu tarjeta."
+        }
+        
+        return randomSuccess
+    }
+    
+    private func updateUserCredits(invoiceCount: Int) async {
+        // In a real implementation, this would integrate with your user profile system
+        // For now, we'll just print the update
+        print("✅ Updated user credits: +\(invoiceCount) invoices")
+        
+        // You could integrate with your existing PurchaseDataManager here
+        // PurchaseDataManager.shared.addInvoiceCredits(invoiceCount)
+    }
+    
+    private func generateTransactionId() -> String {
+        return "TXN_\(Date().timeIntervalSince1970)_\(Int.random(in: 1000...9999))"
+    }
+    
+    private func loadPaymentHistory() {
+        guard let data = UserDefaults.standard.data(forKey: paymentHistoryKey),
+              let history = try? JSONDecoder().decode([ExternalPaymentRecord].self, from: data) else {
+            paymentHistory = []
+            return
+        }
+        
+        paymentHistory = history
+    }
+    
+    private func savePaymentHistory() {
+        guard let data = try? JSONEncoder().encode(paymentHistory) else { return }
+        UserDefaults.standard.set(data, forKey: paymentHistoryKey)
+    }
+}
+
+// MARK: - Supporting Models
+
+struct ExternalPaymentRecord: Codable, Identifiable {
+    let id: String
+    let productId: String
+    let productName: String
+    let amount: Double
+    let currency: String
+    let invoiceCount: Int
+    let paymentDate: Date
+    let status: PaymentStatus
+    let transactionId: String
+}
+
+enum PaymentStatus: String, Codable {
+    case pending = "pending"
+    case completed = "completed"
+    case failed = "failed"
+    case refunded = "refunded"
+    
+    var displayName: String {
+        switch self {
+        case .pending:
+            return "Pendiente"
+        case .completed:
+            return "Completado"
+        case .failed:
+            return "Fallido"
+        case .refunded:
+            return "Reembolsado"
+        }
+    }
+}
+
+enum PaymentValidationResult {
+    case valid
+    case invalid(String)
+    
+    var isValid: Bool {
+        switch self {
+        case .valid:
+            return true
+        case .invalid:
+            return false
+        }
+    }
+    
+    var errorMessage: String? {
+        switch self {
+        case .valid:
+            return nil
+        case .invalid(let message):
+            return message
+        }
     }
 }

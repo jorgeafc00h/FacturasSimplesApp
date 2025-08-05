@@ -173,106 +173,6 @@ class AppleStoreKitManager: NSObject, ObservableObject {
     func product(for id: String) -> SKProduct? {
         return availableProducts.first { $0.productIdentifier == id }
     }
-    
-    /// Convert StoreKit Product to CustomPaymentProduct for unified UI
-    func customPaymentProduct(from product: SKProduct) -> CustomPaymentProduct? {
-        // Map StoreKit product to our custom product model
-        let invoiceCount: Int
-        let productType: CustomProductType
-        let subscriptionPeriod: String?
-        let isImplementationFee: Bool
-        let specialOfferText: String?
-        let name: String
-        let description: String
-        
-        switch product.productIdentifier {
-        case "com.kandangalabs.facturas.bundle25":
-            invoiceCount = 25
-            productType = .consumable
-            subscriptionPeriod = nil
-            isImplementationFee = false
-            specialOfferText = nil
-            name = "Paquete Esencial"
-            description = "Ideal para emprendedores y pequeños negocios"
-            
-        case "com.kandangalabs.facturas.bundle50":
-            invoiceCount = 50
-            productType = .consumable
-            subscriptionPeriod = nil
-            isImplementationFee = false
-            specialOfferText = "Popular"
-            name = "Paquete Inicial"
-            description = "Perfecto para pequeñas empresas"
-            
-        case "com.kandangalabs.facturas.bundle100":
-            invoiceCount = 100
-            productType = .consumable
-            subscriptionPeriod = nil
-            isImplementationFee = false
-            specialOfferText = nil
-            name = "Paquete Profesional"
-            description = "La mejor opción para empresas en crecimiento"
-            
-        case "com.kandangalabs.facturas.bundle250":
-            invoiceCount = 250
-            productType = .consumable
-            subscriptionPeriod = nil
-            isImplementationFee = false
-            specialOfferText = nil
-            name = "Paquete Empresarial"
-            description = "Para empresas de alto volumen"
-            
-        case "com.kandangalabs.facturas.implementation_fee":
-            invoiceCount = 0
-            productType = .consumable
-            subscriptionPeriod = nil
-            isImplementationFee = true
-            specialOfferText = nil
-            name = "Costo de Implementación"
-            description = "Tarifa única para activar cuenta de producción"
-            
-        case "com.kandangalabs.facturas.enterprise_pro_unlimited_monthly":
-            invoiceCount = -1
-            productType = .subscription
-            subscriptionPeriod = "monthly"
-            isImplementationFee = false
-            specialOfferText = "Mejor Valor"
-            name = "Enterprise Pro"
-            description = "Suscripción mensual con facturación ilimitada para empresas grandes"
-            
-        case "com.kandangalabs.facturas.enterprise_pro_unlimited_anual":
-            invoiceCount = -1
-            productType = .subscription
-            subscriptionPeriod = "yearly"
-            isImplementationFee = false
-            specialOfferText = "Ahorra $200 vs plan mensual"
-            name = "Enterprise Pro Anual"
-            description = "Suscripción anual con facturación ilimitada para empresas grandes"
-            
-        default:
-            return nil
-        }
-        
-        // Format price
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.locale = product.priceLocale
-        let formattedPrice = formatter.string(from: product.price) ?? "$\(product.price)"
-        
-        return CustomPaymentProduct(
-            id: product.productIdentifier,
-            name: name,
-            description: description,
-            invoiceCount: invoiceCount,
-            price: product.price.doubleValue,
-            formattedPrice: formattedPrice,
-            isPopular: specialOfferText == "Popular",
-            productType: productType,
-            isImplementationFee: isImplementationFee,
-            subscriptionPeriod: subscriptionPeriod,
-            specialOfferText: specialOfferText
-        )
-    }
 }
 
 // MARK: - SKProductsRequestDelegate
@@ -342,21 +242,50 @@ extension AppleStoreKitManager: SKPaymentTransactionObserver {
     // MARK: - Credit Processing
     
     private func processCreditsForPurchase(productId: String, transactionId: String?) {
-        // Find the corresponding product to get invoice count
-        guard let product = availableProducts.first(where: { $0.productIdentifier == productId }),
-              let customProduct = customPaymentProduct(from: product) else {
+        // Find the corresponding product
+        guard let product = availableProducts.first(where: { $0.productIdentifier == productId }) else {
             print("❌ AppleStoreKit: Could not find product details for \(productId)")
             return
         }
         
-        // Don't add credits for subscriptions or implementation fees
-        guard customProduct.productType == .consumable && !customProduct.isImplementationFee else {
-            print("🔄 AppleStoreKit: No credits to add for \(customProduct.name) (subscription or implementation fee)")
+        // Map product ID to invoice count
+        let invoiceCount: Int
+        let isImplementationFee: Bool
+        
+        switch productId {
+        case "com.kandangalabs.facturas.bundle25":
+            invoiceCount = 25
+            isImplementationFee = false
+        case "com.kandangalabs.facturas.bundle50":
+            invoiceCount = 50
+            isImplementationFee = false
+        case "com.kandangalabs.facturas.bundle100":
+            invoiceCount = 100
+            isImplementationFee = false
+        case "com.kandangalabs.facturas.bundle250":
+            invoiceCount = 250
+            isImplementationFee = false
+        case "com.kandangalabs.facturas.implementation_fee":
+            invoiceCount = 0
+            isImplementationFee = true
+        case "com.kandangalabs.facturas.enterprise_pro_unlimited_monthly",
+             "com.kandangalabs.facturas.enterprise_pro_unlimited_anual":
+            // Subscriptions don't add credits
+            print("🔄 AppleStoreKit: No credits to add for subscription product")
+            return
+        default:
+            print("❌ AppleStoreKit: Unknown product ID \(productId)")
+            return
+        }
+        
+        // Don't add credits for implementation fees
+        guard !isImplementationFee else {
+            print("🔄 AppleStoreKit: No credits to add for implementation fee")
             return
         }
         
         // Add credits to user's account
-        let creditsToAdd = customProduct.invoiceCount
+        let creditsToAdd = invoiceCount
         let purchaseManager = PurchaseDataManager.shared
         
         Task { @MainActor in
@@ -365,7 +294,7 @@ extension AppleStoreKitManager: SKPaymentTransactionObserver {
             // Refresh user profile to reflect the changes
             await purchaseManager.loadUserProfile()
             
-            print("💰 AppleStoreKit: Added \(creditsToAdd) credits for purchase of \(customProduct.name)")
+            print("💰 AppleStoreKit: Added \(creditsToAdd) credits for purchase of \(productId)")
         }
     }
     

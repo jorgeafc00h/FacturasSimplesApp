@@ -4,12 +4,10 @@
 //
 //  Created by Jorge Flores on 6/9/25.
 //
-// COMMENTED OUT FOR APP SUBMISSION - REMOVE StoreKit DEPENDENCY
-// Uncomment this entire file to re-enable in-app purchases
+// UNCOMMENTED FOR USE - Re-enabled promo code functionality
 
 import SwiftUI
 
-/*
 struct PromoCodeView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var promoCodeService = PromoCodeService()
@@ -294,13 +292,4 @@ struct PromoCodeView: View {
 // MARK: - Preview
 #Preview {
     PromoCodeView()
-}
-*/
-
-// PLACEHOLDER VIEW FOR COMPILATION
-struct PromoCodeView: View {
-    var body: some View {
-        Text("Promo Code View Disabled")
-            .navigationTitle("Código Promocional")
-    }
 }

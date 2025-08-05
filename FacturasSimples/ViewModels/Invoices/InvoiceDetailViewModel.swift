@@ -436,7 +436,7 @@ extension InvoiceDetailView {
         return PurchaseDataManager.shared.validateCreditsBeforeInvoiceSync(for: customerId)
     }
     
-    /// Consume credit for a completed invoice using N1CO system
+    /// Consume credit for a completed invoice using Apple IAP system
     func consumeCreditForCompletedInvoice() {
         // Get the company associated with this invoice
         guard let customerId = invoice.customer?.companyOwnerId else {

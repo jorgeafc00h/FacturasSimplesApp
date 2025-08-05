@@ -4,12 +4,10 @@
 //
 //  Created by Jorge Flores on 6/3/25.
 //
-// Updated to use external payment system
 
 import SwiftUI
 
 struct CreditsStatusView: View {
-    @StateObject private var externalPaymentService = ExternalPaymentService.shared
     @StateObject private var purchaseManager = PurchaseDataManager.shared
     @State private var showPurchaseView = false
     let company: Company?
@@ -115,33 +113,7 @@ struct CreditsStatusView: View {
             print("💰 CreditsStatusView: Credits changed from \(oldValue ?? 0) to \(newValue ?? 0)")
         }
         .sheet(isPresented: $showPurchaseView) {
-            ExternalPaymentView(
-                product: externalPaymentService.availableProducts.first ?? CustomPaymentProduct(
-                    id: "default", 
-                    name: "Facturas", 
-                    description: "Créditos para facturas", 
-                    invoiceCount: 10,
-                    price: 5.0, 
-                    formattedPrice: "$5.00",
-                    isPopular: false,
-                    productType: .consumable,
-                    isImplementationFee: false,
-                    subscriptionPeriod: nil,
-                    specialOfferText: nil
-                ),
-                onSuccess: {
-                    // Ensure UI refreshes with updated credits
-                    Task {
-                        // Reload user profile to get latest credit balance
-                        purchaseManager.loadUserProfile()
-                        
-                        // Close the purchase view after a brief delay
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                            showPurchaseView = false
-                        }
-                    }
-                }
-            )
+            InAppPurchaseView()
         }
     }
 }

@@ -3,599 +3,452 @@
 //  FacturasSimples
 //
 //  Created by Jorge Flores on 6/3/25.
-//  Updated on 1/14/25 - Migrated from Apple StoreKit to N1CO Epay custom credit card payments
+//  Updated on 1/30/25 - App Store compliant version with Apple In-App Purchases only
 //
 
 import SwiftUI
+import StoreKit
 
 struct InAppPurchaseView: View {
+    @StateObject private var storeManager = StoreKitManager.shared
+    @StateObject private var promoCodeService = PromoCodeService()
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var paymentService = ExternalPaymentService.shared
-    @State private var selectedProduct: CustomPaymentProduct?
-    @State private var showingCreditCardInput = false
-    @State private var showPurchaseHistory = false
-    @State private var showSuccessAlert = false
-    @State private var successMessage = ""
+    @State private var isLoading = false
+    @State private var showingPromoCodeView = false
+    @State private var promoCodeText = ""
+    @State private var showingPromoInput = false
     
     var body: some View {
         NavigationView {
             ScrollView {
-                VStack(spacing: 32) {
+                VStack(spacing: 0) {
+                    // Header
                     headerSection
+                        .padding(.bottom, 24)
                     
-                    if paymentService.isLoading {
-                        ProgressView("Cargando productos...")
-                            .frame(maxWidth: .infinity, minHeight: 200)
-                    } else {
-                        creditsSection
-                        purchaseOptionsSection
+                    // Pricing Cards
+                    VStack(spacing: 20) {
+                        // Paquete Inicial - 50 facturas
+                        PricingCard(
+                            title: "50 facturas",
+                            subtitle: "Facturas",
+                            packageName: "Paquete Inicial",
+                            description: "Perfecto para pequeñas empresas",
+                            price: "$9.99",
+                            color: .blue,
+                            isPopular: false,
+                            icon: "doc.text",
+                            productId: "com.facturassimples.paquete_inicial"
+                        )
+                        
+                        // Paquete Profesional - 100 facturas (POPULAR)
+                        PricingCard(
+                            title: "100 facturas",
+                            subtitle: "Facturas",
+                            packageName: "Paquete Profesional",
+                            description: "La mejor opción para empresas en crecimiento",
+                            price: "$15.00",
+                            color: .orange,
+                            isPopular: true,
+                            icon: "doc.text.fill",
+                            productId: "com.facturassimples.paquete_profesional"
+                        )
+                        
+                        // Paquete Empresarial - 250 facturas
+                        PricingCard(
+                            title: "250 facturas",
+                            subtitle: "Facturas",
+                            packageName: "Paquete Empresarial",
+                            description: "Para empresas de alto volumen",
+                            price: "$29.99",
+                            color: .blue,
+                            isPopular: false,
+                            icon: "building.2",
+                            productId: "com.facturassimples.paquete_empresarial"
+                        )
+                        
+                        // Subscription - Facturas ilimitadas
+                        PricingCard(
+                            title: "Facturas ilimitadas",
+                            subtitle: "Ilimitadas",
+                            packageName: "Enterprise Pro Unlimited",
+                            description: "Suscripción mensual con facturación ilimitada para empresas grandes",
+                            price: "$99.99",
+                            color: .purple,
+                            isPopular: false,
+                            icon: "crown",
+                            productId: "com.facturassimples.subscription_unlimited",
+                            isSubscription: true,
+                            buttonText: "Suscribirse"
+                        )
+                        
+                        // Annual Subscription with savings badge
+                        PricingCard(
+                            title: "Facturas ilimitadas",
+                            subtitle: "Ilimitadas",
+                            packageName: "Enterprise Pro Unlimited",
+                            description: "Suscripción anual con facturación ilimitada para empresas grandes",
+                            price: "$999.99",
+                            color: .purple,
+                            isPopular: false,
+                            icon: "crown",
+                            productId: "com.facturassimples.subscription_unlimited_annual",
+                            isSubscription: true,
+                            buttonText: "Suscribirse",
+                            savingsText: "AHORRA HASTA $200"
+                        )
                     }
+                    .padding(.horizontal, 20)
                     
-                    purchaseHistorySection
+                    // Promo Code Section
+                    promoCodeSection
+                        .padding(.horizontal, 20)
+                        .padding(.top, 16)
+                    
+                    // Restore Purchases
+                    restorePurchasesSection
+                        .padding(.top, 24)
+                    
+                    // Terms and Privacy
+                    termsSection
+                        .padding(.top, 16)
+                        .padding(.bottom, 32)
                 }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 16)
             }
-            .navigationTitle("Paquetes de Facturas")
+            .background(Color(.systemGroupedBackground))
+            .navigationTitle("Elige Tu Paquete")
             .navigationBarTitleDisplayMode(.large)
+            .navigationBarBackButtonHidden(true)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cerrar") {
                         dismiss()
                     }
+                    .foregroundColor(.blue)
                 }
             }
-        }
-        .sheet(isPresented: $showingCreditCardInput) {
-            if let product = selectedProduct {
-                ExternalPaymentView(product: product) {
-                    handlePaymentSuccess()
+            .onAppear {
+                Task {
+                    await storeManager.requestProducts()
                 }
             }
-        }
-        .sheet(isPresented: $showPurchaseHistory) {
-            CustomPurchaseHistoryView()
-        }
-        .alert("¡Pago Exitoso!", isPresented: $showSuccessAlert) {
-            Button("OK") {
-                showSuccessAlert = false
-            }
-        } message: {
-            Text(successMessage)
-        }
-        .alert("Error de Pago", isPresented: .constant(paymentService.errorMessage != nil)) {
-            Button("OK") {
-                paymentService.errorMessage = nil
-            }
-        } message: {
-            Text(paymentService.errorMessage ?? "")
         }
     }
     
-    // MARK: - Header Section
     private var headerSection: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "link.circle.fill")
-                .font(.system(size: 50))
-                .foregroundColor(.blue)
-            
-            Text("Comprar Paquetes de Facturas")
+        VStack(spacing: 8) {
+            Text("Elige tu paquete ideal")
                 .font(.title2)
                 .fontWeight(.bold)
+                .multilineTextAlignment(.center)
             
-            Text("Accede a nuestro portal de pagos seguro para completar tu compra con tarjeta de crédito")
+            Text("Facturación profesional para tu negocio")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal)
         }
-        .padding(.top)
+        .padding(.horizontal, 20)
+        .padding(.top, 10)
     }
     
-    // MARK: - Credits Section
-    private var creditsSection: some View {
-        VStack(spacing: 12) {
-            HStack {
-                Image(systemName: paymentService.userCredits.isSubscriptionActive ? "crown.fill" : "creditcard.fill")
-                    .foregroundColor(paymentService.userCredits.isSubscriptionActive ? .orange : .green)
-                
-                Text("Estado de Créditos")
-                    .font(.headline)
-                
-                Spacer()
-            }
-            
-            VStack(alignment: .leading, spacing: 8) {
-                Text(paymentService.userCredits.creditsText)
-                    .font(.subheadline)
-                    .foregroundColor(.primary)
-                    .multilineTextAlignment(.leading)
-                
-                if paymentService.userCredits.isSubscriptionActive {
-                    HStack {
-                        Image(systemName: "crown.fill")
-                            .foregroundColor(.orange)
-                        Text("Suscripción activa")
-                            .font(.caption)
-                            .foregroundColor(.orange)
-                        Spacer()
-                    }
-                }
-                
-                if paymentService.userCredits.hasImplementationFeePaid {
-                    HStack {
-                        Image(systemName: "checkmark.shield.fill")
-                            .foregroundColor(.green)
-                        Text("Costo de implementación pagado")
-                            .font(.caption)
-                            .foregroundColor(.green)
-                        Spacer()
-                    }
-                }
+    private var restorePurchasesSection: some View {
+        Button("Restaurar Compras") {
+            Task {
+                await storeManager.restorePurchases()
             }
         }
-        .padding()
-        .background((paymentService.userCredits.isSubscriptionActive ? Color.orange : Color.green).opacity(0.1))
-        .cornerRadius(12)
+        .foregroundColor(.blue)
     }
     
-    // MARK: - Purchase Options Section
-    private var purchaseOptionsSection: some View {
-        VStack(spacing: 20) {
-            HStack {
-                Text("Elige Tu Paquete")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                Spacer()
-            }
-            
+    private var promoCodeSection: some View {
+        VStack(spacing: 16) {
+            // Promo Code Input
             VStack(spacing: 12) {
-                ForEach(paymentService.availableProducts.filter { !$0.isImplementationFee }, id: \.id) { product in
-                    CustomPurchaseBundleCard(
-                        product: product,
-                        isSelected: selectedProduct?.id == product.id,
-                        isPurchasing: paymentService.isLoading,
-                        onPurchase: {
-                            selectedProduct = product
-                            showingCreditCardInput = true
-                        }
-                    )
+                HStack {
+                    Text("¿Tienes un código promocional?")
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                    Spacer()
+                    Button(action: {
+                        showingPromoInput.toggle()
+                    }) {
+                        Image(systemName: showingPromoInput ? "chevron.up" : "chevron.down")
+                            .foregroundColor(.blue)
+                    }
                 }
                 
-                // Implementation Fee (if not paid)
-                if !paymentService.userCredits.hasImplementationFeePaid,
-                   let implementationFee = paymentService.availableProducts.first(where: { $0.isImplementationFee }) {
-                    
-                    CustomPurchaseBundleCard(
-                        product: implementationFee,
-                        isSelected: selectedProduct?.id == implementationFee.id,
-                        isPurchasing: paymentService.isLoading,
-                        onPurchase: {
-                            selectedProduct = implementationFee
-                            showingCreditCardInput = true
+                if showingPromoInput {
+                    VStack(spacing: 12) {
+                        HStack {
+                            TextField("Ingresa tu código promocional", text: $promoCodeText)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .autocapitalization(.allCharacters)
+                                .disableAutocorrection(true)
+                            
+                            Button("Aplicar") {
+                                Task {
+                                    await applyPromoCode()
+                                }
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .disabled(promoCodeText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || promoCodeService.isValidatingCode)
                         }
-                    )
+                        
+                        if promoCodeService.isValidatingCode {
+                            HStack {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                                Text("Validando código...")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        
+                        if let message = promoCodeService.validationMessage {
+                            Text(message)
+                                .font(.caption)
+                                .foregroundColor(promoCodeService.lastValidatedCode != nil ? .green : .red)
+                                .multilineTextAlignment(.center)
+                        }
+                        
+                        Button("Ver Códigos Promocionales") {
+                            showingPromoCodeView = true
+                        }
+                        .font(.caption)
+                        .foregroundColor(.blue)
+                    }
+                    .padding()
+                    .background(Color(.systemGray6))
+                    .cornerRadius(12)
                 }
             }
         }
-    }
-    
-    // MARK: - Purchase History Section
-    private var purchaseHistorySection: some View {
-        VStack(spacing: 12) {
-            Button(action: {
-                showPurchaseHistory = true
-            }) {
-                HStack {
-                    Image(systemName: "doc.text")
-                    Text("Ver Historial de Compras")
-                }
-                .foregroundColor(.blue)
-                .padding()
-                .frame(maxWidth: .infinity)
-                .background(Color.blue.opacity(0.1))
-                .cornerRadius(10)
-            }
-            
-            Text("Revisa todas tus compras y transacciones realizadas")
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
+        .sheet(isPresented: $showingPromoCodeView) {
+            PromoCodeView()
         }
-        .padding(.top)
     }
     
-    // MARK: - Success Handler
-    private func handlePaymentSuccess() {
-        successMessage = "Tu pago ha sido procesado exitosamente. Los créditos han sido agregados a tu cuenta."
-        showSuccessAlert = true
+    private func applyPromoCode() async {
+        let success = await promoCodeService.validateAndApplyPromoCode(promoCodeText)
+        if success {
+            promoCodeText = ""
+            showingPromoInput = false
+        }
+    }
+    
+    private var termsSection: some View {
+        VStack(spacing: 8) {
+            HStack(spacing: 16) {
+                Link("Términos de Uso", destination: URL(string: "https://yourapp.com/terms")!)
+                Link("Política de Privacidad", destination: URL(string: "https://yourapp.com/privacy")!)
+            }
+            .font(.caption)
+            .foregroundColor(.secondary)
+        }
     }
 }
 
-// MARK: - Custom Purchase Bundle Card
-struct CustomPurchaseBundleCard: View {
-    let product: CustomPaymentProduct
-    let isSelected: Bool
-    let isPurchasing: Bool
-    let onPurchase: () -> Void
+struct PricingCard: View {
+    let title: String
+    let subtitle: String
+    let packageName: String
+    let description: String
+    let price: String
+    let color: Color
+    let isPopular: Bool
+    let icon: String
+    let productId: String
+    let isSubscription: Bool
+    let buttonText: String
+    let savingsText: String?
+    
+    @StateObject private var storeManager = StoreKitManager.shared
+    @State private var isPurchasing = false
+    
+    init(title: String, subtitle: String, packageName: String, description: String, price: String, color: Color, isPopular: Bool, icon: String, productId: String, isSubscription: Bool = false, buttonText: String = "Comprar", savingsText: String? = nil) {
+        self.title = title
+        self.subtitle = subtitle
+        self.packageName = packageName
+        self.description = description
+        self.price = price
+        self.color = color
+        self.isPopular = isPopular
+        self.icon = icon
+        self.productId = productId
+        self.isSubscription = isSubscription
+        self.buttonText = buttonText
+        self.savingsText = savingsText
+    }
     
     var body: some View {
-        HStack(spacing: 16) {
-            // Left side - Icon and info
-            VStack(spacing: 8) {
-                // Badge
-                HStack {
-                    if let specialOffer = product.specialOfferText {
-                        Text(specialOffer)
-                            .font(.caption2)
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 4)
-                            .background(
-                                LinearGradient(
-                                    colors: [Color.green, Color.green.opacity(0.8)],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
-                            .cornerRadius(12)
-                    } else if product.isSubscription {
-                        Text("SUSCRIPCIÓN")
-                            .font(.caption2)
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 4)
-                            .background(
-                                LinearGradient(
-                                    colors: [Color.purple, Color.purple.opacity(0.8)],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
-                            .cornerRadius(12)
-                    } else if product.isPopular {
+        VStack(spacing: 0) {
+            // Badge Container with proper spacing
+            VStack(spacing: 4) {
+                // Popular Badge
+                if isPopular {
+                    HStack {
+                        Spacer()
                         Text("POPULAR")
-                            .font(.caption2)
+                            .font(.caption)
                             .fontWeight(.bold)
                             .foregroundColor(.white)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 4)
-                            .background(
-                                LinearGradient(
-                                    colors: [Color.orange, Color.red.opacity(0.8)],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
-                            .cornerRadius(12)
-                    } else if product.isImplementationFee {
-                        Text("REQUERIDO")
-                            .font(.caption2)
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 4)
-                            .background(
-                                LinearGradient(
-                                    colors: [Color.red, Color.red.opacity(0.8)],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
-                            .cornerRadius(12)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(color)
+                            .clipShape(Capsule())
+                        Spacer()
                     }
-                    Spacer()
                 }
                 
-                // Icon and count
-                HStack(spacing: 12) {
-                    Image(systemName: product.isSubscription ? "crown.fill" : (product.isImplementationFee ? "gear.badge" : "doc.text.fill"))
-                        .font(.title)
-                        .foregroundColor(product.isSubscription ? .purple : (product.isPopular ? .orange : (product.isImplementationFee ? .red : .blue)))
-                        .frame(width: 40, height: 40)
-                        .background(
-                            Circle()
-                                .fill(product.isSubscription ? Color.purple.opacity(0.1) : (product.isPopular ? Color.orange.opacity(0.1) : (product.isImplementationFee ? Color.red.opacity(0.1) : Color.blue.opacity(0.1))))
-                        )
+                // Subscription Badge
+                if isSubscription {
+                    HStack {
+                        Spacer()
+                        Text("SUSCRIPCIÓN")
+                            .font(.caption)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(color)
+                            .clipShape(Capsule())
+                        Spacer()
+                    }
+                }
+                
+                // Savings Badge
+                if let savingsText = savingsText {
+                    HStack {
+                        Spacer()
+                        Text(savingsText)
+                            .font(.caption)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color.green)
+                            .clipShape(Capsule())
+                        Spacer()
+                    }
+                }
+            }
+            .padding(.bottom, isPopular || isSubscription || savingsText != nil ? 8 : 0)
+            
+            // Card Content with improved border
+            VStack(spacing: 20) {
+                HStack(alignment: .top, spacing: 16) {
+                    // Icon and Title Section
+                    HStack(spacing: 12) {
+                        // Icon with background
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(color.opacity(0.15))
+                                .frame(width: 52, height: 52)
+                            
+                            Image(systemName: icon)
+                                .foregroundColor(color)
+                                .font(.title2)
+                                .fontWeight(.semibold)
+                        }
+                        
+                        // Text Content
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(title)
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.primary)
+                            
+                            Text(subtitle)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            
+                            Text(packageName)
+                                .font(.headline)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.primary)
+                                .padding(.top, 2)
+                            
+                            Text(description)
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.leading)
+                                .lineLimit(2)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
                     
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(product.invoiceCountText)
+                    Spacer()
+                    
+                    // Price and Button Section
+                    VStack(alignment: .trailing, spacing: 12) {
+                        Text(price)
                             .font(.title2)
                             .fontWeight(.bold)
                             .foregroundColor(.primary)
                         
-                        if product.isImplementationFee {
-                            Text("Activación")
-                                .font(.caption)
-                                .foregroundColor(.red)
-                        } else if !product.isSubscription {
-                            Text("Facturas")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        } else {
-                            Text("Ilimitadas")
-                                .font(.caption)
-                                .foregroundColor(.purple)
-                        }
-                    }
-                    
-                    Spacer()
-                }
-                
-                // Product name and description
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(product.name)
-                        .font(.headline)
-                        .foregroundColor(.primary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    
-                    Text(product.description)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .lineLimit(2)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-            }
-            
-            // Right side - Price and purchase button
-            VStack(spacing: 12) {
-                // Price display
-                VStack(alignment: .trailing, spacing: 4) {
-                    VStack(alignment: .trailing, spacing: 2) {
-                        Text(product.formattedPrice)
-                            .font(.title3)
-                            .fontWeight(.bold)
-                            .foregroundColor(.primary)
-                        
-                        if product.isSubscription {
-                            Text(product.subscriptionText)
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                }
-                
-                // Purchase button
-                Button(action: onPurchase) {
-                    HStack {
-                        if isPurchasing && isSelected {
-                            ProgressView()
-                                .scaleEffect(0.8)
-                                .foregroundColor(.white)
-                        } else {
-                            Image(systemName: "link")
-                            Text(product.isSubscription ? "Suscribirse" : "Comprar")
-                                .fontWeight(.semibold)
-                        }
-                    }
-                    .frame(width: 110, height: 40)
-                    .background(
-                        LinearGradient(
-                            colors: product.isSubscription ? 
-                                [Color.purple, Color.purple.opacity(0.8)] : 
-                                (product.isPopular ? 
-                                    [Color.orange, Color.red.opacity(0.8)] : 
-                                    (product.isImplementationFee ?
-                                        [Color.red, Color.red.opacity(0.8)] :
-                                        [Color.blue, Color.blue.opacity(0.8)]
-                                    )
-                                ),
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-                    .foregroundColor(.white)
-                    .cornerRadius(12)
-                    .shadow(color: (product.isSubscription ? Color.purple : (product.isPopular ? Color.orange : (product.isImplementationFee ? Color.red : Color.blue))).opacity(0.3), radius: 4, x: 0, y: 2)
-                }
-                .disabled(isPurchasing)
-            }
-        }
-        .padding(20)
-        .frame(maxWidth: .infinity)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color(UIColor.secondarySystemBackground))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(
-                            LinearGradient(
-                                colors: product.isSubscription ? 
-                                    [Color.purple.opacity(0.6), Color.purple.opacity(0.3)] : 
-                                    (product.isPopular ? 
-                                        [Color.orange.opacity(0.6), Color.red.opacity(0.3)] : 
-                                        (product.isImplementationFee ?
-                                            [Color.red.opacity(0.6), Color.red.opacity(0.3)] :
-                                            [Color.blue.opacity(0.3), Color.blue.opacity(0.1)]
-                                        )
-                                    ),
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: product.isSubscription || product.isPopular || product.isImplementationFee ? 2 : 1
-                        )
-                )
-                .shadow(
-                    color: Color.black.opacity(0.05),
-                    radius: product.isSubscription || product.isPopular || product.isImplementationFee ? 8 : 4,
-                    x: 0,
-                    y: product.isSubscription || product.isPopular || product.isImplementationFee ? 4 : 2
-                )
-        )
-        .scaleEffect(isSelected ? 0.98 : 1.0)
-        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isSelected)
-    }
-}
-
-// MARK: - Custom Purchase History View
-struct CustomPurchaseHistoryView: View {
-    @Environment(\.dismiss) private var dismiss
-    @StateObject private var purchaseManager = PurchaseDataManager.shared
-    
-    var body: some View {
-        NavigationView {
-            List {
-                if purchaseManager.recentTransactions.isEmpty {
-                    VStack(spacing: 16) {
-                        Image(systemName: "doc.text")
-                            .font(.system(size: 50))
-                            .foregroundColor(.secondary)
-                        
-                        Text("Sin Historial de Compras")
-                            .font(.headline)
-                            .foregroundColor(.secondary)
-                        
-                        Text("Tus compras aparecerán aquí una vez que realices tu primera transacción")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .listRowBackground(Color.clear)
-                } else {
-                    ForEach(purchaseManager.recentTransactions) { transaction in
-                        SwiftDataTransactionRow(transaction: transaction)
-                    }
-                }
-                
-                // Analytics Section
-                if !purchaseManager.recentTransactions.isEmpty {
-                    Section("Estadísticas") {
-                        HStack {
-                            Text("Total Gastado")
-                            Spacer()
-                            Text("$\(String(format: "%.2f", purchaseManager.getTotalSpent()))")
-                                .fontWeight(.bold)
-                        }
-                        
-                        HStack {
-                            Text("Total de Transacciones")
-                            Spacer()
-                            Text("\(purchaseManager.recentTransactions.count)")
-                                .fontWeight(.bold)
-                        }
-                        
-                        if let profile = purchaseManager.userProfile {
-                            HStack {
-                                Text("Facturas Consumidas")
-                                Spacer()
-                                Text("\(profile.consumptions?.count ?? 0)")
-                                    .fontWeight(.bold)
+                        Button(action: {
+                            purchaseProduct()
+                        }) {
+                            HStack(spacing: 4) {
+                                if isPurchasing {
+                                    ProgressView()
+                                        .scaleEffect(0.8)
+                                        .foregroundColor(.white)
+                                } else {
+                                    Text(buttonText)
+                                        .fontWeight(.semibold)
+                                }
                             }
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 12)
+                            .background(color)
+                            .clipShape(Capsule())
                         }
+                        .disabled(isPurchasing)
                     }
                 }
             }
-            .navigationTitle("Historial de Compras")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Cerrar") {
-                        dismiss()
-                    }
-                }
-            }
+            .padding(24)
+            .background(Color(.systemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(
+                        isPopular ? 
+                        LinearGradient(gradient: Gradient(colors: [color, color.opacity(0.6)]), startPoint: .topLeading, endPoint: .bottomTrailing) :
+                        LinearGradient(gradient: Gradient(colors: [Color.gray.opacity(0.2), Color.gray.opacity(0.1)]), startPoint: .topLeading, endPoint: .bottomTrailing),
+                        lineWidth: isPopular ? 2 : 1
+                    )
+            )
+            .shadow(
+                color: isPopular ? color.opacity(0.3) : Color.black.opacity(0.08), 
+                radius: isPopular ? 16 : 12, 
+                x: 0, 
+                y: isPopular ? 8 : 4
+            )
         }
-    }
-}
-
-// MARK: - SwiftData Transaction Row
-struct SwiftDataTransactionRow: View {
-    let transaction: PurchaseTransaction
-    
-    var body: some View {
-        HStack(spacing: 12) {
-            // Icon
-            Image(systemName: (transaction.isSubscription ?? false) ? "crown.fill" : ((transaction.productID ?? "").contains("implementation") ? "gear.badge" : "doc.text.fill"))
-                .font(.title2)
-                .foregroundColor((transaction.isSubscription ?? false) ? .purple : ((transaction.productID ?? "").contains("implementation") ? .red : .blue))
-                .frame(width: 40, height: 40)
-                .background(
-                    Circle()
-                        .fill((transaction.isSubscription ?? false) ? Color.purple.opacity(0.1) : ((transaction.productID ?? "").contains("implementation") ? Color.red.opacity(0.1) : Color.blue.opacity(0.1)))
-                )
-            
-            // Transaction Details
-            VStack(alignment: .leading, spacing: 4) {
-                Text(transaction.productName ?? "Unknown Product")
-                    .font(.headline)
-                    .foregroundColor(.primary)
-                
-                Text(DateFormatter.transactionDateFormatter.string(from: transaction.purchaseDate ?? Date()))
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                if (transaction.invoiceCount ?? 0) > 0 {
-                    Text("\(String(describing: transaction.invoiceCount)) facturas")
-                        .font(.caption)
-                        .foregroundColor(.blue)
-                }
-                
-                // Status indicator
-                HStack {
-                    Circle()
-                        .fill(statusColor(for: transaction.status ?? "Unknown"))
-                        .frame(width: 8, height: 8)
-                    Text((transaction.status ?? "Unknown").capitalized)
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                }
-            }
-            
-            Spacer()
-            
-            // Amount and details
-            VStack(alignment: .trailing, spacing: 2) {
-                Text("$\(String(format: "%.2f", transaction.amount ?? 0.0))")
-                    .font(.headline)
-                    .foregroundColor(.primary)
-                
-                if (transaction.isRestored ?? false) {
-                    Text("Restaurado")
-                        .font(.caption)
-                        .foregroundColor(.green)
-                }
-                
-                if let authCode = transaction.authorizationCode {
-                    Text("Auth: \(authCode)")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                }
-            }
-        }
-        .padding(.vertical, 4)
     }
     
-    private func statusColor(for status: String) -> Color {
-        switch status.lowercased() {
-        case "completed", "succeeded":
-            return .green
-        case "pending":
-            return .orange
-        case "failed":
-            return .red
-        case "refunded":
-            return .purple
-        default:
-            return .gray
+    private func purchaseProduct() {
+        isPurchasing = true
+        
+        // Find the product from StoreKit
+        if let product = storeManager.products.first(where: { $0.productIdentifier == productId }) {
+            Task {
+                await storeManager.purchase(product)
+                isPurchasing = false
+            }
+        } else {
+            // Fallback: simulate purchase for now
+            Task {
+                try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second delay
+                isPurchasing = false
+            }
         }
     }
 }
 
-// MARK: - Date Formatter Extension
-extension DateFormatter {
-    static let transactionDateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .short
-        return formatter
-    }()
-}
-
-// MARK: - Preview
 #Preview {
     InAppPurchaseView()
 }

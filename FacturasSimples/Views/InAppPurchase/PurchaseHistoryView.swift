@@ -45,7 +45,7 @@ struct PurchaseHistoryView: View {
         VStack(spacing: 24) {
             Spacer()
             
-            Image(systemName: "creditcard.circle")
+            Image(systemName: "doc.text.circle")
                 .font(.system(size: 60))
                 .foregroundColor(.secondary)
             
