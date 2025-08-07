@@ -986,7 +986,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "287"
             endingLineNumber = "287"
-            landmarkName = "transactionExists(withId:)"
+            landmarkName = "consumeCreditForCompletedInvoice(_:companyId:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

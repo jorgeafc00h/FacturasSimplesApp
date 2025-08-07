@@ -269,11 +269,11 @@ struct ProfileView: View {
         .sheet(isPresented: $viewModel.showAccountSummary){
             UserAccountView();
             }
-//        .sheet(isPresented: $showUnifiedPurchaseView) {
-//            UnifiedPurchaseView()
-//        }
+        .sheet(isPresented: $showUnifiedPurchaseView) {
+            UnifiedPurchaseView()
+        }
         .sheet(isPresented: $showPurchaseView) {
-            InAppPurchaseView()
+            UnifiedPurchaseView()
         }
         .sheet(isPresented: $showPurchaseHistory) {
             PurchaseHistoryView(onBrowseBundles: {

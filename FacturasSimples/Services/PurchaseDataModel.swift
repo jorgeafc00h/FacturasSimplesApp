@@ -100,6 +100,10 @@ class UserPurchaseProfile {
     var hasImplementationFeePaid: Bool?
     var implementationFeePaidDate: Date?
     
+    // Free trial tracking
+    var hasClaimedFreeTrial: Bool?
+    var freeTrialActivatedDate: Date?
+    
     // Customer information (optional)
     var customerName: String?
     var customerEmail: String?
@@ -123,6 +127,7 @@ class UserPurchaseProfile {
         totalSpent: Double = 0.0,
         hasActiveSubscription: Bool = false,
         hasImplementationFeePaid: Bool = false,
+        hasClaimedFreeTrial: Bool = false,
         isTestAccount: Bool = false
     ) {
         self.id = id
@@ -134,6 +139,7 @@ class UserPurchaseProfile {
         self.totalSpent = totalSpent
         self.hasActiveSubscription = hasActiveSubscription
         self.hasImplementationFeePaid = hasImplementationFeePaid
+        self.hasClaimedFreeTrial = hasClaimedFreeTrial
         self.isTestAccount = isTestAccount
         self.transactions = []
         self.consumptions = []

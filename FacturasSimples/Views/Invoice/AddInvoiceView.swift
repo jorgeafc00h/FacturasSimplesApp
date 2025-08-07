@@ -106,7 +106,7 @@ struct AddInvoiceView: View {
                 ProductPicker(details: $viewModel.details)
             }
             .sheet(isPresented: $showCreditsGate) {
-                InAppPurchaseView()
+                UnifiedPurchaseView()
             }
             .onChange(of: viewModel.invoiceType) { _, _ in
                 getNextInoviceOrCCFNumber(invoiceType: viewModel.invoiceType)
@@ -119,7 +119,7 @@ struct AddInvoiceView: View {
 //                }
             }
             .sheet(isPresented: $viewModel.showImplementationFee) {
-                InAppPurchaseView()
+                UnifiedPurchaseView()
             }
             .onChange(of: viewModel.showImplementationFee) { _, _ in
                 // Refresh credits when purchase view is dismissed

@@ -97,6 +97,15 @@ class AppleStoreKitManager: NSObject, ObservableObject {
         SKPaymentQueue.default().add(payment)
     }
     
+    func restorePurchases() async {
+        await MainActor.run {
+            self.purchaseState = .processing
+            self.errorMessage = nil
+        }
+        
+        SKPaymentQueue.default().restoreCompletedTransactions()
+    }
+    
     // MARK: - Coupon Code and Promotional Offers
     
     func validateCouponCode(_ code: String, for product: SKProduct) {

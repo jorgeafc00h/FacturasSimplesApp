@@ -106,14 +106,16 @@ struct CreditsStatusView: View {
         .background(Color(.systemBackground))
         .onAppear {
             // Ensure user profile is loaded when view appears
-            purchaseManager.loadUserProfile()
+            Task {
+                await purchaseManager.loadUserProfile()
+            }
             print("💰 CreditsStatusView: View appeared, loading user profile")
         }
         .onChange(of: purchaseManager.userProfile?.availableInvoices) { oldValue, newValue in
             print("💰 CreditsStatusView: Credits changed from \(oldValue ?? 0) to \(newValue ?? 0)")
         }
         .sheet(isPresented: $showPurchaseView) {
-            InAppPurchaseView()
+            UnifiedPurchaseView()
         }
     }
 }

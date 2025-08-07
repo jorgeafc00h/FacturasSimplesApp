@@ -445,6 +445,58 @@ class PurchaseDataManager: ObservableObject {
         return userProfile?.availableInvoices ?? 0
     }
     
+    /// Activates free trial with specified number of invoices (only once per user)
+    func activateFreeTrial(with invoiceCount: Int) {
+        guard let modelContext = modelContext else {
+            print("❌ PurchaseDataManager: No modelContext for activating free trial")
+            return
+        }
+        
+        guard let profile = getCurrentOrCreateProfile() else {
+            print("❌ PurchaseDataManager: Cannot activate free trial - no profile")
+            return
+        }
+        
+        // Check if user has already claimed free trial
+        if profile.hasClaimedFreeTrial == true {
+            print("⚠️ PurchaseDataManager: User has already claimed free trial")
+            return
+        }
+        
+        // Add free trial credits
+        profile.availableInvoices = (profile.availableInvoices ?? 0) + invoiceCount
+        profile.hasClaimedFreeTrial = true
+        profile.freeTrialActivatedDate = Date()
+        
+        // Create a transaction record for the free trial
+        let freeTrialTransactionId = "free_trial_\(Int(Date().timeIntervalSince1970))"
+        let freeTrialTransaction = PurchaseTransaction(
+            id: freeTrialTransactionId,
+            productID: "free_trial",
+            productName: "Prueba Gratuita",
+            productDescription: "15 facturas gratis como prueba inicial",
+            amount: 0.0,
+            currency: "USD",
+            invoiceCount: invoiceCount,
+            status: "completed"
+        )
+        
+        modelContext.insert(freeTrialTransaction)
+        
+        do {
+            try modelContext.save()
+            print("✅ PurchaseDataManager: Free trial activated with \(invoiceCount) invoices")
+            print("💰 PurchaseDataManager: New balance: \(profile.availableInvoices ?? 0)")
+            
+            // Update published property
+            DispatchQueue.main.async {
+                self.userProfile = profile
+            }
+        } catch {
+            print("❌ PurchaseDataManager: Failed to activate free trial: \(error)")
+        }
+    }
+    
     /// Processes a successful payment response and adds credits to user account
     /// - Parameter paymentResponse: The payment status response from the payment API
     /// - Returns: True if credits were successfully added, false otherwise
