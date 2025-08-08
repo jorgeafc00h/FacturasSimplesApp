@@ -3,7 +3,7 @@
 //  FacturasSimples
 //
 //  Created by Jorge Flores on 6/3/25.
-//  Updated on 1/14/25 - Migrated from Apple StoreKit to N1CO Epay custom credit card payments
+//  App Store compliant In-App Purchase models using Apple StoreKit
 //
 
 import Foundation

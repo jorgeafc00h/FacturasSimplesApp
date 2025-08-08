@@ -143,15 +143,15 @@ class DataModel {
                 schema: Schema([
                     PurchaseTransaction.self,
                     UserPurchaseProfile.self,
-                    InvoiceConsumption.self,
-                    SavedPaymentMethod.self
+                    InvoiceConsumption.self
+                    // SavedPaymentMethod.self // Removed - violates App Store guidelines
                 ]),
                 isStoredInMemoryOnly: false,
                 cloudKitDatabase: .private("iCloud.kandangalabs.facturassimples.purchases")
             )
             
             let cloudKitContainer = try ModelContainer(
-                for: PurchaseTransaction.self, UserPurchaseProfile.self, InvoiceConsumption.self, SavedPaymentMethod.self,
+                for: PurchaseTransaction.self, UserPurchaseProfile.self, InvoiceConsumption.self, // SavedPaymentMethod removed
                 configurations: purchaseCloudKitConfig
             )
             print("✅ Successfully created CloudKit-enabled purchase container")
@@ -169,15 +169,15 @@ class DataModel {
                     schema: Schema([
                         PurchaseTransaction.self,
                         UserPurchaseProfile.self,
-                        InvoiceConsumption.self,
-                        SavedPaymentMethod.self
+                        InvoiceConsumption.self
+                        // SavedPaymentMethod.self // Removed - violates App Store guidelines
                     ]),
                     isStoredInMemoryOnly: false,
                     cloudKitDatabase: .none
                 )
                 
                 let localContainer = try ModelContainer(
-                    for: PurchaseTransaction.self, UserPurchaseProfile.self, InvoiceConsumption.self, SavedPaymentMethod.self,
+                    for: PurchaseTransaction.self, UserPurchaseProfile.self, InvoiceConsumption.self, // SavedPaymentMethod removed
                     configurations: localConfig
                 )
                 print("⚠️ Using local-only purchase container as fallback")
@@ -196,14 +196,14 @@ class DataModel {
                         schema: Schema([
                             PurchaseTransaction.self,
                             UserPurchaseProfile.self,
-                            InvoiceConsumption.self,
-                            SavedPaymentMethod.self
+                            InvoiceConsumption.self
+                            // SavedPaymentMethod.self // Removed - violates App Store guidelines
                         ]),
                         isStoredInMemoryOnly: true
                     )
                     
                     let memoryContainer = try ModelContainer(
-                        for: PurchaseTransaction.self, UserPurchaseProfile.self, InvoiceConsumption.self, SavedPaymentMethod.self,
+                        for: PurchaseTransaction.self, UserPurchaseProfile.self, InvoiceConsumption.self, // SavedPaymentMethod removed
                         configurations: memoryConfig
                     )
                     print("⚠️ Using in-memory purchase container as final fallback")

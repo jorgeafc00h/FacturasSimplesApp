@@ -23,7 +23,7 @@ class PurchaseDataManager: ObservableObject {
     // MARK: - Properties
     @Published var userProfile: UserPurchaseProfile?
     @Published var recentTransactions: [PurchaseTransaction] = []
-    @Published var savedPaymentMethods: [SavedPaymentMethod] = []
+    // REMOVED: savedPaymentMethods - violates App Store guidelines
     @Published var isInitialized: Bool = false
     
     private var modelContext: ModelContext?
@@ -103,7 +103,7 @@ class PurchaseDataManager: ObservableObject {
                 PurchaseTransaction.self,
                 UserPurchaseProfile.self,
                 InvoiceConsumption.self,
-                SavedPaymentMethod.self
+                // REMOVED: SavedPaymentMethod.self - violates App Store guidelines
             ])
             
             print("🔨 PurchaseDataManager: Creating in-memory schema with \(memorySchema.entities.count) entities")
@@ -115,7 +115,7 @@ class PurchaseDataManager: ObservableObject {
             )
             
             let memoryContainer = try ModelContainer(
-                for: PurchaseTransaction.self, UserPurchaseProfile.self, InvoiceConsumption.self, SavedPaymentMethod.self,
+                for: PurchaseTransaction.self, UserPurchaseProfile.self, InvoiceConsumption.self, // SavedPaymentMethod removed
                 configurations: memoryConfiguration
             )
             
@@ -318,23 +318,7 @@ class PurchaseDataManager: ObservableObject {
         }
     }
     
-    /// Checks if a payment method with the given ID already exists
-    private func paymentMethodExists(withId id: String) -> Bool {
-        guard let modelContext = modelContext else { return false }
-        
-        do {
-            let descriptor = FetchDescriptor<SavedPaymentMethod>(
-                predicate: #Predicate { paymentMethod in
-                    paymentMethod.id == id
-                }
-            )
-            let results = try modelContext.fetch(descriptor)
-            return !results.isEmpty
-        } catch {
-            print("❌ PurchaseDataManager: Error checking payment method existence: \(error)")
-            return false
-        }
-    }
+    // REMOVED: paymentMethodExists - external payment method checking violates App Store guidelines
     
     /// Checks if an invoice consumption with the given ID already exists
     private func consumptionExists(withId id: String) -> Bool {
@@ -497,89 +481,8 @@ class PurchaseDataManager: ObservableObject {
         }
     }
     
-    /// Processes a successful payment response and adds credits to user account
-    /// - Parameter paymentResponse: The payment status response from the payment API
-    /// - Returns: True if credits were successfully added, false otherwise
-    func processPaymentSuccess(_ paymentResponse: PaymentStatusResponse) -> Bool {
-        guard paymentResponse.isPaymentCompleted else {
-            print("ℹ️ PurchaseDataManager: Payment not completed, skipping credit addition")
-            return false
-        }
-        
-        let creditsToAdd = paymentResponse.creditsToAdd
-        guard creditsToAdd > 0 else {
-            print("⚠️ PurchaseDataManager: No credits to add from payment response")
-            return false
-        }
-        
-        guard let modelContext = modelContext else {
-            print("❌ PurchaseDataManager: No modelContext for processing payment")
-            return false
-        }
-        
-        guard let profile = getCurrentOrCreateProfile() else {
-            print("❌ PurchaseDataManager: Cannot process payment - no profile")
-            return false
-        }
-        
-        // Use order reference as transaction ID to prevent duplicates
-        let transactionId = paymentResponse.orderRef ?? UUID().uuidString
-        
-        // Check if we've already processed this payment
-        if transactionExists(withId: transactionId) {
-            print("ℹ️ PurchaseDataManager: Payment \(transactionId) already processed, skipping")
-            return false
-        }
-        
-        // Add credits to user profile
-        let oldBalance = profile.availableInvoices ?? 0
-        profile.availableInvoices = oldBalance + creditsToAdd
-        
-        // Create transaction record
-        let purchaseTransaction = PurchaseTransaction(
-            id: transactionId,
-            productID: paymentResponse.productSku ?? "external_payment",
-            productName: "External Payment",
-            productDescription: "Credits from external payment system",
-            purchaseDate: paymentResponse.transactionDate ?? Date(),
-            amount: paymentResponse.paidAmountDouble ?? 0.0,
-            currency: "USD",
-            invoiceCount: creditsToAdd,
-            isRestored: false,
-            isSubscription: false,
-            paymentMethodId: "external",
-            externalOrderId: paymentResponse.orderRef,
-            authorizationCode: nil,
-            status: "completed"
-        )
-        
-        // Associate transaction with profile
-        purchaseTransaction.userProfile = profile
-        
-        modelContext.insert(purchaseTransaction)
-        
-        do {
-            try modelContext.save()
-            
-            let newBalance = profile.availableInvoices ?? 0
-            print("✅ PurchaseDataManager: Payment processed successfully")
-            print("💰 PurchaseDataManager: Added \(creditsToAdd) credits from payment")
-            print("📊 PurchaseDataManager: Balance: \(oldBalance) → \(newBalance)")
-            print("🔗 PurchaseDataManager: Transaction ID: \(transactionId)")
-            
-            // Update published property on main thread
-            DispatchQueue.main.async {
-                self.userProfile = profile
-                // Force objectWillChange to notify observers
-                self.objectWillChange.send()
-            }
-            
-            return true
-        } catch {
-            print("❌ PurchaseDataManager: Failed to process payment: \(error)")
-            return false
-        }
-    }
+    // REMOVED: External payment processing method - violates App Store guidelines
+    // Only Apple IAP payments are processed through dedicated Apple StoreKit methods
     
     // MARK: - Transaction History
     
@@ -612,109 +515,11 @@ class PurchaseDataManager: ObservableObject {
         }
     }
     
-    // MARK: - Payment Methods
+    // REMOVED: Payment Methods section - violates App Store guidelines
+    // External payment method storage not allowed when using Apple IAP
     
-    func loadSavedPaymentMethods() {
-        guard let modelContext = modelContext else {
-            print("❌ PurchaseDataManager: No modelContext for loading payment methods")
-            return
-        }
-        
-        guard let profile = userProfile else {
-            print("ℹ️ PurchaseDataManager: No profile, skipping payment methods load")
-            return
-        }
-        
-        do {
-            let descriptor = FetchDescriptor<SavedPaymentMethod>()
-            
-            let methods = try modelContext.fetch(descriptor)
-            
-            DispatchQueue.main.async {
-                self.savedPaymentMethods = methods
-            }
-            
-            print("✅ PurchaseDataManager: Loaded \(methods.count) saved payment methods")
-        } catch {
-            print("❌ PurchaseDataManager: Failed to load payment methods: \(error)")
-        }
-    }
-    
-    func savePaymentMethod(_ method: SavedPaymentMethod) {
-        guard let modelContext = modelContext else {
-            print("❌ PurchaseDataManager: No modelContext for saving payment method")
-            return
-        }
-        
-        modelContext.insert(method)
-        
-        do {
-            try modelContext.save()
-            loadSavedPaymentMethods() // Refresh the list
-            print("✅ PurchaseDataManager: Saved payment method")
-        } catch {
-            print("❌ PurchaseDataManager: Failed to save payment method: \(error)")
-        }
-    }
-    
-    // MARK: - Transaction Management (External Payment Compatibility)
-    
-    func addTransaction(
-        productID: String, 
-        productName: String, 
-        productDescription: String? = nil,
-        amount: Double, 
-        currency: String = "USD",
-        invoiceCount: Int, 
-        isSubscription: Bool = false,
-        externalOrderId: String? = nil,
-        authorizationCode: String? = nil,
-        billingCycle: String? = nil,
-        status: String = "completed"
-    ) {
-        guard let modelContext = modelContext else {
-            print("❌ PurchaseDataManager: No modelContext for adding transaction")
-            return
-        }
-        
-        // Generate a unique transaction ID
-        let transactionId = externalOrderId ?? UUID().uuidString
-        
-        // Check if transaction already exists to avoid duplicates
-        if transactionExists(withId: transactionId) {
-            print("ℹ️ PurchaseDataManager: Transaction \(transactionId) already exists, skipping")
-            return
-        }
-        
-        let transaction = PurchaseTransaction(
-            id: transactionId,
-            productID: productID,
-            productName: productName,
-            productDescription: productDescription ?? "Transaction from external payment",
-            amount: amount,
-            currency: currency,
-            invoiceCount: invoiceCount,
-            isSubscription: isSubscription,
-            externalOrderId: externalOrderId,
-            authorizationCode: authorizationCode,
-            status: status,
-            billingCycle: billingCycle
-        )
-        
-        modelContext.insert(transaction)
-        
-        // If this is a completed purchase, add credits
-        if status == "completed" {
-            addCredits(invoiceCount)
-        }
-        
-        do {
-            try modelContext.save()
-            print("✅ PurchaseDataManager: Added transaction: \(productName)")
-        } catch {
-            print("❌ PurchaseDataManager: Failed to add transaction: \(error)")
-        }
-    }
+    // REMOVED: External payment transaction management - violates App Store guidelines
+    // All transactions are processed through Apple StoreKit only
     
     func consumeInvoiceCredit(for invoiceId: String) {
         // This is an alias for the existing method with default company
@@ -747,7 +552,7 @@ class PurchaseDataManager: ObservableObject {
             print("Total Used: \(profile.totalPurchasedInvoices)")
         }
         print("Recent Transactions: \(recentTransactions.count)")
-        print("Saved Payment Methods: \(savedPaymentMethods.count)")
+        // print("Saved Payment Methods: \(savedPaymentMethods.count)") // Removed - external payments
         print("=====================================")
     }
 }
