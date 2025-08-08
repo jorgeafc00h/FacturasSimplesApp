@@ -4,7 +4,7 @@ import SwiftData
 import CryptoKit
 //import JWTKit
 
-class InvoiceServiceClient
+class InvoiceServiceClient: ObservableObject
 {
     
     private let encoder = JSONEncoder()
@@ -372,6 +372,81 @@ class InvoiceServiceClient
 //        }
     }
     
+    /// Sends a contingency request to the Ministry of Finance for invoices that couldn't be processed
+    /// - Parameter contingencyRequest: The contingency request containing invoices and metadata
+    /// - Returns: True if the request was sent successfully
+    /// - Throws: ApiErrors if the request fails
+    func sendContingencyRequest(_ contingencyRequest: ContingenciaRequest,credentials: ServiceCredentials, isProduction: Bool) async throws -> Bool {
+        print("📋 InvoiceServiceClient: Starting contingency request for \(contingencyRequest.detalleDTE.count) invoices")
+        
+        let endpoint = getBaseUrl(isProduction) + "/document/contingencia/report"
+        
+        guard let url = URL(string: endpoint) else {
+            print("❌ InvoiceServiceClient: Invalid contingency URL")
+            throw ApiErrors.invalidURL
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(Constants.Apikey, forHTTPHeaderField: Constants.ApiKeyHeaderName)
+        request.setValue(credentials.key, forHTTPHeaderField: Constants.CertificateKey)
+        
+        request.setValue(credentials.user, forHTTPHeaderField: Constants.MH_USER)
+        request.setValue(credentials.credential, forHTTPHeaderField: Constants.MH_KEY)
+        request.setValue(credentials.invoiceNumber, forHTTPHeaderField: Constants.InvoiceNumber)
+        
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .formatted(DateFormatter.iso8601DateOnly)
+        
+        do {
+            let jsonData = try encoder.encode(contingencyRequest)
+            request.httpBody = jsonData
+             
+            let jsonString = String(data: jsonData, encoding: .utf8)!
+                
+            print("REQUEST JSON")
+            print(jsonString)
+            print("END REQUEST JSON")
+            
+            let (data, response) = try await GetDefaultSesssion().data(for: request)
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                print("❌ InvoiceServiceClient: Invalid response type")
+                throw ApiErrors.invalidResponse
+            }
+            
+            print("📋 InvoiceServiceClient: Received contingency response with status: \(httpResponse.statusCode)")
+            
+            if httpResponse.statusCode == 200 || httpResponse.statusCode == 201 {
+                print("✅ InvoiceServiceClient: Contingency request sent successfully")
+                return true
+            } else {
+                print("❌  BInvoiceServiceClient: Contingency request failed with status: \(httpResponse.statusCode)")
+                
+                // Try to parse error response
+                do {
+                    let errorResponse = try JSONDecoder().decode(DTEErrorResponseWrapper.self, from: data)
+                    let errorMessage = errorResponse.descripcionMsg
+                    print("❌ InvoiceServiceClient: Error details: \(errorMessage)")
+                    throw ApiErrors.custom(message: errorMessage)
+                } catch {
+                    let message = String(data: data, encoding: .utf8) ?? "Unknown error"
+                    print("❌ InvoiceServiceClient: Raw error response: \(message)")
+                    throw ApiErrors.custom(message: "Failed to send contingency request: \(message)")
+                }
+            }
+        } catch let encodingError as EncodingError {
+            print("❌ InvoiceServiceClient: Encoding error: \(encodingError)")
+            throw ApiErrors.custom(message: "Failed to encode contingency request")
+        } catch {
+            print("❌ InvoiceServiceClient: Network error: \(error)")
+            throw error
+        }
+    }
+    
+    // REMOVED: External payment status checking - violates App Store guidelines
+    // Only Apple IAP payments are supported as per Guideline 3.1.1
 }
  
 //        let token = try await generateToken(teamId: "62V6DQB2H6",

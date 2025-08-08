@@ -97,21 +97,6 @@ extension InvoiceDetailView {
             }
         }
         
-        func testDeserialize(_ invoice: Invoice) async -> DTE_Base? {
-            let path = "https://kinvoicestdev.blob.core.windows.net/06141404941342/DTE-01-KQACC1I2-558201638398652.json?sv=2021-10-04&st=2025-02-19T22%3A15%3A58Z&se=2025-02-20T22%3A15%3A58Z&sr=b&sp=r&sig=fWFyiepbo%2B5gbvPi47CIl2wnetFN2oEEuvHgEvEZ9PQ%3D"
-            
-            let path2 = "https://kinvoicestdev.blob.core.windows.net/06141404941342/DTE-01-8VK8VUL7-085808497996953.json?sv=2021-10-04&st=2025-02-19T22%3A18%3A20Z&se=2025-02-20T22%3A18%3A20Z&sr=b&sp=r&sig=x4g%2FQmctgtGmv9wsDdVnhEsVFPmI7UIDr%2FoASH91TkM%3D"
-            
-            // let invoiceService = InvoiceServiceClient()
-            
-            let dte =  try? await invoiceService.getDocumentFromStorage(path: path)
-            
-            let dte_invoice = try? await invoiceService.getDocumentFromStorage(path: path2)
-            
-            print("\(dte_invoice?.identificacion.numeroControl ?? "No hay control")")
-            
-            return dte
-        }
         
         func validateCredentialsAsync(_ invoice: Invoice) async  {
             let serviceClient  = InvoiceServiceClient()
@@ -193,28 +178,35 @@ extension InvoiceDetailView {
     
     
     
-    func SyncInvoice(storeKitManager: StoreKitManager? = nil){
+    func SyncInvoice(){
         
         try? modelContext.save()
         
         if viewModel.dte != nil {
+            // Check if user has available credits before attempting sync
+            let canProceed = validateCreditsBeforeSync()
+            guard canProceed else {
+                viewModel.errorMessage = "No tienes créditos suficientes para completar esta factura. Compra más créditos en la sección de compras."
+                viewModel.showErrorAlert = true
+                return
+            }
+            
             viewModel.isBusy = true
             Task {
                 
-                if let response =   await viewModel.SyncInvoice(invoice: invoice){
+                if let response = await viewModel.SyncInvoice(invoice: invoice){
                     
                     invoice.status = .Completada
-                    invoice.statusRawValue =  invoice.status.id
+                    invoice.statusRawValue = invoice.status.id
                     invoice.receptionSeal = response.selloRecibido
                     try? modelContext.save()
                     
                     udpateRelatedDocuemntFromCreditNote()
-                    await viewModel.backupPDF(invoice)
                     
-                    // Consume credit for production accounts after successful sync
-                    if let storeKitManager = storeKitManager {
-                        consumeCreditForCompletedInvoice(storeKitManager: storeKitManager)
-                    }
+                    // Consume credit ONLY after successful sync using PurchaseDataManager
+                    consumeCreditForCompletedInvoice()
+                    
+                    await viewModel.backupPDF(invoice)
                 }
                 viewModel.isBusy = false
             }
@@ -413,26 +405,58 @@ extension InvoiceDetailView {
         
         dismiss()
     }
-    /// Consume credit for a completed invoice
-    func consumeCreditForCompletedInvoice(storeKitManager: StoreKitManager) {
+    
+    /// Validate if user has available credits before attempting sync
+    func validateCreditsBeforeSync() -> Bool {
+     
         // Get the company associated with this invoice
-        if let customerId = invoice.customer?.companyOwnerId {
-            let descriptor = FetchDescriptor<Company>(
-                predicate: #Predicate<Company> { company in
-                    company.id == customerId
-                }
-            )
-            
-            if let company = try? modelContext.fetch(descriptor).first {
-                // Only consume credit for production companies
-                if company.requiresPaidServices && !company.isTestAccount {
-                    _ = storeKitManager.useInvoiceCredit(for: company)
-                    print("✅ Invoice completed - credit consumed for company: \(company.nombre)")
-                } else {
-                    print("ℹ️ No credit consumed - invoice is from test account or non-production company")
-                }
-            }
+        guard let customerId = invoice.customer?.companyOwnerId else {
+            print("⚠️ No company ID found for invoice")
+            return false
         }
+        
+        let descriptor = FetchDescriptor<Company>(
+            predicate: #Predicate<Company> { company in
+                company.id == customerId
+            }
+        )
+        
+        guard let company = try? modelContext.fetch(descriptor).first else {
+            print("⚠️ Company not found")
+            return false
+        }
+
+        // if it's a test company, bypass credit validation
+        if company.isTestAccount {
+            print("🧪 Test company detected - bypassing credit validation")
+            return true
+        }
+
+        // Use PurchaseDataManager for centralized credit validation
+        return PurchaseDataManager.shared.validateCreditsBeforeInvoiceSync(for: customerId)
+    }
+    
+    /// Consume credit for a completed invoice using Apple IAP system
+    func consumeCreditForCompletedInvoice() {
+        // Get the company associated with this invoice
+        guard let customerId = invoice.customer?.companyOwnerId else {
+            print("⚠️ Cannot consume credit - no company ID found for invoice")
+            return
+        }
+        
+        let descriptor = FetchDescriptor<Company>(
+            predicate: #Predicate<Company> { company in
+                company.id == customerId
+            }
+        )
+        
+        guard let company = try? modelContext.fetch(descriptor).first else {
+            print("⚠️ Cannot consume credit - company not found")
+            return
+        }
+        
+        // Use PurchaseDataManager for centralized credit consumption
+        PurchaseDataManager.shared.consumeCreditForCompletedInvoice(invoice.inoviceId, companyId: customerId)
     }
 }
 

@@ -94,14 +94,18 @@ extension AddInvoiceView {
              
             
             // Set correct sync status based on company type (through customer)
-            if let customerId = viewModel.customer?.companyOwnerId {
-                let isProductionCompany = !customerId.isEmpty && 
-                                        DataSyncFilterManager.shared.getProductionCompanies(context: modelContext)
-                                            .contains { $0.id == customerId }
-                invoice.shouldSyncToCloudKit = isProductionCompany
-            } else {
-                invoice.shouldSyncToCloudKit = false
-            }
+//            if let customerId = viewModel.customer?.companyOwnerId {
+//                let isProductionCompany = !customerId.isEmpty && 
+//                                        DataSyncFilterManager.shared.getProductionCompanies(context: modelContext)
+//                                            .contains { $0.id == customerId }
+//                invoice.shouldSyncToCloudKit = isProductionCompany
+//                
+//                // Note: Credits are now consumed only when invoice is successfully synced,
+//                // not when created as draft. See InvoiceDetailViewModel.syncInvoice()        
+//            } else {
+//                invoice.shouldSyncToCloudKit = false
+//            }
+            invoice.shouldSyncToCloudKit = true
             
             modelContext.insert(invoice)
             try? modelContext.save()
@@ -111,37 +115,7 @@ extension AddInvoiceView {
         }
     }
     
-    func handleCreateInvoice(storeKitManager: StoreKitManager, showCreditsGate: Binding<Bool>) {
-        // Check if user has sufficient credits ONLY for production companies
-        guard let selectedCompany = getSelectedCompany() else {
-            // If no company found, proceed (fallback)
-            addInvoice()
-            return
-        }
-        
-        // Test accounts don't need credit validation
-        if selectedCompany.isTestAccount {
-            addInvoice()
-            return
-        }
-        
-        // For production accounts, check if implementation fee is required
-        if storeKitManager.requiresImplementationFee(for: selectedCompany) {
-            // Show implementation fee purchase flow
-            viewModel.showImplementationFee = true
-            return
-        }
-        
-        // Production accounts need credit validation (but don't consume yet)
-        guard storeKitManager.hasAvailableCredits(for: selectedCompany) else {
-            showCreditsGate.wrappedValue = true
-            return
-        }
-        
-        // Proceed with invoice creation (credit will be consumed when synced)
-        addInvoice()
-    }
-    
+ 
     func deleteDetail(detail:InvoiceDetail){
         withAnimation{
             let index = viewModel.details.firstIndex(of: detail)

@@ -15,7 +15,6 @@ struct InvoiceDetailView: View {
     @State var viewModel = InvoiceDetailViewModel()
     @Environment(\.dismiss) var dismiss;
     @Environment(\.modelContext) var modelContext
-    @EnvironmentObject var storeKitManager: StoreKitManager
     @AppStorage("selectedCompanyIdentifier")  var companyIdentifier : String = ""
     
     @Query var companies: [Company]
@@ -65,7 +64,7 @@ struct InvoiceDetailView: View {
 //        .onChange(of: invoice) {
 //            refreshPDF()
 //        }
-        .onChange(of: viewModel.company){
+        .onChange(of: viewModel.company) { _, _ in
             refreshPDF()
         }
         .sheet(isPresented: $viewModel.showShareSheet) {
@@ -340,7 +339,6 @@ struct InvoiceDetailView: View {
         
     }
     
-    
     private var productsSection: some View {
         Section(header: Text("Productos")) {
             ForEach(invoice.items ?? [], id: \.self) { detail in
@@ -385,7 +383,7 @@ struct InvoiceDetailView: View {
                         titleVisibility: .visible
                     ) {
                         
-                        Button(action: { SyncInvoice(storeKitManager: storeKitManager) }, label: { Text("Sincronizar") })
+                        Button(action: { SyncInvoice() }, label: { Text("Sincronizar") })
                         
                         Button("Cancelar", role: .cancel) {}
                     }

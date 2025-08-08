@@ -13,7 +13,6 @@ struct AddInvoiceView: View {
     @Environment(\.calendar) private var calendar
     @Environment(\.dismiss)  var dismiss
     @Environment(\.timeZone) private var timeZone
-    @EnvironmentObject var storeKitManager: StoreKitManager
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.verticalSizeClass) private var verticalSizeClass
     
@@ -35,53 +34,37 @@ struct AddInvoiceView: View {
         horizontalSizeClass == .regular && verticalSizeClass == .regular
     }
     
-    var shouldDisableForCredits: Bool {
-        guard let company = selectedCompany else { return false }
-        
-        // Test accounts don't need credit validation
-        if company.isTestAccount {
-            return false
-        }
-        
-        // Migrate global implementation fee to company-specific if needed
-        storeKitManager.migrateGlobalImplementationFeeToCompany(company)
-        
-        // Production accounts need implementation fee and credits
-        return storeKitManager.requiresImplementationFee(for: company) || !storeKitManager.hasAvailableCredits(for: company)
-    }
+    
     
     var shouldShowCreditsWarning: Bool {
         guard let company = selectedCompany else { return false }
         
-        // Migrate global implementation fee to company-specific if needed
-        storeKitManager.migrateGlobalImplementationFeeToCompany(company)
-        
         // Only show warning for production accounts that lack credits or implementation fee
-        return company.requiresPaidServices && shouldDisableForCredits
+        return company.requiresPaidServices
     }
     
-    var creditsWarningMessage: String {
-        guard let company = selectedCompany else { return "" }
-        
-        if company.requiresPaidServices {
-            if storeKitManager.requiresImplementationFee(for: company) {
-                return "Esta empresa requiere pagar el costo de implementación para crear facturas en producción"
-            } else if !storeKitManager.hasAvailableCredits(for: company) {
-                return "Esta empresa requiere créditos para crear facturas en producción"
-            }
-        }
-        
-        return ""
-    }
-    
+//    var creditsWarningMessage: String {
+//        guard let company = selectedCompany else { return "" }
+//        
+//        if company.requiresPaidServices {
+//            let purchaseManager = PurchaseDataManager.shared
+//            if purchaseManager.requiresImplementationFee(for: company) {
+//                return "Esta empresa requiere pagar el costo de implementación para crear facturas en producción"
+//            } else if !purchaseManager.canCreateInvoice() {
+//                return "Esta empresa requiere créditos para crear facturas en producción"
+//            }
+//        }
+//        
+//        return ""
+//    }
+//    
     var body: some View {
         
         NavigationStack {
             Form{
-                // Credits Status Section
+                // Credits Status Section (using SwiftData-backed credit system)
                 Section {
                     CreditsStatusView(company: selectedCompany)
-                        .environmentObject(storeKitManager)
                 }
                 
                 CustomerSection
@@ -89,7 +72,7 @@ struct AddInvoiceView: View {
                 ProductDetailsSection
                 TotalSection
                 Section {
-                    Button(action: { handleCreateInvoice(storeKitManager: storeKitManager, showCreditsGate: $showCreditsGate) }, label: {
+                    Button(action: addInvoice, label: {
                         HStack {
                             Image(systemName: "checkmark.circle")
                             Text("Crear Factura")
@@ -102,12 +85,15 @@ struct AddInvoiceView: View {
                     .background(.darkCyan)
                     .cornerRadius(10)
                     
+                    // COMMENTED OUT FOR APP SUBMISSION - IAP functionality disabled
+                    /*
                     if shouldShowCreditsWarning {
                         Text(creditsWarningMessage)
                             .font(.caption)
                             .foregroundColor(.red)
                             .frame(maxWidth: .infinity, alignment: .center)
                     }
+                    */
                 }
             }
             .frame(idealWidth: LayoutConstants.sheetIdealWidth,
@@ -120,34 +106,24 @@ struct AddInvoiceView: View {
                 ProductPicker(details: $viewModel.details)
             }
             .sheet(isPresented: $showCreditsGate) {
-                CreditsGateView {
-                    // When user proceeds after getting credits, dismiss the gate
-                    showCreditsGate = false
-                }
-                .environmentObject(storeKitManager)
+                UnifiedPurchaseView()
             }
-            .onChange(of: viewModel.invoiceType){
+            .onChange(of: viewModel.invoiceType) { _, _ in
                 getNextInoviceOrCCFNumber(invoiceType: viewModel.invoiceType)
             }
-            .onChange(of: showCreditsGate) { oldValue, newValue in
-                // Refresh credits when CreditsGateView is dismissed
-                if oldValue == true && newValue == false {
-                    print("🔄 CreditsGateView dismissed, refreshing credits...")
-                    storeKitManager.refreshUserCredits()
-                }
+            .onChange(of: showCreditsGate) { _, _ in
+                // Refresh credits when purchase view is dismissed
+//                if oldValue == true && newValue == false {
+//                    print("🔄 Purchase view dismissed, refreshing credits...")
+//                    purchaseManager.loadUserProfile()
+//                }
             }
             .sheet(isPresented: $viewModel.showImplementationFee) {
-                if let company = selectedCompany {
-                    ImplementationFeeView(company: company)
-                        .environmentObject(storeKitManager)
-                }
+                UnifiedPurchaseView()
             }
-            .onChange(of: viewModel.showImplementationFee) { oldValue, newValue in
-                // Refresh credits when ImplementationFeeView is dismissed
-                if oldValue == true && newValue == false {
-                    print("🔄 ImplementationFeeView dismissed, refreshing credits...")
-                    storeKitManager.refreshUserCredits()
-                }
+            .onChange(of: viewModel.showImplementationFee) { _, _ in
+                // Refresh credits when purchase view is dismissed
+                 
             }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -156,29 +132,29 @@ struct AddInvoiceView: View {
                     }
                 }
                 ToolbarItem(placement: .primaryAction) {
-                    Button("Guardar", action: { handleCreateInvoice(storeKitManager: storeKitManager, showCreditsGate: $showCreditsGate) })
-                        .disabled(viewModel.disableAddInvoice || shouldDisableForCredits)
+                    Button("Guardar", action: addInvoice)
+                        .disabled(viewModel.disableAddInvoice)
                 }
             }.accentColor(.darkCyan)
         }
         .onAppear {
             getNextInoviceNumber()
             // Refresh credits when AddInvoiceView appears to ensure current balance
-            storeKitManager.refreshUserCredits()
+            //purchaseManager.loadUserProfile()
         }
        
-        .onChange(of: selectedCompany?.hasImplementationFeePaid ?? false) { oldValue, newValue in
-            if oldValue != newValue {
-                print("🔄 Implementation fee status changed for company: \(newValue)")
-                // The view should automatically refresh due to company being from @Query
-            }
-        }
-        .onChange(of: storeKitManager.userCredits.availableInvoices) { oldValue, newValue in
-            if oldValue != newValue {
-                print("🔄 Available credits changed: \(newValue)")
-                // The view should automatically refresh due to the @EnvironmentObject
-            }
-        }
+//        .onChange(of: selectedCompany?.hasImplementationFeePaid ?? false) { oldValue, newValue in
+//            if oldValue != newValue {
+//                print("🔄 Implementation fee status changed for company: \(newValue)")
+//                // The view should automatically refresh due to company being from @Query
+//            }
+//        }
+//        .onChange(of: purchaseManager.userProfile?.availableInvoices ?? 0) { oldValue, newValue in
+//            if oldValue != newValue {
+//                print("🔄 Available credits changed: \(newValue)")
+//                // The view should automatically refresh due to the @StateObject
+//            }
+//        }
         .presentationDetents([.large])
     }
     
@@ -379,6 +355,5 @@ private struct AddInoviceViewWrapper: View {
     @State var selectedInovice: Invoice?
     var body: some View {
         AddInvoiceView(selectedInvoice: $selectedInovice)
-            .environmentObject(StoreKitManager())
     }
 }

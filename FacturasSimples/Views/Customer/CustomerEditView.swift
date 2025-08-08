@@ -59,10 +59,10 @@ struct CustomerEditView: View {
                         
                         TextField("Empresa" , text: $customer.company)
                         TextField("NIT" , text:  $viewModel.nit )
-                            .onChange(of: viewModel.nit){customer.nit = viewModel.nit}
+                            .onChange(of: viewModel.nit) { _, _ in customer.nit = viewModel.nit}
                         
                         TextField("NRC", text: $viewModel.nrc)
-                            .onChange(of: viewModel.nrc){ customer.nrc = viewModel.nrc}
+                            .onChange(of: viewModel.nrc) { _, _ in customer.nrc = viewModel.nrc}
                         
                         Button(customer.descActividad ?? "Actividad Económica"){
                             viewModel.displayPickerSheet.toggle()
@@ -110,7 +110,7 @@ struct CustomerEditView: View {
                             dep in
                             Text(dep.details).tag(dep.code)
                         }
-                    }.onChange(of: viewModel.departamento){
+                    }.onChange(of: viewModel.departamento) { _, _ in
                         onDepartamentoChange()
                     }
                     
@@ -121,7 +121,7 @@ struct CustomerEditView: View {
                             Text(munic.details).tag(munic.code)
                         }
                     }
-                    .onChange(of:viewModel.municipio){
+                    .onChange(of:viewModel.municipio) { _, _ in
                         onMunicipioChange()
                     }
                     

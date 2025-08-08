@@ -284,6 +284,9 @@ class RequestProductionAccessViewModel {
     
     // Generate Facturas
     func generateFacturas(forceGenerate: Bool = false) {
+        // Initialize progress for single document processing
+        self.facturasProgress = 0.0
+        
         if !forceGenerate && self.invoices.count(where: { $0.invoiceType == .Factura && $0.status == .Completada }) >= self.totalInvoices {
             self.hasProcessedFacturas = true
             self.alertMessage = "Ya existen suficientes Facturas completadas."
@@ -293,7 +296,7 @@ class RequestProductionAccessViewModel {
         
         var invoiceIndex = getNextInoviceNumber()
         
-        for _ in 1...self.totalInvoices {  
+        for i in 1...self.totalInvoices {  
             let customer = self.customers.randomElement()!
             let invoiceNumber = String(format: "%05d", invoiceIndex)
             let invoice = Invoice(invoiceNumber: invoiceNumber, date: Date(), status: .Nueva, customer: customer, invoiceType: .Factura)
@@ -313,6 +316,9 @@ class RequestProductionAccessViewModel {
             invoiceIndex += 1
             //safeModelContext.insert(invoice)
             self.generatedInvoices.append(invoice)
+            
+            // Update progress during generation for single document processing
+            self.facturasProgress = Double(i) / Double(self.totalInvoices)
             //return invoice
         }
         
@@ -325,6 +331,9 @@ class RequestProductionAccessViewModel {
     
     // Generate Creditos Fiscales
     func generateCreditosFiscales(forceGenerate: Bool = false) {
+        // Initialize progress for single document processing
+        self.ccfProgress = 0.0
+        
         if !forceGenerate && self.invoices.count(where: { $0.invoiceType == .CCF && $0.status == .Completada }) >= self.totalInvoices {
             self.hasProcessedCCF = true
             self.alertMessage = "Ya existen suficientes Créditos Fiscales completados."
@@ -334,7 +343,7 @@ class RequestProductionAccessViewModel {
         
         var invoiceIndex = getNextInoviceNumber()
         
-        for _ in 1...self.totalInvoices { 
+        for i in 1...self.totalInvoices { 
             let customer = self.customers.randomElement()!
             let invoiceNumber = String(format: "%05d", invoiceIndex)
             let ccf = Invoice(invoiceNumber: invoiceNumber, date: Date(), status: .Nueva, customer: customer, invoiceType: .CCF)
@@ -354,6 +363,9 @@ class RequestProductionAccessViewModel {
             invoiceIndex += 1
             self.generatedInvoices.append(ccf)
             //safeModelContext.insert(ccf)
+            
+            // Update progress during generation for single document processing
+            self.ccfProgress = Double(i) / Double(self.totalInvoices)
             //return ccf
         }
         
@@ -366,6 +378,9 @@ class RequestProductionAccessViewModel {
     
     // Generate Credit Notes
     func generateCreditNotes(forceGenerate: Bool = false) {
+        // Initialize progress for single document processing
+        self.creditNotesProgress = 0.0
+        
         if !forceGenerate && self.invoices.count(where: { $0.invoiceType == .NotaCredito && $0.status == .Completada }) >= BatchLimit {
             self.hasProcessedCreditNotes = true
             self.alertMessage = "Ya existen suficientes Notas de Crédito completadas."
@@ -373,68 +388,83 @@ class RequestProductionAccessViewModel {
             return
         }
         
-        // Check if we have enough CCF to generate credit notes
+        // Check if we have enough SYNCHRONIZED CCF to generate credit notes
         let calendar = Calendar.current
         _ = calendar.startOfDay(for: Date())
         
-        let hasCCFAvailable = self.invoices.count(where: { 
+        // Credit notes need to reference CCF that are already synchronized (.Completada)
+        let completedCCFCount = self.invoices.count(where: { 
             $0.invoiceType == .CCF && 
-            $0.status == .Nueva && 
-            calendar.isDate($0.date, inSameDayAs: Date())
-        }) >= BatchLimit
+            $0.status == .Completada
+        })
+        
+        let hasCCFAvailable = completedCCFCount >= BatchLimit
         
         if !hasCCFAvailable {
-            // Generate more CCF first if needed
+            // Generate more CCF first if needed, but they need to be synchronized before creating credit notes
             generateCreditosFiscales(forceGenerate: forceGenerate)
+            // Note: The CCF will need to be synchronized before credit notes can be created
         }
         
-        // Filter to get only today's CCF invoices for credit notes
+        // Filter to get only SYNCHRONIZED CCF invoices for credit notes
         let ccfInvoices = self.invoices.filter { 
             $0.invoiceType == .CCF && 
-            $0.status == .Nueva &&
-            calendar.isDate($0.date, inSameDayAs: Date())
+            $0.status == .Completada
         }.suffix(BatchLimit)
         
         var invoiceIndex = getNextInoviceNumber()
         
-        // If we don't have enough from today, create a new CCF then a note
-        if ccfInvoices.count < BatchLimit {
-            // Use a simple for loop instead of map
-            for _ in 1...self.totalInvoices {
-                // Create a new CCF
-                let customer = self.customers.randomElement()!
-                let invoiceNumber = String(format: "%05d", invoiceIndex)
-                let ccf = Invoice(invoiceNumber: invoiceNumber, date: Date(), status: .Nueva, customer: customer, invoiceType: .CCF)
-                
-                // Add items to the CCF
-                ccf.items = self.products.map { product in
-                    InvoiceDetail(quantity: Decimal(Int.random(in: 1...5)), product: product)
-                }
-                
-                // Set document type - CRITICAL for proper sync
-                ccf.documentType = Extensions.documentTypeFromInvoiceType(.CCF)
-                
-                // Set sync status based on company type
-                ccf.shouldSyncToCloudKit = !safeCompany.isTestAccount
-                invoiceIndex += 1
-                
-                // Set control numbers
-                Extensions.generateControlNumberAndCode(ccf)
-                
-                self.generatedInvoices.append(ccf)
-                
-                // Create a credit note for this CCF
-                let note = generateCreditNotefromInvoice(ccf, invoiceNumber: String(format: "%05d", invoiceIndex))
-                invoiceIndex += 1
-                self.generatedInvoices.append(note)
+        // Use available synchronized CCF invoices to create credit notes, or create new ones if needed
+        let availableCCFCount = min(ccfInvoices.count, BatchLimit)
+        let neededCCFCount = BatchLimit - availableCCFCount
+        
+        var noteIndex = 1
+        
+        // First, use existing synchronized CCF invoices
+        for ccf in ccfInvoices.prefix(availableCCFCount) {
+            let note = generateCreditNotefromInvoice(ccf, invoiceNumber: String(format: "%05d", invoiceIndex))
+            invoiceIndex += 1
+            self.generatedInvoices.append(note)
+            
+            // Update progress during generation for single document processing
+            self.creditNotesProgress = Double(noteIndex) / Double(BatchLimit)
+            noteIndex += 1
+        }
+        
+        // Then, create new CCF documents and credit notes for the remaining needed count
+        for i in 1...neededCCFCount {
+            // Create a new CCF
+            let customer = self.customers.randomElement()!
+            let ccfNumber = String(format: "%05d", invoiceIndex)
+            let ccf = Invoice(invoiceNumber: ccfNumber, date: Date(), status: .Nueva, customer: customer, invoiceType: .CCF)
+            
+            // Add items to the CCF
+            ccf.items = self.products.map { product in
+                InvoiceDetail(quantity: Decimal(Int.random(in: 1...5)), product: product)
             }
-        } else {
-            // Use existing CCF invoices
-            for ccf in ccfInvoices {
-                let note = generateCreditNotefromInvoice(ccf, invoiceNumber: String(format: "%05d", invoiceIndex))
-                invoiceIndex += 1
-                self.generatedInvoices.append(note)
-            }
+            
+            // Set document type - CRITICAL for proper sync
+            ccf.documentType = Extensions.documentTypeFromInvoiceType(.CCF)
+            
+            // Set sync status based on company type
+            ccf.shouldSyncToCloudKit = !safeCompany.isTestAccount
+            invoiceIndex += 1
+            
+            // Set control numbers
+            Extensions.generateControlNumberAndCode(ccf)
+            
+            // Mark as helper CCF for credit notes
+            ccf.isHelperForCreditNote = true
+            self.generatedInvoices.append(ccf)
+            
+            // Create a credit note for this CCF
+            let note = generateCreditNotefromInvoice(ccf, invoiceNumber: String(format: "%05d", invoiceIndex))
+            invoiceIndex += 1
+            self.generatedInvoices.append(note)
+            
+            // Update progress during generation for single document processing
+            self.creditNotesProgress = Double(noteIndex) / Double(BatchLimit)
+            noteIndex += 1
         }
         
         self.hasProcessedCreditNotes = true
@@ -488,6 +518,9 @@ class RequestProductionAccessViewModel {
     
     // Generate Sujeto Excluido invoices
     func generateSujetoExcluido(forceGenerate: Bool = false) {
+        // Initialize progress for single document processing
+        self.sujetoExcluidoProgress = 0.0
+        
         if !forceGenerate && self.invoices.count(where: { $0.invoiceType == .SujetoExcluido && $0.status == .Completada }) >= self.totalInvoices {
             self.hasProcessedSujetoExcluido = true
             self.alertMessage = "Ya existen suficientes Sujetos Excluidos completados."
@@ -497,7 +530,7 @@ class RequestProductionAccessViewModel {
         
         var invoiceIndex = getNextInoviceNumber()
         
-        for _ in 1...self.totalInvoices {  
+        for i in 1...self.totalInvoices {  
             let customer = self.customers.randomElement()!
             let invoiceNumber = String(format: "%05d", invoiceIndex)
             let invoice = Invoice(invoiceNumber: invoiceNumber, date: Date(), status: .Nueva, customer: customer, invoiceType: .SujetoExcluido)
@@ -516,6 +549,9 @@ class RequestProductionAccessViewModel {
             
             invoiceIndex += 1
             self.generatedInvoices.append(invoice)
+            
+            // Update progress during generation for single document processing
+            self.sujetoExcluidoProgress = Double(i) / Double(self.totalInvoices)
         }
         
         self.hasProcessedSujetoExcluido = true
@@ -525,6 +561,9 @@ class RequestProductionAccessViewModel {
     
     // Generate Nota Debito invoices
     func generateNotaDebito(forceGenerate: Bool = false) {
+        // Initialize progress for single document processing
+        self.notaDebitoProgress = 0.0
+        
         if !forceGenerate && self.invoices.count(where: { $0.invoiceType == .NotaDebito && $0.status == .Completada }) >= BatchLimit {
             self.hasProcessedNotaDebito = true
             self.alertMessage = "Ya existen suficientes Notas de Débito completadas."
@@ -532,64 +571,78 @@ class RequestProductionAccessViewModel {
             return
         }
         
-        // Check if we have enough CCF to generate debit notes
+        // Check if we have enough SYNCHRONIZED CCF to generate debit notes
         let calendar = Calendar.current
         _ = calendar.startOfDay(for: Date())
         
-        let hasCCFAvailable = self.invoices.count(where: { 
+        // Debit notes need to reference CCF that are already synchronized (.Completada)
+        let completedCCFCount = self.invoices.count(where: { 
             $0.invoiceType == .CCF && 
-            $0.status == .Nueva && 
-            calendar.isDate($0.date, inSameDayAs: Date())
-        }) >= BatchLimit
+            $0.status == .Completada
+        })
+        
+        let hasCCFAvailable = completedCCFCount >= BatchLimit
         
         if !hasCCFAvailable {
-            // Generate more CCF first if needed
+            // Generate more CCF first if needed, but they need to be synchronized before creating debit notes
             generateCreditosFiscales(forceGenerate: forceGenerate)
+            // Note: The CCF will need to be synchronized before debit notes can be created
         }
         
-        // Filter to get only today's CCF invoices for debit notes
+        // Filter to get only SYNCHRONIZED CCF invoices for debit notes
         let ccfInvoices = self.invoices.filter { 
             $0.invoiceType == .CCF && 
-            $0.status == .Nueva &&
-            calendar.isDate($0.date, inSameDayAs: Date())
+            $0.status == .Completada
         }.suffix(BatchLimit)
         
         var invoiceIndex = getNextInoviceNumber()
         
-        // If we don't have enough from today, create a new CCF then a note
-        if ccfInvoices.count < BatchLimit {
-            // Use a simple for loop instead of map
-            for _ in 1...self.totalInvoices {
-                let customer = self.customers.randomElement()!
-                let ccfNumber = String(format: "%05d", invoiceIndex)
-                let ccf = Invoice(invoiceNumber: ccfNumber, date: Date(), status: .Nueva, customer: customer, invoiceType: .CCF)
-                
-                ccf.items = self.products.map { product in
-                    return InvoiceDetail(quantity: Decimal(Int.random(in: 1...5)), product: product)
-                }
-                
-                // Set document type - CRITICAL for proper sync
-                ccf.documentType = Extensions.documentTypeFromInvoiceType(.CCF)
-                
-                invoiceIndex += 1
-                Extensions.generateControlNumberAndCode(ccf)
-                
-                // Mark the CCF as a helper invoice for debit notes (not to be shown in progress)
-                ccf.isHelperForCreditNote = true
-                self.generatedInvoices.append(ccf)
-                
-                // Create a debit note for this CCF
-                let note = generateNotaDebitofromInvoice(ccf, invoiceNumber: String(format: "%05d", invoiceIndex))
-                invoiceIndex += 1
-                self.generatedInvoices.append(note)
+        // Use available synchronized CCF invoices to create debit notes, or create new ones if needed
+        let availableCCFCount = min(ccfInvoices.count, BatchLimit)
+        let neededCCFCount = BatchLimit - availableCCFCount
+        
+        var noteIndex = 1
+        
+        // First, use existing synchronized CCF invoices
+        for ccf in ccfInvoices.prefix(availableCCFCount) {
+            let note = generateNotaDebitofromInvoice(ccf, invoiceNumber: String(format: "%05d", invoiceIndex))
+            invoiceIndex += 1
+            self.generatedInvoices.append(note)
+            
+            // Update progress during generation for single document processing
+            self.notaDebitoProgress = Double(noteIndex) / Double(BatchLimit)
+            noteIndex += 1
+        }
+        
+        // Then, create new CCF documents and debit notes for the remaining needed count
+        for i in 1...neededCCFCount {
+            // Create a new CCF
+            let customer = self.customers.randomElement()!
+            let ccfNumber = String(format: "%05d", invoiceIndex)
+            let ccf = Invoice(invoiceNumber: ccfNumber, date: Date(), status: .Nueva, customer: customer, invoiceType: .CCF)
+            
+            ccf.items = self.products.map { product in
+                return InvoiceDetail(quantity: Decimal(Int.random(in: 1...5)), product: product)
             }
-        } else {
-            // Use existing CCF invoices
-            for ccf in ccfInvoices {
-                let note = generateNotaDebitofromInvoice(ccf, invoiceNumber: String(format: "%05d", invoiceIndex))
-                invoiceIndex += 1
-                self.generatedInvoices.append(note)
-            }
+            
+            // Set document type - CRITICAL for proper sync
+            ccf.documentType = Extensions.documentTypeFromInvoiceType(.CCF)
+            
+            invoiceIndex += 1
+            Extensions.generateControlNumberAndCode(ccf)
+            
+            // Mark the CCF as a helper invoice for debit notes (not to be shown in progress)
+            ccf.isHelperForCreditNote = true
+            self.generatedInvoices.append(ccf)
+            
+            // Create a debit note for this CCF
+            let note = generateNotaDebitofromInvoice(ccf, invoiceNumber: String(format: "%05d", invoiceIndex))
+            invoiceIndex += 1
+            self.generatedInvoices.append(note)
+            
+            // Update progress during generation for single document processing
+            self.notaDebitoProgress = Double(noteIndex) / Double(BatchLimit)
+            noteIndex += 1
         }
         
         self.hasProcessedNotaDebito = true
@@ -631,6 +684,14 @@ class RequestProductionAccessViewModel {
     func sendInvoices(onCompletion: (() -> Void)? = nil) {
         self.isSyncing = true
         self.progress = 0.0
+        
+        // Reset individual document progress for sync phase
+        self.facturasProgress = 0.0
+        self.ccfProgress = 0.0
+        self.creditNotesProgress = 0.0
+        self.sujetoExcluidoProgress = 0.0
+        self.notaDebitoProgress = 0.0
+        
         Task {
             await validateCertificateCredentialasAsync()
             await validateCredentialsAsync()
@@ -1186,7 +1247,15 @@ class RequestProductionAccessViewModel {
         var sujetoExcluidoProcessed = 0
         var notaDebitoProcessed = 0
         
-        for (index, invoice) in self.generatedInvoices.enumerated() {
+        // Sort invoices to ensure CCF documents are synchronized before credit/debit notes that reference them
+        let sortedInvoices = self.generatedInvoices.sorted { invoice1, invoice2 in
+            // Define priority order for synchronization
+            let priority1 = getSyncPriority(for: invoice1.invoiceType)
+            let priority2 = getSyncPriority(for: invoice2.invoiceType)
+            return priority1 < priority2
+        }
+        
+        for (index, invoice) in sortedInvoices.enumerated() {
             if invoice.status == .Completada {
                 continue
             }
@@ -1224,8 +1293,8 @@ class RequestProductionAccessViewModel {
                     if notaDebitoCount > 0 {
                         self.notaDebitoProgress = Double(notaDebitoProcessed) / Double(notaDebitoCount)
                     }
-                default:
-                    break
+                default: break
+                    
                 }
                 
             } catch {
@@ -1248,10 +1317,9 @@ class RequestProductionAccessViewModel {
                 default:
                     break
                 }
-            }
-            
-            // Update overall progress
-            self.progress = Double(index + 1) / Double(totalInvoices)
+            }                
+                // Update overall progress
+                self.progress = Double(index + 1) / Double(sortedInvoices.count)
         }
         
         // Mark completed statuses
@@ -1311,6 +1379,19 @@ class RequestProductionAccessViewModel {
             }
         default:
             break
+        }
+    }
+    
+    // Helper method to determine synchronization priority
+    // Lower numbers are synchronized first
+    private func getSyncPriority(for invoiceType: InvoiceType) -> Int {
+        switch invoiceType {
+        case .Factura: return 1
+        case .CCF: return 2  // CCF must be synchronized before credit/debit notes
+        case .SujetoExcluido: return 3
+        case .NotaCredito: return 4  // Credit notes depend on CCF, so sync after
+        case .NotaDebito: return 5   // Debit notes depend on CCF, so sync after
+        default: return 6
         }
     }
     

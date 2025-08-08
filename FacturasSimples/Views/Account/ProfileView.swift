@@ -4,14 +4,8 @@ import UIKit
 
 struct ProfileView: View {
     
-    
-//    @State var userName:String = "-"
-//    @State var email: String = "@id.com"
-//
     @Environment(\.modelContext) var modelContext
-    @EnvironmentObject var storeKitManager: StoreKitManager
-    
-  
+    @StateObject private var purchaseManager = PurchaseDataManager.shared
     
     @State var isToggleOn = true
     
@@ -34,6 +28,7 @@ struct ProfileView: View {
     
     @State var viewModel = ProfileViewModel()
     @State private var showPurchaseView = false
+    @State private var showUnifiedPurchaseView = false
     @State private var showPurchaseHistory = false
     @State private var showProductionRequestSheet = false
     @State private var companyForProductionRequest: Company?
@@ -57,7 +52,8 @@ struct ProfileView: View {
     /// Dynamic subtitle for the credits button
     private var creditsButtonSubtitle: String {
         if let company = defaultSectedCompany, !company.isTestAccount {
-            return "\(storeKitManager.userCredits.availableInvoices) créditos disponibles"
+            let availableCredits = purchaseManager.userProfile?.availableInvoices ?? 0
+            return "\(availableCredits) créditos disponibles"
         } else {
             return "Selecciona empresa de producción"
         }
@@ -97,20 +93,16 @@ struct ProfileView: View {
                 }
             }
             .navigationTitle("configuración")
-            .onChange(of: selectedCompanyId) {
+            .onChange(of: selectedCompanyId) { _, _ in
                 print("🔄 selectedCompanyId changed to: \(selectedCompanyId)")
                 loadProfileAndSelectedCompany()
-                // Refresh credits when company changes to ensure UI is current
-                storeKitManager.refreshUserCredits()
             }
-            .onChange(of: companyId) {
+            .onChange(of: companyId) { _, _ in
                 print("🔄 companyId changed to: \(companyId)")
                 // The didSet already updates selectedCompanyId, so loadProfileAndSelectedCompany 
                 // will be called by the selectedCompanyId onChange
             }        .onAppear{
             loadProfileAndSelectedCompany()
-            // Refresh credits to ensure UI shows current balance
-            storeKitManager.refreshUserCredits()
             
             // Add notification observer for production request navigation
             NotificationCenter.default.addObserver(
@@ -224,12 +216,12 @@ struct ProfileView: View {
                     // No company selected, show production company selection
                     viewModel.showProductionCompanySelectionDialog = true
                 } else {
-                    // Current company is production, proceed with purchase flow
-                    showPurchaseView = true
+                    // Current company is production, proceed with unified purchase flow
+                    showUnifiedPurchaseView = true
                 }
             }, label: {
                 HStack {
-                    Image(systemName: "creditcard.fill").padding(.horizontal, 5.0)
+                    Image(systemName: "doc.text.fill").padding(.horizontal, 5.0)
                         .foregroundColor(Color.white)
                     VStack(alignment: .leading) {
                         Text("Comprar Créditos")
@@ -277,15 +269,16 @@ struct ProfileView: View {
         .sheet(isPresented: $viewModel.showAccountSummary){
             UserAccountView();
             }
+        .sheet(isPresented: $showUnifiedPurchaseView) {
+            UnifiedPurchaseView()
+        }
         .sheet(isPresented: $showPurchaseView) {
-            InAppPurchaseView()
-                .environmentObject(storeKitManager)
+            UnifiedPurchaseView()
         }
         .sheet(isPresented: $showPurchaseHistory) {
             PurchaseHistoryView(onBrowseBundles: {
-                showPurchaseView = true
+                showUnifiedPurchaseView = true
             })
-                .environmentObject(storeKitManager)
         }
         .sheet(isPresented: $viewModel.showProductionCompanySelectionDialog) {
             NavigationStack {
@@ -351,11 +344,8 @@ struct ProfileView: View {
         viewModel.showSetProductionCompanyConfirmDialog = false
         viewModel.showProductionCompanySelectionDialog = false
         
-        // Refresh credits after company change
-        storeKitManager.refreshUserCredits()
-        
-        // Now show the purchase view
-        showPurchaseView = true
+        // Now show the unified purchase view
+        showUnifiedPurchaseView = true
     }
     
     // Function for setting created production company as default and showing purchase view
@@ -370,14 +360,11 @@ struct ProfileView: View {
             print("🏢 Company Type: \(company.isTestAccount ? "TEST" : "PRODUCTION")")
         }
         
-        // Refresh credits after company change
-        storeKitManager.refreshUserCredits()
-        
         // Refresh the view to update UI
         loadProfileAndSelectedCompany()
         
-        // Show the purchase view automatically
-        showPurchaseView = true
+        // Show the unified purchase view automatically
+        showUnifiedPurchaseView = true
     }
 }
 
@@ -411,6 +398,5 @@ struct ProfileViewWrapper: View {
     
     var body: some View {
         ProfileView( selectedCompanyId: $selectedCompanyId)
-            .environmentObject(StoreKitManager())
     }
 }

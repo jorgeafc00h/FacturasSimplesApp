@@ -4,6 +4,7 @@
 //
 //  Created by Jorge Flores on 6/9/25.
 //
+// UNCOMMENTED FOR USE - Re-enabled promo code functionality
 
 import SwiftUI
 

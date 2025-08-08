@@ -75,11 +75,11 @@ private struct SubPageView<ActionView:View> :View{
                 let isIPad = UIDevice.current.userInterfaceIdiom == .pad
                 let imageSizeFactor: CGFloat = {
                     if isSyncing && isIPad {
-                        return 0.4 // Much smaller on iPad when syncing
+                        return 0.5 // Bigger size on iPad when syncing
                     } else if isSyncing {
-                        return 0.6 // Smaller on iPhone when syncing
+                        return 0.75 // Bigger size on iPhone when syncing
                     } else if isIPad {
-                        return 0.8 // Normal size on iPad
+                        return 0.9 // Bigger normal size on iPad
                     } else {
                         return 1.0 // Full size on iPhone
                     }
@@ -299,9 +299,9 @@ struct PreProdStep1:View{
     enum DocumentType: String, CaseIterable, Identifiable {
         case factura = "Facturas"
         case ccf = "Créditos Fiscales"
-        case notaCredito = "Notas de Crédito"
+        case notaCredito = "Notas de Crédito (requiere CCF)"
         case sujetoExcluido = "Sujetos Excluidos"
-        case notaDebito = "Notas de Débito"
+        case notaDebito = "Notas de Débito (requiere CCF)"
         case todo = "Todo"
         
         var id: String { self.rawValue }
@@ -314,6 +314,18 @@ struct PreProdStep1:View{
             case .sujetoExcluido: return "person.badge.minus"
             case .notaDebito: return "arrow.right.and.left.doc"
             case .todo: return "doc.on.doc.fill"
+            }
+        }
+        
+        // Shorter display name for progress view
+        var shortName: String {
+            switch self {
+            case .factura: return "Facturas"
+            case .ccf: return "Créditos Fiscales"
+            case .notaCredito: return "Notas de Crédito"
+            case .sujetoExcluido: return "Sujetos Excluidos"
+            case .notaDebito: return "Notas de Débito"
+            case .todo: return "Todo"
             }
         }
         
@@ -411,18 +423,40 @@ struct PreProdStep1:View{
     
     private var singleProgressView: some View {
         VStack(spacing: 16) {
-            EnhancedProgressView(
-                title: "Procesando \(selectedDocType.rawValue)",
-                progress: getSingleDocumentProgress(for: selectedDocType),
-                icon: selectedDocType.iconName,
-                isActive: viewModel.isSyncing
-            )
+            // Special dual progress layout for notes that depend on CCF
+            if selectedDocType == .notaCredito || selectedDocType == .notaDebito {
+                VStack(spacing: 12) {
+                    // Main document progress
+                    EnhancedProgressView(
+                        title: "Procesando \(selectedDocType.shortName)",
+                        progress: getSingleDocumentProgress(for: selectedDocType),
+                        icon: selectedDocType.iconName,
+                        isActive: viewModel.isSyncing
+                    )
+                    
+                    // CCF dependency progress (secondary)
+                    EnhancedProgressView(
+                        title: "Créditos Fiscales (base requerida)",
+                        progress: getCCFProgress(),
+                        icon: "doc.text.fill",
+                        isActive: viewModel.isSyncing
+                    )
+                }
+            } else {
+                // Single progress for other document types
+                EnhancedProgressView(
+                    title: "Procesando \(selectedDocType.shortName)",
+                    progress: getSingleDocumentProgress(for: selectedDocType),
+                    icon: selectedDocType.iconName,
+                    isActive: viewModel.isSyncing
+                )
+            }
             
-            // Invoice count label
+            // Simplified invoice count label
             HStack {
                 Text(getInvoiceCountText(for: selectedDocType))
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(Color.black)
                 Spacer()
             }
             .padding(.horizontal)
@@ -721,6 +755,19 @@ struct PreProdStep1:View{
         }
     }
     
+    /// Returns CCF progress for dependency tracking
+    private func getCCFProgress() -> Double {
+        let totalCCF = viewModel.generatedInvoices.filter { $0.invoiceType == .CCF }.count
+        let completedCCF = viewModel.generatedInvoices.filter { 
+            $0.invoiceType == .CCF && $0.status == .Completada 
+        }.count
+        
+        if totalCCF > 0 {
+            return Double(completedCCF) / Double(totalCCF)
+        }
+        return 0.0
+    }
+    
     /// Returns the count text for synced and pending invoices for a specific document type
     private func getInvoiceCountText(for docType: DocumentType) -> String {
         let syncedCount: Int
@@ -754,6 +801,35 @@ struct PreProdStep1:View{
         
         let pendingCount = totalCount - syncedCount
         return "Sincronizadas: \(syncedCount) | Pendientes: \(pendingCount)"
+    }
+    
+    /// Returns explanation text for document types that depend on CCF
+    private func getExplanationText(for docType: DocumentType) -> String {
+        switch docType {
+        case .notaCredito:
+            return "Las Notas de Crédito requieren Créditos Fiscales existentes como base. El proceso puede tomar más tiempo."
+        case .notaDebito:
+            return "Las Notas de Débito requieren Créditos Fiscales existentes como base. El proceso puede tomar más tiempo."
+        default:
+            return ""
+        }
+    }
+    
+    /// Returns CCF count information for notes processing
+    private func getCCFCountText() -> String {
+        let ccfCount = viewModel.generatedInvoices.filter { 
+            $0.invoiceType == .CCF && $0.status == .Completada 
+        }.count
+        
+        let helperCCFCount = viewModel.generatedInvoices.filter { 
+            $0.invoiceType == .CCF && $0.isHelperForCreditNote 
+        }.count
+        
+        if helperCCFCount > 0 {
+            return "Documentos Procesados: \(ccfCount) | CCF auxiliares creados: \(helperCCFCount)"
+        } else {
+            return "Documentos Procesados: \(ccfCount)"
+        }
     }
 }
  

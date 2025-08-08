@@ -13,7 +13,9 @@ import CloudKit
 struct FacturasSimplesApp: App {
     // Use unified CloudKit container for all models
     let modelContainer = DataModel.shared.modelContainer
-    @StateObject private var storeManager = StoreKitManager()
+    // COMMENTED OUT FOR APP SUBMISSION - REMOVE StoreKit DEPENDENCY
+    // @StateObject private var storeManager = StoreKitManager()
+    //@StateObject private var storeManager = StoreKitManager() // Placeholder without StoreKit
     @StateObject private var companyStorageManager = CompanyStorageManager.shared
     
     init() {
@@ -28,7 +30,7 @@ struct FacturasSimplesApp: App {
     var body: some Scene {
         WindowGroup {
             Home()
-                .environmentObject(storeManager)
+                //.environmentObject(storeManager)
                 .environmentObject(companyStorageManager)
         }
         .modelContainer(modelContainer)

@@ -1,14 +1,16 @@
 //
+//
 //  PurchaseHistoryView.swift
 //  FacturasSimples
 //
 //  Created by Jorge Flores on 6/3/25.
+//  Purchase history view for external payment system
 //
 
 import SwiftUI
 
 struct PurchaseHistoryView: View {
-    @EnvironmentObject var storeManager: StoreKitManager
+    @StateObject private var purchaseManager = PurchaseDataManager.shared
     @Environment(\.dismiss) private var dismiss
     
     // Optional callback to handle "Browse Bundles" action
@@ -17,193 +19,156 @@ struct PurchaseHistoryView: View {
     var body: some View {
         NavigationView {
             Group {
-                if storeManager.userCredits.transactions.isEmpty {
+                if purchaseManager.recentTransactions.isEmpty {
                     emptyStateView
                 } else {
                     transactionsList
                 }
             }
-            .navigationTitle("Purchase History")
+            .navigationTitle("Historial de Compras")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
+                    Button("Cerrar") {
                         dismiss()
                     }
                 }
-                
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Restore") {
-                        Task {
-                            await storeManager.restorePurchases()
-                        }
-                    }
-                    .disabled(storeManager.isLoading)
-                }
             }
+        }
+        .task {
+            purchaseManager.loadRecentTransactions()
         }
     }
     
     // MARK: - Empty State
     private var emptyStateView: some View {
         VStack(spacing: 24) {
-            Image(systemName: "doc.text")
+            Spacer()
+            
+            Image(systemName: "doc.text.circle")
                 .font(.system(size: 60))
                 .foregroundColor(.secondary)
             
-            VStack(spacing: 8) {
-                Text("No Purchases Yet")
+            VStack(spacing: 12) {
+                Text("Sin Compras Registradas")
                     .font(.title2)
                     .fontWeight(.semibold)
                 
-                Text("Your purchase history will appear here once you buy invoice bundles")
-                    .font(.subheadline)
+                Text("Cuando realices compras de paquetes de facturas, aparecerán aquí.")
+                    .font(.body)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
             }
             
-            Button("Browse Bundles") {
-                dismiss()
-                onBrowseBundles?()
+            if let onBrowseBundles = onBrowseBundles {
+                Button("Explorar Paquetes") {
+                    onBrowseBundles()
+                }
+                .buttonStyle(.borderedProminent)
+                .padding(.top)
             }
-            .buttonStyle(.borderedProminent)
+            
+            Spacer()
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
     // MARK: - Transactions List
     private var transactionsList: some View {
-        List {
-            // Summary Section
-            Section {
-                summaryCard
-            }
-            
-            // Transactions Section
-            Section("Purchase History") {
-                ForEach(storeManager.userCredits.transactions.sorted { $0.purchaseDate > $1.purchaseDate }) { transaction in
-                    TransactionRow(transaction: transaction)
+        ScrollView {
+            LazyVStack(spacing: 16) {
+                ForEach(purchaseManager.recentTransactions.sorted(by: { ($0.purchaseDate ?? Date()) > ($1.purchaseDate ?? Date()) })) { transaction in
+                    TransactionRowView(transaction: transaction)
                 }
             }
+            .padding()
         }
-        .listStyle(.insetGrouped)
+    }
+}
+
+// MARK: - Transaction Row View
+struct TransactionRowView: View {
+    let transaction: PurchaseTransaction
+    
+    private var transactionStatusColor: Color {
+        switch transaction.status?.lowercased() ?? "" {
+        case "completed", "success", "successful":
+            return .green
+        case "pending", "processing":
+            return .orange
+        case "failed", "error", "cancelled":
+            return .red
+        default:
+            return .secondary
+        }
     }
     
-    // MARK: - Summary Card
-    private var summaryCard: some View {
-        VStack(spacing: 16) {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Available Credits")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                    
-                    Text("\(storeManager.userCredits.availableInvoices)")
-                        .font(.title)
-                        .fontWeight(.bold)
-                        .foregroundColor(.green)
-                }
-                
-                Spacer()
-                
-                VStack(alignment: .trailing, spacing: 4) {
-                    Text("Total Purchased")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                    
-                    Text("\(storeManager.userCredits.totalPurchased)")
-                        .font(.title)
-                        .fontWeight(.bold)
-                        .foregroundColor(.blue)
-                }
-            }
+    private var transactionStatusIcon: String {
+        switch transaction.status?.lowercased() ?? "" {
+        case "completed", "success", "successful":
+            return "checkmark.circle.fill"
+        case "pending", "processing":
+            return "clock.circle.fill"
+        case "failed", "error", "cancelled":
+            return "xmark.circle.fill"
+        default:
+            return "questionmark.circle.fill"
+        }
+    }
+    
+    var body: some View {
+        HStack(spacing: 16) {
+            // Status icon
+            Image(systemName: transactionStatusIcon)
+                .font(.title2)
+                .foregroundColor(transactionStatusColor)
             
-            if storeManager.userCredits.totalPurchased > storeManager.userCredits.availableInvoices {
-                let usedCredits = storeManager.userCredits.totalPurchased - storeManager.userCredits.availableInvoices
+            // Transaction details
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text("\(transaction.invoiceCount ?? 0) Facturas")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                    
+                    Spacer()
+                    
+                    Text("$\(String(format: "%.2f", transaction.amount ?? 0.0))")
+                        .font(.headline)
+                        .fontWeight(.bold)
+                        .foregroundColor(.primary)
+                }
                 
                 HStack {
-                    Text("Credits Used:")
+                    Text(transaction.productName ?? "Unknown Product")
+                        .font(.subheadline)
                         .foregroundColor(.secondary)
                     
                     Spacer()
                     
-                    Text("\(usedCredits)")
+                    Text((transaction.status ?? "Unknown").capitalized)
+                        .font(.caption)
                         .fontWeight(.medium)
+                        .foregroundColor(transactionStatusColor)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 2)
+                        .background(transactionStatusColor.opacity(0.1))
+                        .cornerRadius(4)
                 }
-                .font(.caption)
+                
+                Text((transaction.purchaseDate ?? Date()).formatted(date: .abbreviated, time: .shortened))
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
         }
         .padding()
-        .background(Color(UIColor.secondarySystemBackground))
-        .cornerRadius(12)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(.systemBackground))
+                .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
+        )
     }
 }
 
-// MARK: - Transaction Row
-struct TransactionRow: View {
-    let transaction: StoredTransaction
-    
-    private var bundle: InvoiceBundle? {
-        InvoiceBundle.allBundles.first { $0.id == transaction.productID }
-    }
-    
-    var body: some View {
-        HStack(spacing: 12) {
-            // Icon
-            Image(systemName: transaction.isRestored ? "arrow.clockwise.circle.fill" : "purchased.circle.fill")
-                .foregroundColor(transaction.isRestored ? .orange : .green)
-                .font(.title2)
-            
-            // Transaction details
-            VStack(alignment: .leading, spacing: 2) {
-                Text(bundle?.name ?? "Unknown Bundle")
-                    .font(.headline)
-                
-                Text("\(transaction.invoiceCount) invoices")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                
-                Text(transaction.purchaseDate, style: .date)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            
-            Spacer()
-            
-            // Status badge
-            VStack(alignment: .trailing, spacing: 2) {
-                if transaction.isRestored {
-                    Text("Restored")
-                        .font(.caption)
-                        .fontWeight(.medium)
-                        .foregroundColor(.orange)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 2)
-                        .background(Color.orange.opacity(0.1))
-                        .cornerRadius(4)
-                } else {
-                    Text("Purchased")
-                        .font(.caption)
-                        .fontWeight(.medium)
-                        .foregroundColor(.green)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 2)
-                        .background(Color.green.opacity(0.1))
-                        .cornerRadius(4)
-                }
-                
-                Text(bundle?.formattedPrice ?? "")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-        }
-        .padding(.vertical, 4)
-    }
-}
-
-// MARK: - Preview
 #Preview {
     PurchaseHistoryView()
-        .environmentObject(StoreKitManager())
 }

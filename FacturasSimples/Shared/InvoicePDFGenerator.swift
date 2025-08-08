@@ -176,7 +176,7 @@ class InvoicePDFGenerator {
             
             // Column 1
             "Nombre ó Razón Social:".draw(at: CGPoint(x: receptorCol1, y: receptorY), withAttributes: grayAttributes)
-            (invoice.customer?.company ?? "N/A").draw(at: CGPoint(x: receptorCol1, y: receptorY + 10), withAttributes: regularAttributes)
+            (invoice.customer?.fullName ?? "N/A").draw(at: CGPoint(x: receptorCol1, y: receptorY + 10), withAttributes: regularAttributes)
             
             "NRC:".draw(at: CGPoint(x: receptorCol1, y: receptorY + receptorLabelSpacing), withAttributes: grayAttributes)
             (invoice.customer?.nrc ?? "").draw(at: CGPoint(x: receptorCol1, y: receptorY + receptorLabelSpacing +  CGFloat(10)), withAttributes: regularAttributes)
@@ -190,7 +190,13 @@ class InvoicePDFGenerator {
             
             // Column 3
             "N° Documento:".draw(at: CGPoint(x: receptorCol3, y: receptorY), withAttributes: grayAttributes)
-            (invoice.customer?.nationalId ?? "").draw(at: CGPoint(x: receptorCol3, y: receptorY + 10), withAttributes: regularAttributes)
+            
+            let documentNumber = (invoice.customer?.hasInvoiceSettings ?? false ) &&
+            ((invoice.customer?.nit.isEmpty ?? true) == false ) ?
+            invoice.customer?.nit ?? "" : invoice.customer?.nationalId ?? ""
+            
+            
+            (documentNumber).draw(at: CGPoint(x: receptorCol3, y: receptorY + 10), withAttributes: regularAttributes)
             
             "Dirección:".draw(at: CGPoint(x: receptorCol3, y: receptorY + receptorLabelSpacing), withAttributes: grayAttributes)
             SplitText(invoice.customer?.address ?? "", 40).draw(at: CGPoint(x: receptorCol3, y: receptorY + receptorLabelSpacing + 10), withAttributes: regularAttributes)
@@ -207,8 +213,8 @@ class InvoicePDFGenerator {
             
             // Table Grid
             let tableY: CGFloat = 320
-            let columns = ["N°", "Cant.", "Unidad", "Descripción", "Precio\nUnitario", "Descuento\nítem", "Ventas no\nsujetas", "Ventas\nexentas", "Ventas\ngravadas"]
-            let columnWidths: [CGFloat] = [25, 35, 40, 180, 60, 60, 60, 60, 60]
+            let columns = ["N°", "Cant.", "Descripción", "Precio\nUnitario", "Descuento\nítem", "Ventas no\nsujetas", "Ventas\nexentas", "Ventas\ngravadas"]
+            let columnWidths: [CGFloat] = [25, 35, 220, 60, 60, 60, 60, 60]
             var currentX: CGFloat = 30
             var currentY: CGFloat = tableY
             
@@ -236,31 +242,30 @@ class InvoicePDFGenerator {
                 "\(item.quantity)".draw(at: CGPoint(x: currentX + 2, y: currentY), withAttributes: regularAttributes)
                 currentX += columnWidths[1]
                 
-                "Unidad".draw(at: CGPoint(x: currentX + 2, y: currentY), withAttributes: regularAttributes)
-                currentX += columnWidths[2]
-                
                 (item.product?.productName ?? "").draw(at: CGPoint(x: currentX + 2, y: currentY), withAttributes: regularAttributes)
-                currentX += columnWidths[3]
+                currentX += columnWidths[2]
                 
                 
                 if(invoice.isCCF){
                     (item.product?.priceWithoutTax ?? 0).formatted(.currency(code: "USD")).draw(at: CGPoint(x: currentX + 2, y: currentY), withAttributes: regularAttributes)
-                    currentX += columnWidths[4]
+                    currentX += columnWidths[3]
                 }
                 else{
                     (item.product?.unitPrice ?? 0).formatted(.currency(code: "USD")).draw(at: CGPoint(x: currentX + 2, y: currentY), withAttributes: regularAttributes)
-                    currentX += columnWidths[4]
+                    currentX += columnWidths[3]
                 }
+                "$0.00".draw(at: CGPoint(x: currentX + 2, y: currentY), withAttributes: regularAttributes)
+                currentX += columnWidths[4]
+                
                 "$0.00".draw(at: CGPoint(x: currentX + 2, y: currentY), withAttributes: regularAttributes)
                 currentX += columnWidths[5]
                 
                 "$0.00".draw(at: CGPoint(x: currentX + 2, y: currentY), withAttributes: regularAttributes)
                 currentX += columnWidths[6]
                 
-                "$0.00".draw(at: CGPoint(x: currentX + 2, y: currentY), withAttributes: regularAttributes)
-                currentX += columnWidths[7]
+                let productTotal = invoice.isCCF ? item.productTotalWithoutTax.asDoubleRounded : item.productTotal.asDoubleRounded
                 
-                item.productTotal.formatted(.currency(code: "USD")).draw(at: CGPoint(x: currentX + 2, y: currentY), withAttributes: regularAttributes)
+                productTotal.formatted(.currency(code: "USD")).draw(at: CGPoint(x: currentX + 2, y: currentY), withAttributes: regularAttributes)
                 
                 currentY += 15
             }
@@ -307,7 +312,9 @@ class InvoicePDFGenerator {
             
             let total =
             invoice.customer?.hasContributorRetention == true ?
-            (invoice.totalAmount.asDoubleRounded - invoice.ivaRete1.asDoubleRounded) :
+            (invoice.totalWithoutTax.asDoubleRounded - invoice.ivaRete1.asDoubleRounded) :
+            invoice.isCCF ?
+            invoice.totalWithoutTax.asDoubleRounded :
             invoice.totalAmount.asDoubleRounded
             
             
@@ -349,7 +356,7 @@ class InvoicePDFGenerator {
                 ("Monto Global de Descuento, Rebajas y Otros a Ventas Gravadas:", Decimal(0)),
                 ("20 - Impuesto al Valor Agregado 13%:",invoice.isCCF ?  invoice.tax : 0),
                 ("Sub Total:", invoice.isCCF ? invoice.subTotal: invoice.totalAmount),
-                ("(-) IVA Retenido:", Decimal(0)),
+                ("(-) IVA Retenido:", invoice.customer?.hasContributorRetention == true ? invoice.ivaRete1 : Decimal(0)),
                 ("(-) Retención Renta:", invoice.invoiceType == .SujetoExcluido ? invoice.reteRenta : Decimal(0)),
                 ("Monto Total de la Operación:", invoice.totalAmount),
                 ("Total Otros Montos No Afectos:", Decimal(0)),

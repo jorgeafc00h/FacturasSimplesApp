@@ -4,9 +4,12 @@
 //
 //  Created by Jorge Flores on 6/3/25.
 //
+// COMMENTED OUT FOR APP SUBMISSION - REMOVE StoreKit DEPENDENCY
+// Uncomment this entire file to re-enable in-app purchases
 
 import SwiftUI
 
+/*
 struct CreditsGateView: View {
     @EnvironmentObject var storeManager: StoreKitManager
     @State private var showPurchaseView = false
@@ -148,3 +151,19 @@ extension View {
         .environmentObject(StoreKitManager())
     }
 }
+*/
+
+//// PLACEHOLDER VIEW FOR COMPILATION
+//struct CreditsGateView: View {
+//    let onProceed: () -> Void
+//    
+//    var body: some View {
+//        VStack {
+//            Text("Credits Gate Disabled")
+//            Button("Continue") {
+//                onProceed()
+//            }
+//        }
+//        .navigationTitle("Comprar Créditos")
+//    }
+//}
